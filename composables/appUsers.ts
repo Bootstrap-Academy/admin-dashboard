@@ -155,15 +155,13 @@ export async function getBalanceOfThisUser(id: string) {
 	}
 }
 
-export async function setBalanceOfThisUser(id: string, coins: number) {
+export async function setBalanceOfThisUser(id: string, body: any) {
 	try {
 		if (!!!id) {
 			throw { data: { detail: 'Missing user id' } };
 		}
 
-		const response = await PUT(`/shop/coins/${id}`, <any>{
-			coins: coins,
-		});
+		const response = await POST(`/shop/coins/${id}`, body);
 
 		return [response, null];
 	} catch (error: any) {
@@ -212,6 +210,20 @@ export async function setXPOfThisUser(
 		);
 
 		return [response, null];
+	} catch (error: any) {
+		return [null, error.data];
+	}
+}
+
+// https://api-test.bootstrap.academy/auth/users/{user_id}/email
+export async function verifyUser(id: string, code: string) {
+	try {
+		if (!!!id) {
+			throw { data: { detail: 'Missing user id' } };
+		}
+		// const response = await POST(`/auth/users/${id}/email`, <any>{ code: code });
+		// const response = await POST(`/auth/users/${id}/email`, <any>{ code: code });
+		return ['response', null];
 	} catch (error: any) {
 		return [null, error.data];
 	}

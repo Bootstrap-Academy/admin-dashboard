@@ -77,6 +77,13 @@
 					:icon="NoSymbolIcon"
 				/>
 				<Icon
+					@click="onclickVerifyUser(item)"
+					class="cursor-pointer"
+					rounded
+					sm
+					:icon="CheckCircleIcon"
+				/>
+				<Icon
 					@click="onclickViewUser(item)"
 					class="cursor-pointer"
 					rounded
@@ -236,6 +243,26 @@ export default {
 			appUser.value = user;
 			router.push(`/dashboard/users/${user.id}`);
 		}
+
+		async function onclickVerifyUser(user: any) {
+			let isVerified = user.email_verified;
+
+			let code = '';
+
+			setLoading(true);
+			const [success, error] = await verifyUser(user.id, code);
+			setLoading(false);
+
+			success
+				? openSnackbar(
+						'success',
+						isVerified
+							? `${user?.name ?? 'User'} has been verified`
+							: `${user?.name ?? 'User'} has been un-verified`
+				  )
+				: openSnackbar('error', error?.detail ?? '');
+		}
+
 		return {
 			isLoading,
 			isMobile,
@@ -247,6 +274,9 @@ export default {
 			onclickDeleteUser,
 			onclickBanUser,
 			onclickViewUser,
+			onclickVerifyUser,
+			CheckCircleIcon,
+			XCircleIcon,
 		};
 	},
 };
