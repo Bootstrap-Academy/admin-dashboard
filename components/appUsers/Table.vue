@@ -6,20 +6,28 @@
 		@isMobile="isMobile = $event"
 	>
 		<template #display_name="{ item }">
-			<div class="flex gap-2 md:gap-4 items-center max-w-[350px]">
+			<div class="flex gap-2 md:gap-4 items-center">
 				<img
 					:src="item.avatar_url"
 					alt=""
 					class="h-5 w-5 md:h-10 md:w-10 object-contain rounded-full"
 				/>
-				<div>
-					<p class="clamp line-1 text-body-2">
+				<div class="overflow-hidden w-full max-w-[325px]">
+					<p class="truncate text-ellipsis text-body-2">
 						{{ item.display_name }}
 					</p>
-					<p class="hidden md:clamp line-1 text-body-1">
+					<p class="hidden md:block truncate text-ellipsis">
 						{{ item.email }}
 					</p>
 				</div>
+			</div>
+		</template>
+
+		<template #name="{ item }">
+			<div class="overflow-hidden w-full max-w-[200px]">
+				<p class="truncate text-ellipsis">
+					{{ item.name }}
+				</p>
 			</div>
 		</template>
 
@@ -75,6 +83,13 @@
 					rounded
 					sm
 					:icon="NoSymbolIcon"
+				/>
+				<Icon
+					@click="onclickVerifyUser(item)"
+					class="cursor-pointer"
+					rounded
+					sm
+					:icon="CheckCircleIcon"
 				/>
 				<Icon
 					@click="onclickViewUser(item)"
@@ -236,6 +251,28 @@ export default {
 			appUser.value = user;
 			router.push(`/dashboard/users/${user.id}`);
 		}
+
+		async function onclickVerifyUser(user: any) {
+			let isVerified = user.email_verified;
+
+			setLoading(true);
+			const [success, error] = await setEmailVerificationOfThisUser(
+				user.id,
+				!isVerified
+			);
+			setLoading(false);
+
+			let newStatus = success?.email_verified ?? false;
+			success
+				? openSnackbar(
+						'success',
+						newStatus
+							? `${user?.name ?? 'User'} has been verified`
+							: `${user?.name ?? 'User'} has been un-verified`
+				  )
+				: openSnackbar('error', error?.detail ?? '');
+		}
+
 		return {
 			isLoading,
 			isMobile,
@@ -247,6 +284,9 @@ export default {
 			onclickDeleteUser,
 			onclickBanUser,
 			onclickViewUser,
+			onclickVerifyUser,
+			CheckCircleIcon,
+			XCircleIcon,
 		};
 	},
 };

@@ -155,15 +155,13 @@ export async function getBalanceOfThisUser(id: string) {
 	}
 }
 
-export async function setBalanceOfThisUser(id: string, coins: number) {
+export async function setBalanceOfThisUser(id: string, body: any) {
 	try {
 		if (!!!id) {
 			throw { data: { detail: 'Missing user id' } };
 		}
 
-		const response = await PUT(`/shop/coins/${id}`, <any>{
-			coins: coins,
-		});
+		const response = await POST(`/shop/coins/${id}`, body);
 
 		return [response, null];
 	} catch (error: any) {
@@ -210,6 +208,40 @@ export async function setXPOfThisUser(
 			`/skills/xp/${id}/${rootSkill}/${subSkill}`,
 			body
 		);
+
+		return [response, null];
+	} catch (error: any) {
+		return [null, error.data];
+	}
+}
+
+export async function setEmailVerificationOfThisUser(
+	id: string,
+	status: boolean
+) {
+	try {
+		if (!!!id) {
+			throw { data: { detail: 'Missing user id' } };
+		}
+		const response = await PATCH(`/auth/users/${id}`, <any>{
+			email_verified: status,
+		});
+
+		const appUser: Ref<any> = useAppUser();
+		appUser.value = response ?? null;
+
+		const appUsers: Ref<any[]> = useAppUsers();
+
+		let mappedUsers = appUsers.value.map((user) => {
+			return user.id == id
+				? {
+						...user,
+						email_verified: response?.email_verified ?? user.email_verified,
+				  }
+				: user;
+		});
+
+		appUsers.value = [...mappedUsers];
 
 		return [response, null];
 	} catch (error: any) {
