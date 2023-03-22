@@ -215,15 +215,35 @@ export async function setXPOfThisUser(
 	}
 }
 
-// https://api-test.bootstrap.academy/auth/users/{user_id}/email
-export async function verifyUser(id: string, code: string) {
+export async function setEmailVerificationOfThisUser(
+	id: string,
+	status: boolean
+) {
 	try {
 		if (!!!id) {
 			throw { data: { detail: 'Missing user id' } };
 		}
-		// const response = await POST(`/auth/users/${id}/email`, <any>{ code: code });
-		// const response = await POST(`/auth/users/${id}/email`, <any>{ code: code });
-		return ['response', null];
+		const response = await PATCH(`/auth/users/${id}`, <any>{
+			email_verified: status,
+		});
+
+		const appUser: Ref<any> = useAppUser();
+		appUser.value = response ?? null;
+
+		const appUsers: Ref<any[]> = useAppUsers();
+
+		let mappedUsers = appUsers.value.map((user) => {
+			return user.id == id
+				? {
+						...user,
+						email_verified: response?.email_verified ?? user.email_verified,
+				  }
+				: user;
+		});
+
+		appUsers.value = [...mappedUsers];
+
+		return [response, null];
 	} catch (error: any) {
 		return [null, error.data];
 	}
