@@ -5,6 +5,10 @@
 		"LoginForm": "Please enter your credentials"
 	},
 	"Headings": {
+		"Comment":"Comment",
+		"Reason":"Reason",
+		"ReportedBy":"Reported By",
+		"ReportedAt":"Reported At",
 		"Website": "Bootstrap Academy Admin",
 		"LoginForm": "Admin Login",
 		"Dashboard": "Dashboard",
@@ -156,7 +160,8 @@
 		"Dashboard": "Dashboard",
 		"Users": "Users",
 		"Jobs": "Jobs",
-		"SkillTree": "Skill Tree"
+		"SkillTree": "Skill Tree",
+		"ReportedTasks":"Reported Tasks"
 	},
 	"Success": {
 		"DeleteUser": "{placeholder} has been deleted successfully.",

@@ -235,9 +235,9 @@ export async function setEmailVerificationOfThisUser(
 		let mappedUsers = appUsers.value.map((user) => {
 			return user.id == id
 				? {
-						...user,
-						email_verified: response?.email_verified ?? user.email_verified,
-				  }
+					...user,
+					email_verified: response?.email_verified ?? user.email_verified,
+				}
 				: user;
 		});
 
