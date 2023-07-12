@@ -2,13 +2,22 @@
   <div>
     <Reported-TasksTable :data="reportedSubtasksList" :loading="loading" />
 
-    <Btn @click="onclickLoadMore" secondary class="mx-auto mt-card">
+    <Btn
+      v-if="!!!noMoreSubtasks"
+      @click="onclickLoadMore"
+      secondary
+      class="mx-auto mt-card"
+    >
       <template v-if="loading">
         <span class="mr-2">Loading</span>
         <LoadingCircular />
       </template>
       <span v-else>Load More</span>
     </Btn>
+
+    <p v-else class="text-center mt-10">
+      {{ t("Headings.NoMoreSubtasks") }}
+    </p>
 
     <ScrollToBtn :scrollRef="scrollRef" />
   </div>
@@ -22,6 +31,7 @@ import {
   useReportedSubtasks,
   useLimitReportedTasks,
   useOffsetReportedTasks,
+  useNoMoreSubtasks,
 } from "../../../composables/reportedSubtasks";
 
 definePageMeta({
@@ -30,9 +40,13 @@ definePageMeta({
 });
 
 export default {
+  head: {
+    title: "Reported Skills",
+  },
   setup() {
     const limit = useLimitReportedTasks();
     const offset = useOffsetReportedTasks();
+    const noMoreSubtasks = useNoMoreSubtasks();
     const { t } = useI18n();
     const reportedSubtasksList = useReportedSubtasks();
     const loading = ref(
@@ -43,17 +57,24 @@ export default {
     async function onclickLoadMore() {
       offset.value = offset.value + limit.value;
       loading.value = true;
-      await getreportedSubtasksList();
+      await getreportedSubtasksList(false);
       loading.value = false;
     }
 
     onMounted(async () => {
       loading.value = true;
-      await getreportedSubtasksList();
+      await getreportedSubtasksList(true);
       loading.value = false;
     });
 
-    return { scrollRef, reportedSubtasksList, loading, onclickLoadMore };
+    return {
+      scrollRef,
+      reportedSubtasksList,
+      loading,
+      onclickLoadMore,
+      noMoreSubtasks,
+      t,
+    };
   },
 };
 </script>
