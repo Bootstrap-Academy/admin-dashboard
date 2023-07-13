@@ -5,7 +5,10 @@
 		"LoginForm": "Please enter your credentials"
 	},
 	"Headings": {
-		"ReportedTasks":"Reported Tasks",
+		"ManageReport":"Manage Report",
+"Xp":"Xp",
+		"Morphcoins":"Morphcoins",
+		"Fee":"Fee",		"ReportedTasks":"Reported Tasks",
 		"NoMoreSubtasks":"No More Subtasks",
 		"SolutionCode":"Solution Code",
 		"SolutionEnvironment":"Solution Environment",
@@ -186,6 +189,10 @@
 		"EnableUser": "{placeholder} has been enabled successfully."
 	},
 	"Error": {
+		"SubtaskNotFound":"Subtask Not Found",
+		"McqNotFound":"MCQ Not Found",
+		"CodingChallengeNotFound":"Coding Challenge Not Found",
+		"ReportNotFound":"Report Not Found. It may be deleted from databaase or doesn't exist",
 		"ReportAlreadyResolved":"Report Already Resolved",
 		"NotAuthorized": "You are not authorized to use this dashboard.",
 		"InputCodeFormat": "Invalid code format",

@@ -102,13 +102,19 @@
     </template>
     <template #CanPost="{ item }">
       <div class="flex justify-center w-64">
-        <InputCheckbox />
+        <InputCheckbox
+          v-model="banFromPosting"
+          @click="fnBanFromPosting(item)"
+        />
       </div>
     </template>
 
     <template #CanReport="{ item }">
       <div class="flex justify-center w-64">
-        <InputCheckbox />
+        <InputCheckbox
+          v-model="banFromReporting"
+          @click="fnBanFromReporting(item)"
+        />
       </div>
     </template>
   </Table>
@@ -148,7 +154,8 @@ export default {
     const isLoading = computed(() => {
       return props.loading && props.data.length <= 0;
     });
-
+    const banFromPosting = ref(false);
+    const banFromReporting = ref(false);
     const isMobile = ref(false);
 
     const headers = computed(() => {

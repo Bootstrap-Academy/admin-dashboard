@@ -1,5 +1,7 @@
 <template>
   <div class="mb-20">
+    <PageTitle class="mb-8" />
+
     <section class="bg-[#3fdfa933] p-4 flex capitalize gap-2 rounded-md">
       <div class="h-10 w-10 mt-0.5">
         <ExclamationCircleIcon class="text-info min-w-[32px] min-h-[32px]" />
@@ -97,7 +99,9 @@ export default {
 
     function sucessHandler(success: any) {
       openSnackbar("success", "Success.ResolveReport");
+      router.push("/dashboard/reported-tasks");
     }
+
     function errorHandler(error: any) {
       openSnackbar("error", error);
     }
@@ -106,11 +110,19 @@ export default {
       setLoading(true);
       if (reportSubtaskType.value.includes("MULTIPLE_CHOICE_QUESTION")) {
         const [success, error] = await getMcq(task_id.value, subtask_id.value);
+        if (error) {
+          openSnackbar("error", error ?? "");
+          router.push("/dashboard/reported-tasks");
+        }
       } else {
         const [success, error] = await getCodingChallenge(
           task_id.value,
           subtask_id.value
         );
+        if (error) {
+          openSnackbar("error", error ?? "");
+          router.push("/dashboard/reported-tasks");
+        }
       }
       setLoading(false);
     });

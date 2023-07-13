@@ -248,3 +248,23 @@ export async function setEmailVerificationOfThisUser(
 		return [null, error.data];
 	}
 }
+
+export async function banAppUser(body: any) {
+	try {
+		const res = await POST(`/challenges/bans`)
+		return [res, null]
+	}
+	catch (error: any) {
+		return [null, error]
+	}
+}
+
+export async function unbanAppUser(id: any) {
+	try {
+		const res = await POST(`/challenges/bans/${id}`)
+		return [res, null]
+	}
+	catch (error: any) {
+		return [null, error]
+	}
+}

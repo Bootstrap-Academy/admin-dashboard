@@ -13,10 +13,7 @@
       :key="i"
     >
       <span class="h-10 w-10">
-        <CheckIcon
-          v-if="answer?.answer == true"
-          class="max-h-[32px] max-w-[32px]"
-        />
+        <CheckIcon v-if="answer?.correct" class="max-h-[32px] max-w-[32px]" />
         <XMarkIcon v-else class="max-h-[32px] max-w-[32px]" />
       </span>
 

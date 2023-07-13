@@ -62,9 +62,11 @@ export async function resolveReport(report_id: any, body: any) {
         let details = error?.data?.error ?? "";
         if (details.includes("already_resolved")) {
             error.data.detail = "Error.ReportAlreadyResolved";
+        } else if (details.includes("report_not_found")) {
+            error.data.detail = "Error.ReportNotFound";
         }
 
-        console.log("error", error.data)
+        console.log("error is this", error.data)
         return [null, error.data.detail]
     }
 }
@@ -78,7 +80,13 @@ export async function getCodingChallenge(task_id: any, subtask_id: any) {
         return [res, null]
     }
     catch (error: any) {
-        return [null, error]
+        let details = error?.data?.error ?? "";
+        if (details.includes("subtask_not_found")) {
+            error.data.detail = "Error.CodingChallengeNotFound";
+        }
+
+        console.log("error is this", error.data)
+        return [null, error.data.detail]
 
     }
 }
@@ -104,7 +112,13 @@ export async function getMcq(task_id: any, subtask_id: any) {
         return [res, null]
     }
     catch (error: any) {
-        return [null, error]
+        let details = error?.data?.error ?? "";
+        if (details.includes("subtask_not_found")) {
+            error.data.detail = "Error.McqNotFound";
+        }
+
+        console.log("error is this", error.data)
+        return [null, error.data.detail]
 
     }
 }

@@ -1,5 +1,11 @@
 <template>
   <div>
+    <Head>
+      <Title>Manage User - {{ appUser?.name ?? "" }}</Title>
+    </Head>
+    <PageTitle class="mb-8" />
+    <div ref="scrollRef"></div>
+
     <Reported-TasksTable :data="reportedSubtasksList" :loading="loading" />
 
     <Btn
@@ -43,6 +49,7 @@ export default {
   head: {
     title: "Reported Skills",
   },
+
   setup() {
     const limit = useLimitReportedTasks();
     const offset = useOffsetReportedTasks();
@@ -62,6 +69,7 @@ export default {
     }
 
     onMounted(async () => {
+      reportedSubtasksList.value = [];
       loading.value = true;
       await getreportedSubtasksList(true);
       loading.value = false;

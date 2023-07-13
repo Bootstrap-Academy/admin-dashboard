@@ -5,6 +5,7 @@
 		"LoginForm": "Please enter your credentials"
 	},
 	"Headings": {
+		"ManageReport":"Manage Report",
 		"ReportedTasks":"Reported Tasks",
 		"NoMoreSubtasks":"No More Subtasks",
 		"Xp":"Xp",
@@ -188,6 +189,10 @@
 		"EnableUser": "{placeholder} has been enabled successfully."
 	},
 	"Error": {
+		"SubtaskNotFound":"Subtask Not Found",
+		"McqNotFound":"MCQ Not Found",
+		"CodingChallengeNotFound":"Coding Challenge Not Found",
+		"ReportNotFound":"Report Not Found. It may be deleted from databaase or doesn't exist",
 		"ReportAlreadyResolved":"Report Already Resolved",
 		"NotAuthorized": "You are not authorized to use this dashboard.",
 		"InputCodeFormat": "Invalid code format",

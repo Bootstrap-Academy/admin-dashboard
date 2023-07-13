@@ -46,6 +46,7 @@
 
 <script>
 import { useI18n } from "vue-i18n";
+import { logout } from "~~/composables/auth";
 import {
   Squares2X2Icon,
   UsersIcon,
@@ -111,7 +112,7 @@ export default {
       return route.name;
     });
 
-    return { t, links, activePathName, emit };
+    return { t, links, activePathName, emit, logout };
   },
 };
 </script>

@@ -14,7 +14,7 @@ export default defineComponent({
 
     const pageTitle = computed((): string => {
       let routeName = (<string>route?.name ?? "").toLocaleLowerCase();
-      console.log("name", routeName);
+      console.log("name of page", routeName);
       switch (routeName) {
         case "dashboard":
           return "Headings.Dashboard";
@@ -46,6 +46,8 @@ export default defineComponent({
           return "Headings.CreateSubTree";
         case "dashboard-reported-tasks":
           return "Headings.ReportedTasks";
+        case "dashboard-reported-tasks-id":
+          return "Headings.ManageReport";
 
         default:
           return routeName;
