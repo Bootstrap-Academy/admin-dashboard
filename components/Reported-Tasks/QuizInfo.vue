@@ -8,16 +8,20 @@
 
     <p
       :class="answer.correct ? 'bg-success' : 'bg-error'"
-      class="flex gap-3 py-2 text-white text-2xl px-3 mb-3"
+      class="flex gap-3 py-2 text-white text-lg rounded-md px-3 mb-3"
       v-for="(answer, i) of mcq?.answers"
       :key="i"
     >
       <span class="h-10 w-10">
-        <CheckIcon v-if="answer?.correct" class="max-h-[32px] max-w-[32px]" />
-        <XMarkIcon v-else class="max-h-[32px] max-w-[32px]" />
+        <CheckIcon v-if="answer?.correct" class="min-h-[32px] min-w-[32px]" />
+        <XMarkIcon v-else class="min-h-[32px] min-w-[32px]" />
       </span>
 
-      {{ answer?.answer ?? "" }}
+      {{ answer?.answer ?? "" }} Lorem, ipsum dolor sit amet consectetur
+      adipisicing elit. Pariatur repellat quod accusamus quaerat. Aliquam
+      voluptate earum mollitia, laudantium excepturi enim corporis iste,
+      repudiandae, officia vel corrupti. Numquam ad error alias! Sapiente, nam
+      fugiat!
     </p>
   </div>
 </template>

@@ -186,8 +186,12 @@
 		"ResolveReport":"Successfully Resolved Report",
 		"DeleteUser": "{placeholder} has been deleted successfully.",
 		"BanUser": "{placeholder} has been banned successfully.",
-		"EnableUser": "{placeholder} has been enabled successfully."
-	},
+		"EnableUser": "{placeholder} has been enabled successfully.",
+		"BanDeleteForCreateSubtask":"User unbanned from creating tasks",
+		"CreateBanForCreateSubtask":"User banned from creating tasks",
+		"BanDeleteForReportSubtask":"User unbanned from reporting tasks",
+		"CreateBanForReportSubtask":"User banned from reporting tasks"
+		},
 	"Error": {
 		"SubtaskNotFound":"Subtask Not Found",
 		"McqNotFound":"MCQ Not Found",

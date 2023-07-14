@@ -103,8 +103,9 @@
     <template #CanPost="{ item }">
       <div class="flex justify-center w-64">
         <InputCheckbox
-          v-model="banFromPosting"
-          @click="fnBanFromPosting(item)"
+          class="w-3"
+          v-model="item.createBan"
+          @click="fnBanFromPosting(item, 'CREATE')"
         />
       </div>
     </template>
@@ -112,8 +113,9 @@
     <template #CanReport="{ item }">
       <div class="flex justify-center w-64">
         <InputCheckbox
-          v-model="banFromReporting"
-          @click="fnBanFromReporting(item)"
+          class="w-3"
+          v-model="item.reportBan"
+          @click="fnBanFromReporting(item, 'REPORT')"
         />
       </div>
     </template>
@@ -154,8 +156,7 @@ export default {
     const isLoading = computed(() => {
       return props.loading && props.data.length <= 0;
     });
-    const banFromPosting = ref(false);
-    const banFromReporting = ref(false);
+
     const isMobile = ref(false);
 
     const headers = computed(() => {
@@ -202,11 +203,6 @@ export default {
           key: "xp",
         },
         {
-          label: "Headings.Actions",
-          key: "actions",
-          class: "text-center",
-        },
-        {
           label: "Headings.BlockFromCreatingTasks",
           key: "CanPost",
           class: "text-center",
@@ -214,6 +210,11 @@ export default {
         {
           label: "Headings.BlockFromReportingTasks",
           key: "CanReport",
+          class: "text-center",
+        },
+        {
+          label: "Headings.Actions",
+          key: "actions",
           class: "text-center",
         },
       ];
@@ -301,6 +302,55 @@ export default {
         : openSnackbar("error", error?.detail ?? "");
     }
 
+    async function fnBanFromPosting(user: any, action: any) {
+      if (user.createBan) {
+        console.log("delete subtask creation ban", user.createBan);
+
+        const [success, error] = await unbanAppUser(user.createSubtaskBan_id);
+        if (success) {
+          openSnackbar("success", "Success.BanDeleteForCreateSubtask");
+          user.createBan = false;
+        } else errorHandler(error);
+      } else {
+        console.log("createBan", user.createBan);
+        const [success, error] = await banAppUser({
+          user_id: user.id,
+          action: action,
+        });
+        if (success) {
+          openSnackbar("success", "Success.CreateBanForCreateSubtask");
+          user.createSubtaskBan_id = success.id;
+          user.createBan = true;
+        } else errorHandler(error);
+      }
+    }
+
+    async function fnBanFromReporting(user: any, action: any) {
+      if (user.reportBan) {
+        console.log("delete report ban", user.reportBan);
+
+        const [success, error] = await unbanAppUser(user.reportBan_id);
+        if (success) {
+          openSnackbar("success", "Success.BanDeleteForReportSubtask");
+          user.reportBan = false;
+        } else errorHandler(error);
+      } else {
+        console.log("reportBan", user.reportBan);
+        const [success, error] = await banAppUser({
+          user_id: user.id,
+          action: action,
+        });
+        if (success) {
+          openSnackbar("success", "Success.CreateBanForReportSubtask");
+          user.reportBan_id = success.id;
+          user.reportBan = true;
+        } else errorHandler(error);
+      }
+    }
+    function errorHandler(error: any) {
+      console.log("error in table error handler", error);
+      openSnackbar("error", error);
+    }
     return {
       isLoading,
       isMobile,
@@ -315,6 +365,8 @@ export default {
       onclickVerifyUser,
       CheckCircleIcon,
       XCircleIcon,
+      fnBanFromPosting,
+      fnBanFromReporting,
     };
   },
 };

@@ -186,7 +186,11 @@
 		"ResolveReport":"Successfully Resolved Report",
 		"DeleteUser": "{placeholder} has been deleted successfully.",
 		"BanUser": "{placeholder} has been banned successfully.",
-		"EnableUser": "{placeholder} has been enabled successfully."
+		"EnableUser": "{placeholder} has been enabled successfully.",
+		"BanDeleteForCreateSubtask":"Benutzer das Erstellen von Aufgaben wurde aufgehoben",
+		"CreateBanForCreateSubtask":"Benutzer das Erstellen von Aufgaben ist verboten",
+		"BanDeleteForReportSubtask":"Benutzer von Meldeaufgaben ausgeschlossen",
+		"CreateBanForReportSubtask":"Benutzer von Berichtsaufgaben ausgeschlossen"
 	},
 	"Error": {
 		"SubtaskNotFound":"Subtask Not Found",

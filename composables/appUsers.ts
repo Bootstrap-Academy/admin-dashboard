@@ -8,6 +8,7 @@ export const useAppUser = () => useState('appUser', () => null);
 export const useOffset = () => useState('offset', () => 0);
 export const useLimit = () => useState('limit', () => 10);
 export const useQuery = () => useState('query', () => '');
+export const useBanUsers = () => useState('banUsers', () => []);
 
 export async function getAppUsers(filters: any) {
 	try {
@@ -53,6 +54,30 @@ export async function getAppUsers(filters: any) {
 			arr = [...appUsers.value, ...arr];
 			console.log('query is same');
 			// arr = [...new Set(arr)];
+		}
+		const banUsers: any = useBanUsers()
+
+		if (!banUsers.value.length) {
+			await getBanUsers()
+		}
+
+
+		console.log("aban users", banUsers.value)
+
+		if (banUsers.value.length) {
+			arr.forEach((user: any) => {
+				const bannedUser = banUsers.value.find((banned: any) => banned.user_id === user.id);
+				if (bannedUser) {
+					console.log("bannedUser", bannedUser)
+					if (bannedUser.action.toLowerCase().includes('report')) { user.reportBan = true; user.reportBan_id = bannedUser.id }
+					else user.reportBan = false
+					if (bannedUser.action.toLowerCase().includes('create')) { user.createBan = true; user.createSubtaskBan_id = bannedUser.id }
+					else user.createBan = false
+				} else {
+					user.reportBan = false
+					user.createBan = false
+				}
+			});
 		}
 
 		appUsers.value = arr;
@@ -113,6 +138,15 @@ export async function setBanStatusOfAppUser(status: boolean, id: string) {
 		}
 
 		return [response, null];
+	} catch (error: any) {
+		return [null, error.data];
+	}
+}
+export async function getBanUsers() {
+	try {
+		const banUsers = useBanUsers()
+		const res = await GET(`/challenges/bans`)
+		banUsers.value = res ?? []
 	} catch (error: any) {
 		return [null, error.data];
 	}
@@ -251,7 +285,7 @@ export async function setEmailVerificationOfThisUser(
 
 export async function banAppUser(body: any) {
 	try {
-		const res = await POST(`/challenges/bans`)
+		const res = await POST(`/challenges/bans`, { ...body, reason: '' })
 		return [res, null]
 	}
 	catch (error: any) {
@@ -261,7 +295,7 @@ export async function banAppUser(body: any) {
 
 export async function unbanAppUser(id: any) {
 	try {
-		const res = await POST(`/challenges/bans/${id}`)
+		const res = await DELETE(`/challenges/bans/${id}`)
 		return [res, null]
 	}
 	catch (error: any) {
