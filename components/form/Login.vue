@@ -21,6 +21,14 @@
 			@valid="form.password.valid = $event"
 		/>
 
+		<InputOTP
+			v-if="needMFA"
+			label="Inputs.MFACode"
+			v-model="form.mfa_code.value"
+			@valid="form.mfa_code.valid = needMFA ? $event : true"
+			:rules="form.mfa_code.rules"
+		/>
+
 		<InputBtn
 			:loading="form.submitting"
 			class="self-end"
@@ -58,6 +66,14 @@ export default defineComponent({
 				valid: false,
 				value: '',
 				rules: [(v: string) => !!v || 'Error.InputEmpty_Inputs.Password'],
+			},
+			mfa_code: {
+				valid: true,
+				value: '',
+				rules: [
+					(v: string) => !!v || 'Error.InputEmpty_Inputs.MFACode',
+					(v: string) => v.length >= 6 || 'Error.InputMinLength_6',
+				],
 			},
 			submitting: false,
 			validate: () => {
@@ -133,15 +149,31 @@ export default defineComponent({
 			router.push(`/dashboard`);
 		}
 
+		const needMFA = ref(false);
+
 		function errorHandler(res: any) {
-			openSnackbar('error', res?.detail ?? '');
+			let msg = res?.detail ?? '';
+
+			let isMFA = msg == 'Error.InvalidCode';
+
+			if (!!isMFA && !!needMFA.value) {
+				openSnackbar('error', msg);
+			}
+
+			if (isMFA) {
+				needMFA.value = true;
+			} else {
+				openSnackbar('error', msg);
+			}
 		}
+
 
 		return {
 			form,
 			onclickSubmitForm,
 			refForm,
 			t,
+			needMFA,
 		};
 	},
 });
