@@ -147,7 +147,8 @@
 		"SkillName": "Name",
 		"SkillIcon": "Icon",
 		"SkillDependencies": "Dependencies",
-		"SkillCourses": "Courses"
+		"SkillCourses": "Courses",
+		"MFACode": "MFA 6 digit Code"
 	},
 	"Buttons": {
 		"Incorrect":"Incorrect",
