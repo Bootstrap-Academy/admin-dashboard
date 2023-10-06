@@ -1,42 +1,10 @@
-# Nuxt 3 Minimal Starter
+# Bootstrap Academy Admin Dashboard
+The internal admin dashboard of [Bootstrap Academy](https://bootstrap.academy/).
 
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+If you would like to submit a bug report or feature request, or are looking for general information about the project or the publicly available instances, please refer to the [Bootstrap-Academy repository](https://github.com/Bootstrap-Academy/Bootstrap-Academy).
 
-## Setup
-
-Make sure to install the dependencies:
-
-```bash
-# yarn
-yarn install
-
-# npm
-npm install
-
-# pnpm
-pnpm install --shamefully-hoist
-```
-
-## Development Server
-
-Start the development server on http://localhost:3000
-
-```bash
-npm run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-npm run build
-```
-
-Locally preview production build:
-
-```bash
-npm run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Development Setup
+1. Install [Node.js and npm](https://nodejs.org/)
+2. Clone this repository and `cd` into it.
+3. Run `npm install` to install the dependencies.
+4. Run `npm run dev` to start a development server listening on http://localhost:3000/.
