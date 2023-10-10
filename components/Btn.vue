@@ -47,7 +47,7 @@ export default defineComponent({
 					? `secondary bg-transparent text-heading hover:bg-transparent border ${props.borderColor} hover:ring-4 md:hover:ring-8 hover:ring-tertiary`
 					: '',
 				props.tertiary
-					? `tertiary bg-transparent text-heading hover:bg-transparent hover:scale-105 border border-transparent hover:ring-4 md:hover:ring-8 hover:ring-transparent`
+					? "tertiary bg-transparent text-heading hover:bg-transparent hover:scale-105 border border-transparent hover:ring-4 md:hover:ring-8 hover:ring-transparent"
 					: '',
 			];
 		});

@@ -119,7 +119,7 @@ export default defineComponent({
 				} else if (!!file && file.size && file.size / 8000000 > props.maxSize) {
 					error.value = `${label} must be less than 5 mb`;
 				} else {
-					error.value = ``;
+					error.value = "";
 				}
 
 				if (!DOM_INPUT.value) return;

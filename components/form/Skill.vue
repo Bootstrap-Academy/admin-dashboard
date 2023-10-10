@@ -178,7 +178,7 @@ export default defineComponent({
 		function onclickDeleteSkill() {
 			openDialog(
 				'warning',
-				`Delete Skill`,
+				"Delete Skill",
 				`Are you sure you want to delete ${
 					props.data?.name ?? 'this skill'
 				}. This action cannot be undone.`,

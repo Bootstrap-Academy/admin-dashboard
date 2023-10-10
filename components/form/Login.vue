@@ -146,7 +146,7 @@ export default defineComponent({
 		}
 
 		function successHandler(res: any) {
-			router.push(`/dashboard`);
+			router.push("/dashboard");
 		}
 
 		const needMFA = ref(false);

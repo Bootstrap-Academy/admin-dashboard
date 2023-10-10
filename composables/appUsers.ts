@@ -145,7 +145,7 @@ export async function setBanStatusOfAppUser(status: boolean, id: string) {
 export async function getBanUsers() {
 	try {
 		const banUsers = useBanUsers()
-		const res = await GET(`/challenges/bans`)
+		const res = await GET("/challenges/bans")
 		banUsers.value = res ?? []
 	} catch (error: any) {
 		return [null, error.data];
@@ -285,7 +285,7 @@ export async function setEmailVerificationOfThisUser(
 
 export async function banAppUser(body: any) {
 	try {
-		const res = await POST(`/challenges/bans`, { ...body, reason: '' })
+		const res = await POST("/challenges/bans", { ...body, reason: '' })
 		return [res, null]
 	}
 	catch (error: any) {

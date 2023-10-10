@@ -20,7 +20,7 @@ export function get_x_timeAgo(timestamp: number) {
 	const seconds = Math.floor((Date.now() - dateObj.getTime()) / 1000);
 	const interval = intervals.find((i) => i.seconds < seconds);
 
-	if (!!!interval) return `Just created`;
+	if (!!!interval) return "Just created";
 
 	const count = Math.floor(seconds / interval.seconds);
 	return `${count} ${interval.label}${count !== 1 ? 's' : ''} ago`;
