@@ -98,7 +98,7 @@ export async function getAppUsers(filters: any) {
 
 export async function getAppUser(id: string) {
 	try {
-		if (Boolean(!id)) {
+		if (!id) {
 			throw { data: 'Invalid App User Id' };
 		}
 		const response = await GET(`/auth/users/${id}`);
@@ -114,7 +114,7 @@ export async function getAppUser(id: string) {
 
 export async function setBanStatusOfAppUser(status: boolean, id: string) {
 	try {
-		if (Boolean(!id)) {
+		if (!id) {
 			throw { data: 'Invalid App User Id' };
 		}
 
@@ -154,7 +154,7 @@ export async function getBanUsers() {
 
 export async function deleteAppUser(id: string) {
 	try {
-		if (Boolean(!id)) {
+		if (!id) {
 			throw { data: 'Invalid App User Id' };
 		}
 
@@ -177,7 +177,7 @@ export async function deleteAppUser(id: string) {
 
 export async function getBalanceOfThisUser(id: string) {
 	try {
-		if (Boolean(!id)) {
+		if (!id) {
 			throw { data: { detail: 'Missing user id' } };
 		}
 
@@ -191,7 +191,7 @@ export async function getBalanceOfThisUser(id: string) {
 
 export async function setBalanceOfThisUser(id: string, body: any) {
 	try {
-		if (Boolean(!id)) {
+		if (!id) {
 			throw { data: { detail: 'Missing user id' } };
 		}
 
@@ -205,7 +205,7 @@ export async function setBalanceOfThisUser(id: string, body: any) {
 
 export async function getXPOfThisUser(id: string) {
 	try {
-		if (Boolean(!id)) {
+		if (!id) {
 			throw { data: { detail: 'Missing user id' } };
 		}
 
@@ -224,13 +224,13 @@ export async function setXPOfThisUser(
 	xp: any
 ) {
 	try {
-		if (Boolean(!id)) {
+		if (!id) {
 			throw { data: { detail: 'Missing user id' } };
 		}
-		if (Boolean(!rootSkill)) {
+		if (!rootSkill) {
 			throw { data: { detail: 'Missing root Skill' } };
 		}
-		if (Boolean(!subSkill)) {
+		if (!subSkill) {
 			throw { data: { detail: 'Missing sub Skill' } };
 		}
 
@@ -254,7 +254,7 @@ export async function setEmailVerificationOfThisUser(
 	status: boolean
 ) {
 	try {
-		if (Boolean(!id)) {
+		if (!id) {
 			throw { data: { detail: 'Missing user id' } };
 		}
 		const response = await PATCH(`/auth/users/${id}`, <any>{

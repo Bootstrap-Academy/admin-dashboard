@@ -113,7 +113,7 @@ export default {
 		const subSkill = useSubSkill();
 
 		function onclickManageItem(item: any) {
-			if (Boolean(!props.rootSkillID)) return;
+			if (!props.rootSkillID) return;
 			router.push(
 				`/dashboard/skill-tree/${props.rootSkillID}/manage?subSkillID=${item.id}`
 			);

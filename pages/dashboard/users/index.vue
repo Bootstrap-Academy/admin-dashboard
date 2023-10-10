@@ -127,7 +127,7 @@ export default {
           }
 
           let xp = user?.xp ?? 0;
-          if (Boolean(!balance)) {
+          if (!balance) {
             const [success, error] = await getXPOfThisUser(user.id);
             xp = success?.total_xp ?? 0;
           }

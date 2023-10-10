@@ -314,7 +314,7 @@ export default defineComponent({
 		watch(
 			() => props.data,
 			(newValue, oldValue) => {
-				if (Boolean(!newValue)) return;
+				if (!newValue) return;
 				form.company_id.value = newValue?.company?.id ?? '';
 				form.title.value = newValue?.title ?? '';
 				form.contact.value = newValue?.contact ?? '';
@@ -342,7 +342,7 @@ export default defineComponent({
 		async function onclickSubmitForm() {
 			if (form.validate()) {
 				form.submitting = true;
-				const [success, error] = Boolean(props.data)
+				const [success, error] = (props.data)
 					? await editJob(props.data.id, form.body())
 					: await createJob(form.body());
 				form.submitting = false;

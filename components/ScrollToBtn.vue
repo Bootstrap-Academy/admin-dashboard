@@ -16,7 +16,7 @@ export default defineComponent({
   },
   setup(props) {
     function onclickScrollUp() {
-      if (Boolean(!props.scrollRef)) return;
+      if (!props.scrollRef) return;
       props.scrollRef.scrollIntoView({
         block: "start",
         behavior: "smooth",

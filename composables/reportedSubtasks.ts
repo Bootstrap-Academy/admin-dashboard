@@ -26,7 +26,7 @@ export async function getreportedSubtasksList(firstCall: any) {
             noMoreSubtasks.value = true
         }
         const reportedSubtasks: any = useReportedSubtasks();
-        if (Boolean(firstCall)) {
+        if (firstCall) {
             reportedSubtasks.value = []
         }
         arr = [...reportedSubtasks.value, ...response ?? []]

@@ -62,14 +62,14 @@ export default defineComponent({
 
 		function onclickAddToList() {
 			addToList.value = true;
-			if (Boolean(!input.value)) return;
+			if (!input.value) return;
 
 			let isSame = props.modelValue.find(
 				(item: string) =>
 					item.toLocaleLowerCase() == input.value.toLocaleLowerCase()
 			);
 
-			if (Boolean(!isSame)) {
+			if (!isSame) {
 				emit('update:modelValue', [...props.modelValue, input.value]);
 			}
 
