@@ -91,9 +91,9 @@ export default defineComponent({
 			let file = event?.target?.files[0] ?? null;
 
 			validate(file);
-			emit('file', !!!error.value ? file : null);
+			emit('file', Boolean(!error.value) ? file : null);
 
-			if (!!!file) return;
+			if (Boolean(!file)) return;
 			url.value = URL.createObjectURL(file);
 		}
 
@@ -114,9 +114,9 @@ export default defineComponent({
 			let label = props.video ? 'video' : 'image';
 
 			if (DOM_INPUT) {
-				if (!!!file && !!!url.value) {
+				if (Boolean(!file) && Boolean(!url.value)) {
 					error.value = `${label} cannot be empty`;
-				} else if (!!file && file.size && file.size / 8000000 > props.maxSize) {
+				} else if (Boolean(file) && file.size && file.size / 8000000 > props.maxSize) {
 					error.value = `${label} must be less than 5 mb`;
 				} else {
 					error.value = "";
@@ -125,7 +125,7 @@ export default defineComponent({
 				if (!DOM_INPUT.value) return;
 
 				DOM_INPUT.value.setCustomValidity(error.value);
-				emit('valid', !!!error.value);
+				emit('valid', Boolean(!error.value));
 			}
 		}
 

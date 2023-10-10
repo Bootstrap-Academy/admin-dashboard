@@ -39,7 +39,7 @@ export default defineComponent({
 				valid: false,
 				value: props.subSkillXP,
 				rules: [
-					(v: number) => !!v || 'XP cannot be empty',
+					(v: number) => Boolean(v) || 'XP cannot be empty',
 					(v: number) => v >= 0 || 'XP cannot be less than 0',
 				],
 			},

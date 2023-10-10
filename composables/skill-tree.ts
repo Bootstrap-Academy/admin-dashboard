@@ -36,7 +36,7 @@ export async function getRootSkill(id: string) {
 
 export async function getSubSkills(rootSkillID: string) {
 	try {
-		if (!!!rootSkillID) {
+		if (Boolean(!rootSkillID)) {
 			throw { data: 'Invalid root skill id' };
 		}
 
@@ -53,7 +53,7 @@ export async function getSubSkills(rootSkillID: string) {
 
 export async function getSkillTreeByRootID(rootSkillID: string) {
 	try {
-		if (!!!rootSkillID) {
+		if (Boolean(!rootSkillID)) {
 			throw { data: 'Invalid root skill id' };
 		}
 
@@ -76,7 +76,7 @@ export async function getSkillTreeByRootID(rootSkillID: string) {
 export async function createNewSkill(rootSkillID: string, body: any) {
 	const isRoot = rootSkillID == 'root';
 	try {
-		if (!!!rootSkillID) {
+		if (Boolean(!rootSkillID)) {
 			throw { data: 'Invalid root skill id' };
 		}
 
@@ -111,11 +111,11 @@ export async function updateSkill(
 ) {
 	const isRoot = rootSkillID == 'root';
 	try {
-		if (!!!rootSkillID) {
+		if (Boolean(!rootSkillID)) {
 			throw { data: 'Invalid root skill id' };
 		}
 
-		if (isRoot && !!!subSkillID) {
+		if (isRoot && Boolean(!subSkillID)) {
 			throw { data: 'Invalid sub skill id' };
 		}
 
@@ -148,11 +148,11 @@ export async function updateSkill(
 export async function deleteSkill(rootSkillID: string, subSkillID: string) {
 	const isRoot = rootSkillID == 'root';
 	try {
-		if (!!!rootSkillID) {
+		if (Boolean(!rootSkillID)) {
 			throw { data: 'Invalid root skill id' };
 		}
 
-		if (isRoot && !!!subSkillID) {
+		if (isRoot && Boolean(!subSkillID)) {
 			throw { data: 'Invalid sub skill id' };
 		}
 
@@ -177,7 +177,7 @@ export async function deleteSkill(rootSkillID: string, subSkillID: string) {
 export async function updateTreeSettings(rootSkillID: string, body: any) {
 	const isRoot = rootSkillID == 'root';
 	try {
-		if (!!!rootSkillID) {
+		if (Boolean(!rootSkillID)) {
 			throw { data: 'Invalid root skill id' };
 		}
 

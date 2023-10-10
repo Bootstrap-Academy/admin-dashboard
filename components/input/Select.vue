@@ -71,12 +71,12 @@ export default defineComponent({
 				return props.modelValue;
 			},
 			set(value: string) {
-				if (!!!value) return;
+				if (Boolean(!value)) return;
 				emit('update:modelValue', value);
 			},
 		});
 
-		input.value = !!input.value ? input.value : props.options[0]?.value ?? '';
+		input.value = Boolean(input.value) ? input.value : props.options[0]?.value ?? '';
 
 		const selectedOptionLabel = computed(() => {
 			return (

@@ -116,7 +116,7 @@ export default {
 		];
 
 		function onselectSortCompaniesBy(option: string) {
-			if (!!!companies.value || companies.value.length <= 0) return;
+			if (Boolean(!companies.value) || companies.value.length <= 0) return;
 
 			if (option == 'latest') {
 				companies.value.sort(function (x, y) {

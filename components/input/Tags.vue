@@ -56,13 +56,13 @@ export default defineComponent({
 		const isValid = ref(true);
 
 		const tags = computed(() => {
-			if (!isValid.value || !!!input.value.includes(' ')) {
+			if (!isValid.value || Boolean(!input.value.includes(' '))) {
 				return [...props.modelValue];
 			}
 
 			let arr: string[] = input.value.split(' ');
 
-			arr = arr.filter((string) => !!string);
+			arr = arr.filter((string) => Boolean(string));
 			arr = [...props.modelValue, ...arr];
 			arr = [...new Set(arr)];
 

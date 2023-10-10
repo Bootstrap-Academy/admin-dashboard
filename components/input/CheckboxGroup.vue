@@ -58,7 +58,7 @@ export default defineComponent({
 				let currentOption = props.modelValue.find(
 					(value) => option.value == value
 				);
-				return { ...option, selected: falseOnly ? false : !!currentOption };
+				return { ...option, selected: falseOnly ? false : Boolean(currentOption) };
 			});
 			Object.assign(mappedOptions, [...arr]);
 		}

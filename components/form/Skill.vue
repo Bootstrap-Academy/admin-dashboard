@@ -83,12 +83,12 @@ export default defineComponent({
 			id: {
 				valid: false,
 				value: '',
-				rules: [(v: string) => !!v || 'Error.InputEmpty_Inputs.SkillID'],
+				rules: [(v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.SkillID'],
 			},
 			name: {
 				valid: false,
 				value: '',
-				rules: [(v: string) => !!v || 'Error.InputEmpty_Inputs.SkillName'],
+				rules: [(v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.SkillName'],
 			},
 			icon: {
 				valid: true,
@@ -139,10 +139,10 @@ export default defineComponent({
 			() => props.data,
 			(newValue, oldValue) => {
 				form.id.value = newValue?.id ?? '';
-				form.id.valid = !!form.id.value;
+				form.id.valid = Boolean(form.id.value);
 
 				form.name.value = newValue?.name ?? '';
-				form.name.valid = !!form.name.value;
+				form.name.valid = Boolean(form.name.value);
 
 				form.icon.value = newValue?.icon ?? '';
 				form.dependencies.value = newValue?.dependencies ?? [];
@@ -155,7 +155,7 @@ export default defineComponent({
 		async function onclickSubmitForm() {
 			if (form.validate()) {
 				form.submitting = true;
-				const [success, error] = !!props.data
+				const [success, error] = Boolean(props.data)
 					? await updateSkill(props.rootSkillID, props.subSkillID, {
 							...form.body(),
 							column: props.col,

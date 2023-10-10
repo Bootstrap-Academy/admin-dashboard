@@ -63,7 +63,7 @@ export default defineComponent({
 			set(value) {
 				emit('update:modelValue', value);
 				error.value = value ? '' : 'This is required';
-				emit('valid', !!!error.value);
+				emit('valid', Boolean(!error.value));
 			},
 		});
 
