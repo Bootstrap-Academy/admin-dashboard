@@ -19,7 +19,7 @@ export async function getJob(id: string) {
 
 export async function createJob(body: any) {
 	try {
-		const response = await POST(`/jobs/jobs`, body);
+		const response = await POST("/jobs/jobs", body);
 
 		const job = useJob();
 		job.value = response ?? null;

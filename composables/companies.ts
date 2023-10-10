@@ -6,7 +6,7 @@ export const useCompany = () => useState<any>('company', () => null);
 export async function getCompany(id: string) {
 	try {
 		// const response = await GET(`/jobs/companies/${id}`);
-		const response = await GET(`/jobs/companies`);
+		const response = await GET("/jobs/companies");
 
 		const companies = useCompanies();
 		companies.value = response ?? [];
@@ -24,7 +24,7 @@ export async function createCompany(body: any) {
 	try {
 		console.log('inside create company', body);
 
-		const response = await POST(`/jobs/companies`, body);
+		const response = await POST("/jobs/companies", body);
 
 		const company = useCompany();
 		company.value = response ?? null;

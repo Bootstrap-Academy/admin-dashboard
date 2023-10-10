@@ -90,7 +90,7 @@ const onResponseError = async ({ request, options, response }) => {
     details.includes("invalid token") ||
     details.includes("invalid refresh token")
   ) {
-    router.push(`/`);
+    router.push("/");
   }
 
   if (details.includes("user already exists")) {

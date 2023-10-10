@@ -17,7 +17,7 @@ export async function getOAuthProviders() {
 
 export async function loginViaOAuthProvider(body: any) {
 	try {
-		const response = await POST(`/auth/sessions/oauth`, body);
+		const response = await POST("/auth/sessions/oauth", body);
 
 		return [response, null];
 	} catch (error: any) {

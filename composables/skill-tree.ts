@@ -10,7 +10,7 @@ export const useSkillTree = () => useState('skillTree', () => null);
 
 export async function getRootSkills() {
 	try {
-		const response = await GET(`/skills/skilltree`);
+		const response = await GET("/skills/skilltree");
 
 		const rootSkills = useRootSkills();
 		rootSkills.value = response ?? null;
@@ -59,7 +59,7 @@ export async function getSkillTreeByRootID(rootSkillID: string) {
 
 		const url =
 			rootSkillID == 'root'
-				? `/skills/skilltree`
+				? "/skills/skilltree"
 				: `/skills/skilltree/${rootSkillID}`;
 
 		const response = await GET(url);
@@ -88,7 +88,7 @@ export async function createNewSkill(rootSkillID: string, body: any) {
 
 		const url =
 			rootSkillID == 'root'
-				? `/skills/skilltree`
+				? "/skills/skilltree"
 				: `/skills/skilltree/${rootSkillID}`;
 
 		const response = await POST(url, body);
@@ -184,7 +184,7 @@ export async function updateTreeSettings(rootSkillID: string, body: any) {
 		let response = null;
 
 		if (isRoot) {
-			response = await PATCH(`/skills/skilltree`, body);
+			response = await PATCH("/skills/skilltree", body);
 		} else {
 			response = await PATCH(`/skills/skilltree/${rootSkillID}`, <any>{
 				sub_tree_rows: body.rows,

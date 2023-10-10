@@ -208,7 +208,7 @@ export default defineComponent({
 
 		const router = useRouter();
 		function successHandler(res: any) {
-			router.push(`/dashboard/companies`);
+			router.push("/dashboard/companies");
 		}
 
 		function errorHandler(res: any) {
