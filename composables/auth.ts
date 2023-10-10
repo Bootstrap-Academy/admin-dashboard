@@ -96,10 +96,10 @@ export async function requestEmailVerification() {
 	if (isAccountVerified) return [true, null];
 
 	try {
-		if (Boolean(!user_id)) {
+		if (!user_id) {
 			throw { data: { detail: 'Invalid User Id' } };
 		}
-		if (Boolean(!user_email)) {
+		if (!user_email) {
 			throw { data: { detail: 'User does not have email' } };
 		}
 
@@ -119,7 +119,7 @@ export async function verifyAccount(body: any) {
 	if (isAccountVerified) return [true, null];
 
 	try {
-		if (Boolean(!user_id)) {
+		if (!user_id) {
 			throw { data: 'Invalid User Id' };
 		}
 

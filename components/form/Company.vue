@@ -180,7 +180,7 @@ export default defineComponent({
 		watch(
 			() => props.data,
 			(newValue, oldValue) => {
-				if (Boolean(!newValue)) return;
+				if (!newValue) return;
 				form.name.value = newValue?.name ?? '';
 				form.description.value = newValue?.description ?? '';
 				form.website.value = newValue?.website ?? '';
@@ -195,7 +195,7 @@ export default defineComponent({
 		async function onclickSubmitForm() {
 			if (form.validate()) {
 				form.submitting = true;
-				const [success, error] = Boolean(props.data)
+				const [success, error] = (props.data)
 					? await editCompany(props.data.id, form.body())
 					: await createCompany(form.body());
 				form.submitting = false;

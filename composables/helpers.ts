@@ -14,13 +14,13 @@ export function abbreviateNumber(number: number) {
 }
 
 export function get_x_timeAgo(timestamp: number) {
-	if (Boolean(!timestamp)) return timestamp;
+	if (!timestamp) return timestamp;
 	let dateObj = new Date(timestamp * 1000);
 
 	const seconds = Math.floor((Date.now() - dateObj.getTime()) / 1000);
 	const interval = intervals.find((i) => i.seconds < seconds);
 
-	if (Boolean(!interval)) return "Just created";
+	if (!interval) return "Just created";
 
 	const count = Math.floor(seconds / interval.seconds);
 	return `${count} ${interval.label}${count !== 1 ? 's' : ''} ago`;

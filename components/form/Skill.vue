@@ -155,7 +155,7 @@ export default defineComponent({
 		async function onclickSubmitForm() {
 			if (form.validate()) {
 				form.submitting = true;
-				const [success, error] = Boolean(props.data)
+				const [success, error] = (props.data)
 					? await updateSkill(props.rootSkillID, props.subSkillID, {
 							...form.body(),
 							column: props.col,

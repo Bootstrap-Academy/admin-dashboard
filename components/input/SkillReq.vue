@@ -80,7 +80,7 @@ export default defineComponent({
 
 		function onclickAddToList() {
 			addToList.value = true;
-			if (Boolean(!skill.value)) return;
+			if (!skill.value) return;
 
 			const keys = Object.keys(props.modelValue);
 
@@ -89,7 +89,7 @@ export default defineComponent({
 					key.toLocaleLowerCase() == skill.value.toLocaleLowerCase()
 			);
 
-			if (Boolean(!isSame)) {
+			if (!isSame) {
 				let obj: any = {};
 				obj[skill.value.toString()] = requirement.value;
 				emit('update:modelValue', { ...props.modelValue, ...obj });
