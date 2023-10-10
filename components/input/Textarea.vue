@@ -92,7 +92,7 @@ export default defineComponent({
 		const error = computed(() => {
 			if (Boolean(!DOM_INPUT.value) || (!touched.value && !input.value)) return '';
 
-			let msg: string = '';
+			let msg = '';
 
 			props.rules
 				.slice()
