@@ -113,14 +113,14 @@ export default {
 		const subSkill = useSubSkill();
 
 		function onclickManageItem(item: any) {
-			if (!!!props.rootSkillID) return;
+			if (Boolean(!props.rootSkillID)) return;
 			router.push(
 				`/dashboard/skill-tree/${props.rootSkillID}/manage?subSkillID=${item.id}`
 			);
 		}
 
 		function onclickEditItem(item: any) {
-			if (!!!item || !!!item.id) return;
+			if (Boolean(!item) || Boolean(!item.id)) return;
 			subSkill.value = item;
 
 			router.push(`/dashboard/skill-tree/${props.rootSkillID}/edit/${item.id}`);

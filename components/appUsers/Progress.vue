@@ -73,7 +73,7 @@ export default defineComponent({
 		watch(
 			() => id.value,
 			async (newValue, oldValue) => {
-				if (!!newValue) {
+				if (Boolean(newValue)) {
 					loading.value = true;
 					const [success, error] = await getXPOfThisUser(newValue);
 					loading.value = false;

@@ -62,7 +62,7 @@ export default defineComponent({
 				dependencies.forEach((dependencyID) => {
 					let dependency = props.skills.find((s) => s.id == dependencyID);
 
-					if (!!!dependency) return;
+					if (Boolean(!dependency)) return;
 
 					let x2 = getGridCoord(dependency.row);
 					let y2 = getGridCoord(dependency.column);

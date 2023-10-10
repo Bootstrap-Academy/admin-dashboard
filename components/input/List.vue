@@ -49,7 +49,7 @@ export default defineComponent({
 			value: '',
 			rules: [
 				(v: string) => {
-					if (!v && !!addToList.value) {
+					if (!v && Boolean(addToList.value)) {
 						return 'Cannot add empty string to list';
 					} else return true;
 				},
@@ -62,14 +62,14 @@ export default defineComponent({
 
 		function onclickAddToList() {
 			addToList.value = true;
-			if (!!!input.value) return;
+			if (Boolean(!input.value)) return;
 
 			let isSame = props.modelValue.find(
 				(item: string) =>
 					item.toLocaleLowerCase() == input.value.toLocaleLowerCase()
 			);
 
-			if (!!!isSame) {
+			if (Boolean(!isSame)) {
 				emit('update:modelValue', [...props.modelValue, input.value]);
 			}
 

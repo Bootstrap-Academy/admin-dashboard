@@ -77,7 +77,7 @@ export async function getCompanies(filters: any[]) {
 				query = query + `${key}=${filters[key]}&`;
 			} else if (
 				typeof filters[key] == 'string' &&
-				!!filters[key] &&
+				Boolean(filters[key]) &&
 				filters[key] != '---'
 			) {
 				query = query + `${key}=${filters[key]}&`;

@@ -104,7 +104,7 @@ export default {
     const router = useRouter();
 
     function onclickEditItem(item: any) {
-      if (!!!item || !!!item.id) return;
+      if (Boolean(!item) || Boolean(!item.id)) return;
       const reportReason = useReportReason();
       reportReason.value = item?.comment ?? "";
       const reportSubtaskType = useReportSubtaskType();

@@ -169,7 +169,7 @@ export default defineComponent({
 					unit: 'MC',
 					per: 'task',
 				},
-				rules: [(v: any) => !!v || 'Error.InputEmpty_Inputs.ThisField'],
+				rules: [(v: any) => Boolean(v) || 'Error.InputEmpty_Inputs.ThisField'],
 			},
 			company_id: {
 				valid: true,
@@ -180,7 +180,7 @@ export default defineComponent({
 				valid: false,
 				value: '',
 				rules: [
-					(v: string) => !!v || 'Error.InputEmpty_Inputs.JobTitle',
+					(v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.JobTitle',
 					(v: string) => !v || v.length >= 5 || 'Error.InputMinLength_5',
 					(v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
 				],
@@ -189,7 +189,7 @@ export default defineComponent({
 				valid: false,
 				value: '',
 				rules: [
-					(v: string) => !!v || 'Error.InputEmpty_Inputs.Contact',
+					(v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.Contact',
 					(v: string) => !v || v.length >= 5 || 'Error.InputMinLength_5',
 					(v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
 				],
@@ -198,7 +198,7 @@ export default defineComponent({
 				valid: false,
 				value: '',
 				rules: [
-					(v: string) => !!v || 'Error.InputEmpty_Inputs.JobLocation',
+					(v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.JobLocation',
 					(v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
 				],
 			},
@@ -258,7 +258,7 @@ export default defineComponent({
 				valid: false,
 				value: '',
 				rules: [
-					(v: string) => !!v || 'Error.InputEmpty_Inputs.Description',
+					(v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.Description',
 					(v: string) => v.length <= 2000 || 'Error.InputMaxLength_2000',
 				],
 			},
@@ -276,7 +276,7 @@ export default defineComponent({
 				value: {},
 				rules: [
 					(v: any) =>
-						!!form.skill_requirements.value ||
+						Boolean(form.skill_requirements.value) ||
 						'Error.InputEmpty_Inputs.SkillRequirements',
 				],
 			},
@@ -314,7 +314,7 @@ export default defineComponent({
 		watch(
 			() => props.data,
 			(newValue, oldValue) => {
-				if (!!!newValue) return;
+				if (Boolean(!newValue)) return;
 				form.company_id.value = newValue?.company?.id ?? '';
 				form.title.value = newValue?.title ?? '';
 				form.contact.value = newValue?.contact ?? '';
@@ -342,7 +342,7 @@ export default defineComponent({
 		async function onclickSubmitForm() {
 			if (form.validate()) {
 				form.submitting = true;
-				const [success, error] = !!props.data
+				const [success, error] = Boolean(props.data)
 					? await editJob(props.data.id, form.body())
 					: await createJob(form.body());
 				form.submitting = false;

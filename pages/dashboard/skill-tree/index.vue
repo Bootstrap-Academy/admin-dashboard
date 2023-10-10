@@ -67,7 +67,7 @@ export default {
 
 		const rootSkills: Ref<any> = useRootSkills();
 
-		const loading = ref(!!!rootSkills.value);
+		const loading = ref(Boolean(!rootSkills.value));
 
 		const cookie_filters = <any>useCookie('rootSkills_filter');
 		const filters = reactive(

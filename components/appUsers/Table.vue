@@ -275,7 +275,7 @@ export default {
     const router = useRouter();
     const appUser = useAppUser();
     function onclickViewUser(user: any) {
-      if (!!!user || !!!user.id) return;
+      if (Boolean(!user) || Boolean(!user.id)) return;
 
       appUser.value = user;
       router.push(`/dashboard/users/${user.id}`);

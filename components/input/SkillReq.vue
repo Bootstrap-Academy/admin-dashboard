@@ -61,7 +61,7 @@ export default defineComponent({
 			value: '',
 			rules: [
 				(v: string) => {
-					if (!v && !!addToList.value) {
+					if (!v && Boolean(addToList.value)) {
 						return 'Cannot add empty string to list';
 					} else return true;
 				},
@@ -80,7 +80,7 @@ export default defineComponent({
 
 		function onclickAddToList() {
 			addToList.value = true;
-			if (!!!skill.value) return;
+			if (Boolean(!skill.value)) return;
 
 			const keys = Object.keys(props.modelValue);
 
@@ -89,7 +89,7 @@ export default defineComponent({
 					key.toLocaleLowerCase() == skill.value.toLocaleLowerCase()
 			);
 
-			if (!!!isSame) {
+			if (Boolean(!isSame)) {
 				let obj: any = {};
 				obj[skill.value.toString()] = requirement.value;
 				emit('update:modelValue', { ...props.modelValue, ...obj });
