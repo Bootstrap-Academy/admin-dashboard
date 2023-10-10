@@ -17,7 +17,7 @@ export const useSnackbar = () =>
 		};
 	});
 
-export function openSnackbar(type: string, heading: string, body: string = '') {
+export function openSnackbar(type: string, heading: string, body = '') {
 	const snackbar = useSnackbar();
 	snackbar.value = {
 		show: true,

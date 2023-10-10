@@ -96,7 +96,7 @@ export default defineComponent({
 
 			emit('update:modelValue', finalOTP);
 
-			let msg: string = '';
+			let msg = '';
 
 			props.rules
 				.slice()
