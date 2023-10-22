@@ -151,10 +151,8 @@ export default {
         newsletter: false,
       }
     );
-
+ 
     async function setFilters(paramFilters: UserFilter) {
-      console.log(paramFilters, 'paramFilters');
-
       Object.assign(filters, {
         ...filters,
         ...paramFilters,
@@ -165,7 +163,7 @@ export default {
       loading.value = true;
       await getAppUsers(filters);
       loading.value = false;
-
+      
       appUsers.value = await Promise.all(
         appUsers.value.map(async (user: any) => {
           let balance = user?.balance ?? null;
