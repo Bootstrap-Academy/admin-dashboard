@@ -291,8 +291,6 @@ export default defineComponent({
 						key != 'submitting' &&
 						!form[key].valid
 					) {
-						console.log('key', key);
-
 						isValid = false;
 					}
 				}

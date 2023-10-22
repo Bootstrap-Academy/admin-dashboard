@@ -38,12 +38,12 @@ export async function getAppUsers(filters: any) {
 
 		if (newQuery != query.value) {
 			offset.value = 0;
-			console.log('query not same');
 		}
 
 		const response = await GET(
 			`/auth/users?offset=${offset.value}&limit=${limit.value}&${newQuery}`
 		);
+		
 
 		const appUsers: Ref<any[]> = useAppUsers();
 		const totalAppUsers = useTotalAppUsers();
@@ -52,7 +52,6 @@ export async function getAppUsers(filters: any) {
 
 		if (newQuery == query.value) {
 			arr = [...appUsers.value, ...arr];
-			console.log('query is same');
 			// arr = [...new Set(arr)];
 		}
 		const banUsers: any = useBanUsers()
@@ -62,13 +61,11 @@ export async function getAppUsers(filters: any) {
 		}
 
 
-		console.log("aban users", banUsers.value)
 
 		if (banUsers.value.length) {
 			arr.forEach((user: any) => {
 				const bannedUser = banUsers.value.find((banned: any) => banned.user_id === user.id);
 				if (bannedUser) {
-					console.log("bannedUser", bannedUser)
 					if (bannedUser.action.toLowerCase().includes('report')) { user.reportBan = true; user.reportBan_id = bannedUser.id }
 					else user.reportBan = false
 					if (bannedUser.action.toLowerCase().includes('create')) { user.createBan = true; user.createSubtaskBan_id = bannedUser.id }

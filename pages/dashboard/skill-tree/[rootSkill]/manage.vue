@@ -168,7 +168,6 @@ export default {
 			selectedRow.value = row - 1;
 			selectedCol.value = column - 1;
 
-			console.log(selectedCol.value, selectedRow.value);
 		}
 
 		// ! ==================================================================== Drag Skill
