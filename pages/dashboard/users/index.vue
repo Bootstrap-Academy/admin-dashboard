@@ -29,13 +29,56 @@
   <main>
     <div ref="scrollRef"></div>
     <PageTitle />
-
+    <ul
+      class="flex flex-wrap text-sm font-medium text-center text-gray-500 dark:text-gray-400"
+    >
+      <li class="mr-2">
+        <button
+          :class="
+            !emailSearch
+              ? 'inline-block px-4 py-3 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+              : 'inline-block px-4 py-3 text-white bg-blue-600 rounded-lg active'
+          "
+          @click="
+            (emailSearch = true), (filters.email = ''), (filters.name = '')
+          "
+        >
+          Email Search
+        </button>
+      </li>
+      <li class="mr-2">
+        <button
+          :class="
+            emailSearch
+              ? 'inline-block px-4 py-3 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
+              : 'inline-block px-4 py-3 text-white bg-blue-600 rounded-lg active'
+          "
+          @click="
+            (emailSearch = false), (filters.email = ''), (filters.name = '')
+          "
+        >
+          Name Search
+        </button>
+      </li>
+    </ul>
     <FormSearch
-      enter-only
-      class="mb-card-sm mt-card"
-      placeholder="Body.SearchByEmail"
-      :modelValue="filters.email"
-      @update:modelValue="setFilters({ email: $event })"
+      class="mb-card-sm mt-card mt-0"
+      :placeholder="emailSearch ? 'Search by Email' : 'Search by Name'"
+      :modelValue="emailSearch ? filters.email : filters.name"
+      @update:modelValue="
+        (newValue) => {
+          if (emailSearch) {
+            filters.email = newValue;
+          } else {
+            filters.name = newValue;
+          }
+        }
+      "
+      @search="
+        emailSearch
+          ? setFilters({ email: filters.email })
+          : setFilters({ name: filters.name })
+      "
     />
 
     <Sort
@@ -72,32 +115,35 @@
 </template>
 
 <script lang="ts">
-import { Ref } from "vue";
+import { Ref } from 'vue';
+import { User, UserFilter } from '@/types/userTypes';
 
 definePageMeta({
-  middleware: ["auth"],
-  layout: "dashboard",
+  middleware: ['auth'],
+  layout: 'dashboard',
 });
 
 export default {
   head: {
-    title: "Users",
+    title: 'Users',
   },
   setup() {
-    const scrollRef = ref<HTMLElement | null>(null);
+    const scrollRef = ref<HTMLElement | undefined>(undefined);
 
-    const appUsers: Ref<any[]> = useAppUsers();
+    const appUsers: Ref<User[]> = useAppUsers();
     const totalAppUsers: Ref<number> = useTotalAppUsers();
+
+    const emailSearch = ref(true);
 
     const loading = ref(appUsers.value.length <= 0);
 
     const offset = useOffset();
     const limit = useLimit();
 
-    const cookie_filters = <any>useCookie("users_filter");
+    const cookie_filters = <any>useCookie('users_filter');
     const filters = reactive(
       cookie_filters.value ?? {
-        email: "",
+        email: '',
         enabled: false,
         admin: false,
         mfa_enabled: false,
@@ -106,7 +152,9 @@ export default {
       }
     );
 
-    async function setFilters(paramFilters: any) {
+    async function setFilters(paramFilters: UserFilter) {
+      console.log(paramFilters, 'paramFilters');
+
       Object.assign(filters, {
         ...filters,
         ...paramFilters,
@@ -143,38 +191,38 @@ export default {
 
     const options = [
       {
-        label: "Headings.None",
-        value: "none",
+        label: 'Headings.None',
+        value: 'none',
       },
       {
-        label: "Headings.Enabled",
-        value: "enabled",
+        label: 'Headings.Enabled',
+        value: 'enabled',
       },
       {
-        label: "Headings.Admin",
-        value: "admin",
+        label: 'Headings.Admin',
+        value: 'admin',
       },
       {
-        label: "Headings.MFA",
-        value: "mfa_enabled",
+        label: 'Headings.MFA',
+        value: 'mfa_enabled',
       },
       {
-        label: "Headings.Verified",
-        value: "email_verified",
+        label: 'Headings.Verified',
+        value: 'email_verified',
       },
       {
-        label: "Headings.Newsletter",
-        value: "newsletter",
+        label: 'Headings.Newsletter',
+        value: 'newsletter',
       },
     ];
 
     function onSelectedOption(option: string) {
       setFilters({
-        enabled: option == "enabled",
-        admin: option == "admin",
-        mfa_enabled: option == "mfa_enabled",
-        email_verified: option == "email_verified",
-        newsletter: option == "newsletter",
+        enabled: option == 'enabled',
+        admin: option == 'admin',
+        mfa_enabled: option == 'mfa_enabled',
+        email_verified: option == 'email_verified',
+        newsletter: option == 'newsletter',
       });
     }
 
@@ -194,6 +242,7 @@ export default {
       onclickLoadMore,
       offset,
       totalAppUsers,
+      emailSearch,
     };
   },
 };
