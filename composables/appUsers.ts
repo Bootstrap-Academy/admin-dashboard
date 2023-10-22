@@ -55,10 +55,8 @@ export async function getAppUsers(filters: UserFilter) {
 
         let arr: any[] = response?.users ?? [];
 
-        if (newQuery == query.value) {
-            arr = [...appUsers.value, ...arr];
-            // arr = [...new Set(arr)];
-        }
+        appUsers.value = arr
+
         const banUsers: any = useBanUsers();
 
         if (!banUsers.value.length) {
@@ -66,7 +64,7 @@ export async function getAppUsers(filters: UserFilter) {
         }
 
         if (banUsers.value.length) {
-            arr.forEach((user: any) => {
+            appUsers.value.forEach((user: any) => {
                 const bannedUser = banUsers.value.find(
                     (banned: any) => banned.user_id === user.id
                 );
@@ -86,13 +84,11 @@ export async function getAppUsers(filters: UserFilter) {
             });
         }
 
-        appUsers.value = arr;
-
         totalAppUsers.value = response?.total ?? 0;
         query.value = newQuery;
 
         console.log('offset', offset.value);
-        console.log('current', arr.length);
+        console.log('current', appUsers.value.length);
         console.log('total', totalAppUsers.value);
         console.log('------------------------------------------------');
 
