@@ -40,7 +40,7 @@
               : 'inline-block px-4 py-3 text-white bg-blue-600 rounded-lg active'
           "
           @click="
-            (emailSearch = true), (filters.email = ''), (filters.name = '')
+            (emailSearch = true), (filters.email = ''), (filters.name = '', setFilters(filters))
           "
         >
           Email Search
@@ -54,7 +54,7 @@
               : 'inline-block px-4 py-3 text-white bg-blue-600 rounded-lg active'
           "
           @click="
-            (emailSearch = false), (filters.email = ''), (filters.name = '')
+            (emailSearch = false), (filters.email = ''), (filters.name = ''), setFilters(filters)
           "
         >
           Name Search
