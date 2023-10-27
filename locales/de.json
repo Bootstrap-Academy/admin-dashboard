@@ -42,7 +42,8 @@
 		"Verified": "Verified",
 		"MFA": "MFA",
 		"Newsletter": "Newsletter",
-		"Enabled": "Enabled",
+		"UserEnabled": "Normale User",
+		"UserDisabled": "Gebannte User",
 		"Balance": "Balance",
 		"XP": "XP",
 		"Actions": "Actions",
@@ -89,6 +90,7 @@
 		"Salary": "Salary",
 		"ProfessionalLevel": "Professional Level",
 		"JobEnvironment": "Job Environment"
+
 	},
 	"Body": {
 		"SearchByEmail": "Search by email",

@@ -6,6 +6,8 @@
 	},
 	"Headings": {
 		"ManageReport":"Manage Report",
+		"userEnabled": "User aktiviert",
+		"userDisabled": "User deaktiviert",
 "Xp":"Xp",
 		"Morphcoins":"Morphcoins",
 		"Fee":"Fee",		"ReportedTasks":"Reported Tasks",
@@ -42,7 +44,8 @@
 		"Verified": "Verified",
 		"MFA": "MFA",
 		"Newsletter": "Newsletter",
-		"Enabled": "Enabled",
+		"UserEnabled": "Normal User",
+		"UserDisabled": "Banned User",
 		"Balance": "Balance",
 		"XP": "XP",
 		"Actions": "Actions",

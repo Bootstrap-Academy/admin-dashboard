@@ -24,3 +24,20 @@ export class UserFilter {
     email_verified?: boolean = false;
     newsletter?: boolean = false;
 }
+
+export class UserSearchRequestBody {
+    limit : number = 10
+    offset: number = 0
+    name: string | undefined = undefined
+    email: string | undefined= undefined
+    enabled: boolean | undefined = undefined
+    admin: boolean | undefined = undefined
+    mfa_enabled: boolean | undefined = undefined
+    email_verified: boolean | undefined = undefined
+    newsletter: boolean | undefined = undefined
+}
+
+export class UserSearchResponse{
+    total: number = 0
+    users: User[] = []
+}

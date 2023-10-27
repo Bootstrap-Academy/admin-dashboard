@@ -39,9 +39,7 @@
               ? 'inline-block px-4 py-3 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
               : 'inline-block px-4 py-3 text-white bg-blue-600 rounded-lg active'
           "
-          @click="
-            (emailSearch = true), (filters.email = ''), (filters.name = '', setFilters(filters))
-          "
+          @click="resetFilters(), (emailSearch = true)"
         >
           Email Search
         </button>
@@ -53,9 +51,7 @@
               ? 'inline-block px-4 py-3 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
               : 'inline-block px-4 py-3 text-white bg-blue-600 rounded-lg active'
           "
-          @click="
-            (emailSearch = false), (filters.email = ''), (filters.name = ''), setFilters(filters)
-          "
+          @click="resetFilters(), (emailSearch = false)"
         >
           Name Search
         </button>
@@ -64,21 +60,20 @@
     <FormSearch
       class="mb-card-sm mt-card mt-0"
       :placeholder="emailSearch ? 'Search by Email' : 'Search by Name'"
-      :modelValue="emailSearch ? filters.email : filters.name"
+      :modelValue="
+        emailSearch ? getUserRequestBody.email : getUserRequestBody.name
+      "
       @update:modelValue="
-        (newValue) => {
+        (newValue:string) => {
           if (emailSearch) {
-            filters.email = newValue;
+            getUserRequestBody.email = newValue;
+            
           } else {
-            filters.name = newValue;
+            getUserRequestBody.name = newValue;
           }
         }
       "
-      @search="
-        emailSearch
-          ? setFilters({ email: filters.email })
-          : setFilters({ name: filters.name })
-      "
+      @search="userSearch"
     />
 
     <Sort
@@ -104,11 +99,14 @@
         <span class="mr-2">Loading</span>
         <LoadingCircular />
       </template>
-
-      <span v-else-if="appUsers.length < totalAppUsers">Load More</span>
-
-      <span v-else>No more users</span>
     </Btn>
+    <Pagination
+      :current="currentPage"
+      :total="total"
+      :page-size="getUserRequestBody.limit"
+      @change="changePage"
+      @change-per-page="changePerPage"
+    />
 
     <ScrollToBtn :scrollRef="scrollRef" />
   </main>
@@ -116,7 +114,13 @@
 
 <script lang="ts">
 import { Ref } from 'vue';
-import { User, UserFilter } from '@/types/userTypes';
+import {
+  User,
+  UserFilter,
+  UserSearchRequestBody,
+  UserSearchResponse,
+} from '@/types/userTypes';
+import { getUserTest } from '@/composables/appUsers';
 
 definePageMeta({
   middleware: ['auth'],
@@ -151,7 +155,36 @@ export default {
         newsletter: false,
       }
     );
- 
+
+    const getUserRequestBody = reactive(new UserSearchRequestBody());
+    
+    const userSearch = async () => {
+      await getUserTest(getUserRequestBody);
+    };
+
+    const resetFilters = () => {
+      getUserRequestBody.email = undefined;
+      getUserRequestBody.name = undefined;
+      userSearch();
+    };
+
+    const currentPage = ref<number>(1);
+    const total = computed(() => {
+      return Math.ceil(totalAppUsers.value / getUserRequestBody.limit);
+    });
+
+    const changePage = (page: number) => {
+      currentPage.value = page;
+      getUserRequestBody.offset = (page - 1) * getUserRequestBody.limit;
+      userSearch();
+    };
+
+    const changePerPage = (pageSize: number) => {
+      getUserRequestBody.limit = pageSize;
+      changePage(1);
+      userSearch();
+    };
+
     async function setFilters(paramFilters: UserFilter) {
       Object.assign(filters, {
         ...filters,
@@ -163,7 +196,7 @@ export default {
       loading.value = true;
       await getAppUsers(filters);
       loading.value = false;
-      
+
       appUsers.value = await Promise.all(
         appUsers.value.map(async (user: any) => {
           let balance = user?.balance ?? null;
@@ -193,8 +226,12 @@ export default {
         value: 'none',
       },
       {
-        label: 'Headings.Enabled',
-        value: 'enabled',
+        label: 'Headings.UserEnabled', // Todo: enabledUser === normal && !bannedUser
+        value: 'enabled', // Todo: Amin and all other users are also enabled user... check what has to be passed here
+      },
+      {
+        label: 'Headings.UserDisabled',
+        value: '', // Todo: check what has to be passed here
       },
       {
         label: 'Headings.Admin',
@@ -212,8 +249,8 @@ export default {
         label: 'Headings.Newsletter',
         value: 'newsletter',
       },
+      // Todo: users with 2fa enabled/disabled, verified/unverified email, subscribed/unsubscribed newsletter
     ];
-
     function onSelectedOption(option: string) {
       setFilters({
         enabled: option == 'enabled',
@@ -241,6 +278,14 @@ export default {
       offset,
       totalAppUsers,
       emailSearch,
+      getUserRequestBody,
+      UserSearchRequestBody,
+      userSearch,
+      resetFilters,
+      changePage,
+      currentPage,
+      total,
+      changePerPage
     };
   },
 };
