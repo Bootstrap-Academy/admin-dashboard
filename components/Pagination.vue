@@ -3,6 +3,7 @@
     <li>
       <button
         class="flex items-center justify-center px-4 h-10 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+        @click="current !== 1 && emit('change', 1)"
       >
         &#171;
       </button>
@@ -18,7 +19,7 @@
     </li>
     <li v-for="index in getPageList">
       <button
-        @click="index !== 0 ?? emit('change', index)"
+        @click="index !== 0 && emit('change', index)"
         :class="index === current ? active : notActive"
       >
         {{ index == 0 ? '...' : index }}
@@ -35,6 +36,7 @@
     </li>
     <li>
       <button
+        @click="current !== total && emit('change', total)"
         class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
       >
         &#187;
@@ -94,7 +96,7 @@ const notActive = ref(
   'flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
 );
 
-// Todo: space between button-groups 
+// Todo: space between button-groups
 // Todo: round corners of pageSize buttons
 
 const getPageList = computed(() => {
