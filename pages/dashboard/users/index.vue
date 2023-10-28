@@ -136,8 +136,7 @@ export default {
     };
 
     const resetSearch = () => {
-      getUserRequestBody.email = undefined;
-      getUserRequestBody.name = undefined;
+      getUserRequestBody.clearSearch();
       userSearch();
     };
 
@@ -201,8 +200,58 @@ export default {
       },
     ];
 
-    function onSelectedOption(option: USERSORT) {
-      
+    async function onSelectedOption(option: USERSORT) {
+      switch (option) {
+        case USERSORT.NONE:
+          getUserRequestBody.clearFilters();
+          userSearch();
+          break;
+        case USERSORT.ENABLED:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.enabled = true;
+          userSearch();
+          break;
+        case USERSORT.DISABLED:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.enabled = false;
+          userSearch();
+          break;
+        case USERSORT.ADMIN:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.admin = true;
+          userSearch();
+          break;
+        case USERSORT.MFA:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.mfa_enabled = true;
+          userSearch();
+          break;
+        case USERSORT.NOMFA:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.mfa_enabled = false;
+          userSearch();
+          break;
+        case USERSORT.EMAILVERIFIED:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.email_verified = true;
+          userSearch();
+          break;
+        case USERSORT.NOTEMAILVERIFIED:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.email_verified = false;
+          userSearch();
+          break;
+        case USERSORT.NEWSLETTER:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.newsletter = true;
+          userSearch();
+          break;
+        case USERSORT.NOTNEWSLETTER:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.newsletter = false;
+          userSearch();
+          break;
+      }
     }
 
     return {

@@ -35,6 +35,19 @@ export class UserSearchRequestBody {
   mfa_enabled: boolean | undefined = undefined;
   email_verified: boolean | undefined = undefined;
   newsletter: boolean | undefined = undefined;
+
+  clearSearch(){
+    this.name = undefined;
+    this.email = undefined;
+  }
+
+  clearFilters(){
+    this.enabled = undefined;
+    this.admin = undefined;
+    this.mfa_enabled = undefined;
+    this.email_verified = undefined;
+    this.newsletter = undefined;
+  }
 }
 
 export class UserSearchResponse {
