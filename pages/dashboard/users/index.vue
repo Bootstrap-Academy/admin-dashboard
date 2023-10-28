@@ -36,8 +36,8 @@
         <button
           :class="
             !emailSearch
-              ? 'inline-block px-4 py-3 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
-              : 'inline-block px-4 py-3 text-white bg-blue-600 rounded-lg active'
+              ? 'inline-block px-4 py-3 rounded-lg hover:text-white'
+              : 'inline-block px-4 py-3 text-accent bg-blue-600 rounded-lg'
           "
           @click="resetSearch(), (emailSearch = true)"
         >
@@ -48,8 +48,8 @@
         <button
           :class="
             emailSearch
-              ? 'inline-block px-4 py-3 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
-              : 'inline-block px-4 py-3 text-white bg-blue-600 rounded-lg active'
+              ? 'inline-block px-4 py-3 rounded-lg hover:text-white'
+              : 'inline-block px-4 py-3 text-accent bg-blue-600 rounded-lg active'
           "
           @click="resetSearch(), (emailSearch = false)"
         >
@@ -88,7 +88,7 @@
 
     <Pagination
       :current="currentPage"
-      :total="total"
+      :total-results="totalAppUsers"
       :perPage="getUserRequestBody.limit"
       @change="changePage"
       @change-per-page="changePerPage"
@@ -141,9 +141,7 @@ export default {
     };
 
     const currentPage = ref<number>(1);
-    const total = computed(() => {
-      return Math.ceil(totalAppUsers.value / getUserRequestBody.limit);
-    });
+    
 
     const changePage = (page: number) => {
       currentPage.value = page;
@@ -204,6 +202,7 @@ export default {
       switch (option) {
         case USERSORT.NONE:
           getUserRequestBody.clearFilters();
+          getUserRequestBody.clearSearch();
           userSearch();
           break;
         case USERSORT.ENABLED:
@@ -269,7 +268,6 @@ export default {
       resetSearch,
       changePage,
       currentPage,
-      total,
       changePerPage,
     };
   },
