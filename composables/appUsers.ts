@@ -19,8 +19,10 @@ export const useBanUsers = () => useState('banUsers', () => []);
 export async function getUserTest(query: UserSearchRequestBody) {
   const response:UserSearchResponse | undefined =  await GET(`/auth/users`, query);
   let appUsers = useAppUsers();
+  let totalUsers = useTotalAppUsers();
   if (response) {
     appUsers.value = response.users;
+    totalUsers.value = response.total;
   }
   return response;
 }

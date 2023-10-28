@@ -17,7 +17,7 @@
         &lt;
       </button>
     </li>
-    <li v-for="index in getPageList">
+    <li v-for="index in getPages">
       <button
         @click="index !== 0 && emit('change', index)"
         :class="index === current ? active : notActive"
@@ -44,7 +44,7 @@
     </li>
     <li>
       <button
-        :class="pageSize === 10 ? active : notActive"
+        :class="perPage === 10 ? active : notActive"
         @click="emit('change-per-page', 10)"
       >
         10
@@ -52,7 +52,7 @@
     </li>
     <li>
       <button
-        :class="pageSize === 20 ? active : notActive"
+        :class="perPage === 20 ? active : notActive"
         @click="emit('change-per-page', 20)"
       >
         20
@@ -60,7 +60,7 @@
     </li>
     <li>
       <button
-        :class="pageSize === 50 ? active : notActive"
+        :class="perPage === 50 ? active : notActive"
         @click="emit('change-per-page', 50)"
       >
         50
@@ -68,7 +68,7 @@
     </li>
     <li>
       <button
-        :class="pageSize === 100 ? active : notActive"
+        :class="perPage === 100 ? active : notActive"
         @click="emit('change-per-page', 100)"
       >
         100
@@ -81,12 +81,12 @@
 const props = defineProps<{
   current: number;
   total: number;
-  pageSize: number;
+  perPage: number;
 }>();
 
 const emit = defineEmits<{
   (e: 'change', page: number): void;
-  (e: 'change-per-page', pageSize: number): void;
+  (e: 'change-per-page', perPage: number): void;
 }>();
 
 const active = ref(
@@ -99,30 +99,29 @@ const notActive = ref(
 // Todo: space between button-groups
 // Todo: round corners of pageSize buttons
 
-const getPageList = computed(() => {
-  const { current, total } = props;
-  const array = [];
-
-  if (total <= 5) {
-    for (let i = 1; i <= total; i++) {
-      array.push(i);
+const getPages = computed(() => {
+    const { current, total } = props;
+    const array = [];
+    
+    if (total <= 5) {
+        for (let i = 1; i <= total; i++) {
+        array.push(i);
+        }
+    } else if (current <= 3) {
+        for (let i = 1; i <= 5; i++) {
+        array.push(i);
+        }
+    } else if (current >= total - 2) {
+        for (let i = total - 4; i <= total; i++) {
+        array.push(i);
+        }
+    } else {
+        for (let i = current - 2; i <= current + 2; i++) {
+        array.push(i);
+        }
     }
-  } else if (current <= 3) {
-    for (let i = 1; i <= 5; i++) {
-      array.push(i);
-    }
-  } else if (current >= total - 2) {
-    for (let i = total - 4; i <= total; i++) {
-      array.push(i);
-    }
-  } else {
-    for (let i = current - 2; i <= current + 2; i++) {
-      array.push(i);
-    }
-  }
-
-  return array;
-});
+    return array;
+}) 
 </script>
 
 <style lang="scss" scoped></style>

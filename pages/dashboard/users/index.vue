@@ -39,7 +39,7 @@
               ? 'inline-block px-4 py-3 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
               : 'inline-block px-4 py-3 text-white bg-blue-600 rounded-lg active'
           "
-          @click="resetFilters(), (emailSearch = true)"
+          @click="resetSearch(), (emailSearch = true)"
         >
           Email Search
         </button>
@@ -51,7 +51,7 @@
               ? 'inline-block px-4 py-3 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white'
               : 'inline-block px-4 py-3 text-white bg-blue-600 rounded-lg active'
           "
-          @click="resetFilters(), (emailSearch = false)"
+          @click="resetSearch(), (emailSearch = false)"
         >
           Name Search
         </button>
@@ -80,30 +80,16 @@
       text="Headings.FilterBy"
       class="mb-card"
       :options="options"
-      :quantity="appUsers.length"
+      :quantity="totalAppUsers"
       @selected="onSelectedOption($event)"
     />
 
     <AppUsersTable :data="appUsers" :loading="loading" />
 
-    <Btn
-      secondary
-      class="mx-auto mt-card"
-      @click="onclickLoadMore"
-      :class="{
-        'pointer-events-none opacity-70':
-          loading || appUsers.length >= totalAppUsers,
-      }"
-    >
-      <template v-if="loading">
-        <span class="mr-2">Loading</span>
-        <LoadingCircular />
-      </template>
-    </Btn>
     <Pagination
       :current="currentPage"
       :total="total"
-      :page-size="getUserRequestBody.limit"
+      :perPage="getUserRequestBody.limit"
       @change="changePage"
       @change-per-page="changePerPage"
     />
@@ -114,12 +100,7 @@
 
 <script lang="ts">
 import { Ref } from 'vue';
-import {
-  User,
-  UserFilter,
-  UserSearchRequestBody,
-  UserSearchResponse,
-} from '@/types/userTypes';
+import { USERSORT, User, UserSearchRequestBody } from '@/types/userTypes';
 import { getUserTest } from '@/composables/appUsers';
 
 definePageMeta({
@@ -132,37 +113,29 @@ export default {
     title: 'Users',
   },
   setup() {
+    onMounted(() => {
+      userSearch();
+    });
+
     const scrollRef = ref<HTMLElement | undefined>(undefined);
 
     const appUsers: Ref<User[]> = useAppUsers();
     const totalAppUsers: Ref<number> = useTotalAppUsers();
 
     const emailSearch = ref(true);
-
     const loading = ref(appUsers.value.length <= 0);
-
     const offset = useOffset();
-    const limit = useLimit();
-
-    const cookie_filters = <any>useCookie('users_filter');
-    const filters = reactive(
-      cookie_filters.value ?? {
-        email: '',
-        enabled: false,
-        admin: false,
-        mfa_enabled: false,
-        email_verified: false,
-        newsletter: false,
-      }
-    );
 
     const getUserRequestBody = reactive(new UserSearchRequestBody());
-    
+
     const userSearch = async () => {
-      await getUserTest(getUserRequestBody);
+      loading.value = true;
+      await getUserTest(getUserRequestBody).then(() => {
+        loading.value = false;
+      });
     };
 
-    const resetFilters = () => {
+    const resetSearch = () => {
       getUserRequestBody.email = undefined;
       getUserRequestBody.name = undefined;
       userSearch();
@@ -185,107 +158,70 @@ export default {
       userSearch();
     };
 
-    async function setFilters(paramFilters: UserFilter) {
-      Object.assign(filters, {
-        ...filters,
-        ...paramFilters,
-      });
-
-      cookie_filters.value = JSON.stringify(filters);
-
-      loading.value = true;
-      await getAppUsers(filters);
-      loading.value = false;
-
-      appUsers.value = await Promise.all(
-        appUsers.value.map(async (user: any) => {
-          let balance = user?.balance ?? null;
-          if (balance == null) {
-            const [success, error] = await getBalanceOfThisUser(user.id);
-            balance = success?.coins ?? 0;
-          }
-
-          let xp = user?.xp ?? 0;
-          if (!!!balance) {
-            const [success, error] = await getXPOfThisUser(user.id);
-            xp = success?.total_xp ?? 0;
-          }
-
-          return {
-            ...user,
-            balance: balance,
-            xp: xp,
-          };
-        })
-      );
-    }
-
     const options = [
       {
         label: 'Headings.None',
-        value: 'none',
+        value: USERSORT.NONE,
       },
       {
-        label: 'Headings.UserEnabled', // Todo: enabledUser === normal && !bannedUser
-        value: 'enabled', // Todo: Amin and all other users are also enabled user... check what has to be passed here
+        label: 'Headings.UserEnabled',
+        value: USERSORT.ENABLED,
       },
       {
         label: 'Headings.UserDisabled',
-        value: '', // Todo: check what has to be passed here
+        value: USERSORT.DISABLED,
       },
       {
         label: 'Headings.Admin',
-        value: 'admin',
+        value: USERSORT.ADMIN,
       },
       {
         label: 'Headings.MFA',
-        value: 'mfa_enabled',
+        value: USERSORT.MFA,
+      },
+      {
+        label: 'Headings.NOMFA',
+        value: USERSORT.NOMFA,
       },
       {
         label: 'Headings.Verified',
-        value: 'email_verified',
+        value: USERSORT.EMAILVERIFIED,
+      },
+      {
+        label: 'Headings.NotVerified',
+        value: USERSORT.NOTEMAILVERIFIED,
       },
       {
         label: 'Headings.Newsletter',
-        value: 'newsletter',
+        value: USERSORT.NEWSLETTER,
       },
-      // Todo: users with 2fa enabled/disabled, verified/unverified email, subscribed/unsubscribed newsletter
+      {
+        label: 'Headings.NoNewsletter',
+        value: USERSORT.NOTNEWSLETTER,
+      },
     ];
-    function onSelectedOption(option: string) {
-      setFilters({
-        enabled: option == 'enabled',
-        admin: option == 'admin',
-        mfa_enabled: option == 'mfa_enabled',
-        email_verified: option == 'email_verified',
-        newsletter: option == 'newsletter',
-      });
-    }
 
-    async function onclickLoadMore() {
-      offset.value = offset.value + limit.value;
-      await setFilters(filters);
+    function onSelectedOption(option: USERSORT) {
+      
     }
 
     return {
       loading,
       appUsers,
-      setFilters,
-      filters,
       onSelectedOption,
       options,
       scrollRef,
-      onclickLoadMore,
       offset,
       totalAppUsers,
       emailSearch,
       getUserRequestBody,
       UserSearchRequestBody,
       userSearch,
-      resetFilters,
+      resetSearch,
       changePage,
       currentPage,
       total,
-      changePerPage
+      changePerPage,
     };
   },
 };
