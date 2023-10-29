@@ -132,7 +132,10 @@ export default {
       loading.value = true;
       await getUserTest(getUserRequestBody).then(() => {
         loading.value = false;
-      });
+      }).catch((error) => {
+        loading.value = false;
+        throw new Error('Error in userSearch', error);
+      })
     };
 
     const resetSearch = () => {
@@ -141,7 +144,6 @@ export default {
     };
 
     const currentPage = ref<number>(1);
-    
 
     const changePage = (page: number) => {
       currentPage.value = page;
@@ -208,6 +210,7 @@ export default {
         case USERSORT.ENABLED:
           getUserRequestBody.clearFilters();
           getUserRequestBody.enabled = true;
+          getUserRequestBody.admin = false;
           userSearch();
           break;
         case USERSORT.DISABLED:
