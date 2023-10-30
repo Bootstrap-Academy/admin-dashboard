@@ -1,5 +1,5 @@
 import { useState } from '#app';
-import { Ref } from 'vue';
+import type { Ref } from 'vue';
 import { GET, PATCH, DELETE, PUT } from './fetch';
 import {
   UserFilter,

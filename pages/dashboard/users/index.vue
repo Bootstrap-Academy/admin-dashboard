@@ -99,7 +99,7 @@
 </template>
 
 <script lang="ts">
-import { Ref } from 'vue';
+import type { Ref } from 'vue';
 import { USERSORT, User, UserSearchRequestBody } from '@/types/userTypes';
 import { getUserTest } from '@/composables/appUsers';
 

@@ -60,7 +60,7 @@
 </template>
 
 <script lang="ts">
-import { Ref } from 'vue';
+import type { Ref } from 'vue';
 
 import { PlusIcon } from '@heroicons/vue/24/outline/index.js';
 
