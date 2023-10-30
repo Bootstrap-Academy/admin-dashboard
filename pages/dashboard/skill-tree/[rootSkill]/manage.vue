@@ -85,7 +85,7 @@
 </template>
 
 <script lang="ts">
-import { ComputedRef, Ref } from 'vue';
+import type { ComputedRef, Ref } from 'vue';
 definePageMeta({
 	middleware: ['auth'],
 });
