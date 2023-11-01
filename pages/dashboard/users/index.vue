@@ -70,20 +70,16 @@
     } else {
       getUserRequestBody.name = newValue;
     }
-  }
-    "
+  }"
       @search="userSearch"
     />
-    <div class="flex items-center text-accent text-sm">
-      <Sort
-        text="Headings.FilterBy"
-        class="mb-card flex-grow"
-        :options="options"
-        :quantity="totalAppUsers"
-        @selected="onSelectedOption($event)"
-      />
 
-      <button @click="modalOpen = true">Erweitert</button>
+    <div class="flex items-center justify-between text-accent text-sm">
+      {{ t('Headings.Result', { n: totalAppUsers }, totalAppUsers) }}
+      <div>
+        <button @click="modalOpen = true">Filter</button>
+        <button @click="resetAllFilter">Reset Filter</button>
+      </div>
     </div>
 
     <AppUsersTable :data="appUsers" :loading="loading" />
@@ -101,8 +97,8 @@
     <Modal v-if="modalOpen" @hide-modal="modalOpen = false">
       <Select
         @cancel="modalOpen = false"
-        v-model="expandedSearch"
-        @save="testF"
+        v-model="expandedSearchOptions"
+        @save="expandedSearch"
       />
     </Modal>
   </main>
@@ -110,7 +106,12 @@
 
 <script lang="ts">
 import type { Ref } from 'vue';
-import { USERSORT, User, UserSearchRequestBody } from '@/types/userTypes';
+import {
+  USERSORT,
+  USER_LOCALES,
+  User,
+  UserSearchRequestBody,
+} from '@/types/userTypes';
 import { getUserTest } from '@/composables/appUsers';
 import { useI18n } from 'vue-i18n';
 import { CheckOption } from '~/types/componentTypes';
@@ -127,6 +128,7 @@ export default {
   setup() {
     onMounted(() => {
       userSearch();
+      resetExpandedSearchOptions();
     });
     const { t } = useI18n();
     const scrollRef = ref<HTMLElement | undefined>(undefined);
@@ -169,15 +171,50 @@ export default {
       userSearch();
     };
 
+    const resetAllFilter = () => {
+      getUserRequestBody.clearFilters();
+      getUserRequestBody.clearSearch();
+      resetExpandedSearchOptions();
+      userSearch();
+    };
     const currentPage = ref<number>(1);
 
-    const expandedSearch = ref<CheckOption[]>([
-      new CheckOption('Headings.UserDisabled'),
-      new CheckOption('Headings.Admin'),
-      new CheckOption('Headings.MFA'),
-      new CheckOption('Headings.Verified'),
-      new CheckOption('Headings.Newsletter'),
-    ]);
+    const expandedSearchOptions = ref<CheckOption[]>([]);
+
+    const resetExpandedSearchOptions = () => {
+      expandedSearchOptions.value.splice(0);
+      expandedSearchOptions.value.push(
+        new CheckOption(USER_LOCALES.USER_ENABLED),
+        new CheckOption(USER_LOCALES.USER_ADMIN),
+        new CheckOption(USER_LOCALES.USER_MFA),
+        new CheckOption(USER_LOCALES.USER_EMAIL_VERIFIED),
+        new CheckOption(USER_LOCALES.USER_NEWSLETTER)
+      );
+    };
+
+    const expandedSearch = (options: CheckOption[]) => {
+      options.forEach((option) => {
+        switch (option.label) {
+          case USER_LOCALES.USER_ENABLED:
+            getUserRequestBody.enabled = option.value;
+            break;
+          case USER_LOCALES.USER_ADMIN:
+            getUserRequestBody.admin = option.value;
+            break;
+          case USER_LOCALES.USER_MFA:
+            getUserRequestBody.mfa_enabled = option.value;
+            break;
+          case USER_LOCALES.USER_EMAIL_VERIFIED:
+            getUserRequestBody.email_verified = option.value;
+            break;
+          case USER_LOCALES.USER_NEWSLETTER:
+            getUserRequestBody.newsletter = option.value;
+            break;
+        }
+      });
+      userSearch();
+      modalOpen.value = false;
+    };
 
     const options = [
       {
@@ -278,10 +315,6 @@ export default {
       }
     }
 
-    const testF = (any: any) => {
-      console.log(expandedSearch.value);
-    };
-
     return {
       loading,
       appUsers,
@@ -300,8 +333,9 @@ export default {
       changePerPage,
       modalOpen,
       t,
+      expandedSearchOptions,
       expandedSearch,
-      testF,
+      resetAllFilter,
     };
   },
 };

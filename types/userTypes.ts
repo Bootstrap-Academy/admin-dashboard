@@ -68,3 +68,11 @@ export enum USERSORT{
     NEWSLETTER = 'newsletter',
     NOTNEWSLETTER = 'notnewsletter',
 }
+
+export enum USER_LOCALES{
+    USER_ENABLED = 'Headings.EnabledUser',
+    USER_ADMIN = 'Headings.Admin',
+    USER_MFA = 'Headings.MFA',
+    USER_EMAIL_VERIFIED = 'Headings.Verified',
+    USER_NEWSLETTER = 'Headings.Newsletter',
+}
