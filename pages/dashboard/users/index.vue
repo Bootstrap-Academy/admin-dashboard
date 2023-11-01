@@ -63,26 +63,28 @@
       :modelValue="
         emailSearch ? getUserRequestBody.email : getUserRequestBody.name
       "
-      @update:modelValue="
-        (newValue:string) => {
-          if (emailSearch) {
-            getUserRequestBody.email = newValue;
-            
-          } else {
-            getUserRequestBody.name = newValue;
-          }
-        }
-      "
+      @update:modelValue="(newValue: string) => {
+    if (emailSearch) {
+      getUserRequestBody.email = newValue;
+
+    } else {
+      getUserRequestBody.name = newValue;
+    }
+  }
+    "
       @search="userSearch"
     />
+    <div class="flex items-center text-accent text-sm">
+      <Sort
+        text="Headings.FilterBy"
+        class="mb-card flex-grow"
+        :options="options"
+        :quantity="totalAppUsers"
+        @selected="onSelectedOption($event)"
+      />
 
-    <Sort
-      text="Headings.FilterBy"
-      class="mb-card"
-      :options="options"
-      :quantity="totalAppUsers"
-      @selected="onSelectedOption($event)"
-    />
+      <button @click="modalOpen = true">Erweitert</button>
+    </div>
 
     <AppUsersTable :data="appUsers" :loading="loading" />
 
@@ -95,6 +97,19 @@
     />
 
     <ScrollToBtn :scrollRef="scrollRef" />
+
+    <Modal v-if="modalOpen" @hide-modal="modalOpen = false">
+      <Select/>
+
+      <div class="flex justify-between w-2/4">
+        <button @click="modalOpen = !modalOpen" class="text-accent">
+          Cancel
+        </button>
+        <button @click="modalOpen = !modalOpen" class="text-accent">
+          Save
+        </button>
+      </div>
+    </Modal>
   </main>
 </template>
 
@@ -102,6 +117,7 @@
 import type { Ref } from 'vue';
 import { USERSORT, User, UserSearchRequestBody } from '@/types/userTypes';
 import { getUserTest } from '@/composables/appUsers';
+import { useI18n } from 'vue-i18n';
 
 definePageMeta({
   middleware: ['auth'],
@@ -116,7 +132,7 @@ export default {
     onMounted(() => {
       userSearch();
     });
-
+    const { t } = useI18n();
     const scrollRef = ref<HTMLElement | undefined>(undefined);
 
     const appUsers: Ref<User[]> = useAppUsers();
@@ -125,17 +141,19 @@ export default {
     const emailSearch = ref(true);
     const loading = ref(appUsers.value.length <= 0);
     const offset = useOffset();
-
+    const modalOpen = ref(false);
     const getUserRequestBody = reactive(new UserSearchRequestBody());
 
     const userSearch = async () => {
       loading.value = true;
-      await getUserTest(getUserRequestBody).then(() => {
-        loading.value = false;
-      }).catch((error) => {
-        loading.value = false;
-        throw new Error('Error in userSearch', error);
-      })
+      await getUserTest(getUserRequestBody)
+        .then(() => {
+          loading.value = false;
+        })
+        .catch((error) => {
+          loading.value = false;
+          throw new Error('Error in userSearch', error);
+        });
     };
 
     const resetSearch = () => {
@@ -272,6 +290,8 @@ export default {
       changePage,
       currentPage,
       changePerPage,
+      modalOpen,
+      t,
     };
   },
 };
