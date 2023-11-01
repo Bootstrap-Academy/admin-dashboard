@@ -5,7 +5,7 @@
 		<Language class="h-[33px]" />
 
 		<div
-			class="modal-content container-fluid pt-card pb-card grid place-items-center"
+			class="flex flex-col justify-center h-full gap-20 items-center"
 			@click.self="emit('backdrop', true)"
 		>
 			<slot></slot>
