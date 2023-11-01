@@ -76,9 +76,19 @@
 
     <div class="flex items-center justify-between text-accent text-sm">
       {{ t('Headings.Result', { n: totalAppUsers }, totalAppUsers) }}
-      <div>
-        <button @click="modalOpen = true">Filter</button>
-        <button @click="resetAllFilter">Reset Filter</button>
+      <div class="flex gap-2">
+        <button
+          @click="modalOpen = true"
+          class="inline-block rounded-full bg-accent px-6 pb-2 pt-2 text-xs font-medium leading-normal text-primary hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] dark:shadow-[0_4px_9px_-4px_rgba(59,113,202,0.5)] dark:hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] hover:scale-105"
+        >
+          Filter
+        </button>
+        <button
+          @click="resetAllFilter"
+          class="inline-block rounded-full bg-accent px-6 pb-2 pt-2 text-xs font-medium leading-normal text-primary hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] dark:shadow-[0_4px_9px_-4px_rgba(59,113,202,0.5)] dark:hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] hover:scale-105"
+        >
+          Reset Filter
+        </button>
       </div>
     </div>
 
@@ -94,11 +104,16 @@
 
     <ScrollToBtn :scrollRef="scrollRef" />
 
-    <Modal v-if="modalOpen" @hide-modal="modalOpen = false">
+    <Modal
+      v-if="modalOpen"
+      @hide-modal="modalOpen = false"
+      @backdrop="modalOpen = false"
+    >
       <Select
-        @cancel="modalOpen = false"
+        @cancel="(modalOpen = false), resetExpandedSearchOptions()"
         v-model="expandedSearchOptions"
         @save="expandedSearch"
+        ok-label="Apply"
       />
     </Modal>
   </main>
@@ -174,8 +189,8 @@ export default {
     const resetAllFilter = () => {
       getUserRequestBody.clearFilters();
       getUserRequestBody.clearSearch();
-      resetExpandedSearchOptions();
       userSearch();
+      resetExpandedSearchOptions();
     };
     const currentPage = ref<number>(1);
 
@@ -336,6 +351,7 @@ export default {
       expandedSearchOptions,
       expandedSearch,
       resetAllFilter,
+      resetExpandedSearchOptions,
     };
   },
 };
