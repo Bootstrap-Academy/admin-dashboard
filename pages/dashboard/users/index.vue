@@ -99,16 +99,11 @@
     <ScrollToBtn :scrollRef="scrollRef" />
 
     <Modal v-if="modalOpen" @hide-modal="modalOpen = false">
-      <Select/>
-
-      <div class="flex justify-between w-2/4">
-        <button @click="modalOpen = !modalOpen" class="text-accent">
-          Cancel
-        </button>
-        <button @click="modalOpen = !modalOpen" class="text-accent">
-          Save
-        </button>
-      </div>
+      <Select
+        @cancel="modalOpen = false"
+        v-model="expandedSearch"
+        @save="testF"
+      />
     </Modal>
   </main>
 </template>
@@ -118,6 +113,7 @@ import type { Ref } from 'vue';
 import { USERSORT, User, UserSearchRequestBody } from '@/types/userTypes';
 import { getUserTest } from '@/composables/appUsers';
 import { useI18n } from 'vue-i18n';
+import { CheckOption } from '~/types/componentTypes';
 
 definePageMeta({
   middleware: ['auth'],
@@ -156,13 +152,6 @@ export default {
         });
     };
 
-    const resetSearch = () => {
-      getUserRequestBody.clearSearch();
-      userSearch();
-    };
-
-    const currentPage = ref<number>(1);
-
     const changePage = (page: number) => {
       currentPage.value = page;
       getUserRequestBody.offset = (page - 1) * getUserRequestBody.limit;
@@ -175,13 +164,28 @@ export default {
       userSearch();
     };
 
+    const resetSearch = () => {
+      getUserRequestBody.clearSearch();
+      userSearch();
+    };
+
+    const currentPage = ref<number>(1);
+
+    const expandedSearch = ref<CheckOption[]>([
+      new CheckOption('Headings.UserDisabled'),
+      new CheckOption('Headings.Admin'),
+      new CheckOption('Headings.MFA'),
+      new CheckOption('Headings.Verified'),
+      new CheckOption('Headings.Newsletter'),
+    ]);
+
     const options = [
       {
         label: 'Headings.None',
         value: USERSORT.NONE,
       },
       {
-        label: 'Headings.UserEnabled',
+        label: 'Headings.Enabled',
         value: USERSORT.ENABLED,
       },
       {
@@ -274,6 +278,10 @@ export default {
       }
     }
 
+    const testF = (any: any) => {
+      console.log(expandedSearch.value);
+    };
+
     return {
       loading,
       appUsers,
@@ -292,6 +300,8 @@ export default {
       changePerPage,
       modalOpen,
       t,
+      expandedSearch,
+      testF,
     };
   },
 };
