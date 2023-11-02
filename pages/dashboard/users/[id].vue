@@ -79,7 +79,6 @@ export default {
 			loading.value = true;
 			await getAppUser(userID.value);
 			loading.value = false;
-			console.log('appUser', appUser.value);
 		});
 
 		const router = useRouter();

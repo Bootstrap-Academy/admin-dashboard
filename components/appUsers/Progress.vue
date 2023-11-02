@@ -82,7 +82,6 @@ export default defineComponent({
 					if (success) {
 						Object.assign(progress, success);
 					}
-					console.log('progress', progress);
 
 					if (activeSkills.value && activeSkills.value.length <= 0) {
 						Object.assign(header, {

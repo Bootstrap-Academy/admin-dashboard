@@ -22,7 +22,6 @@ export async function getCompany(id: string) {
 
 export async function createCompany(body: any) {
 	try {
-		console.log('inside create company', body);
 
 		const response = await POST(`/jobs/companies`, body);
 

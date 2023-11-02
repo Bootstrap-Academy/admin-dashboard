@@ -29,171 +29,329 @@
   <main>
     <div ref="scrollRef"></div>
     <PageTitle />
-
+    <ul
+      class="flex flex-wrap text-sm font-medium text-center text-gray-500 dark:text-gray-400"
+    >
+      <li class="mr-2">
+        <button
+          :class="
+            !emailSearch
+              ? 'inline-block px-4 py-3 rounded-lg hover:text-white'
+              : 'inline-block px-4 py-3 text-accent bg-blue-600 rounded-lg'
+          "
+          @click="resetSearch(), (emailSearch = true)"
+        >
+          Email Search
+        </button>
+      </li>
+      <li class="mr-2">
+        <button
+          :class="
+            emailSearch
+              ? 'inline-block px-4 py-3 rounded-lg hover:text-white'
+              : 'inline-block px-4 py-3 text-accent bg-blue-600 rounded-lg active'
+          "
+          @click="resetSearch(), (emailSearch = false)"
+        >
+          Name Search
+        </button>
+      </li>
+    </ul>
     <FormSearch
-      enter-only
-      class="mb-card-sm mt-card"
-      placeholder="Body.SearchByEmail"
-      :modelValue="filters.email"
-      @update:modelValue="setFilters({ email: $event })"
+      class="mb-card-sm mt-card mt-0"
+      :placeholder="emailSearch ? 'Search by Email' : 'Search by Name'"
+      :modelValue="
+        emailSearch ? getUserRequestBody.email : getUserRequestBody.name
+      "
+      @update:modelValue="(newValue: string) => {
+    if (emailSearch) {
+      getUserRequestBody.email = newValue;
+
+    } else {
+      getUserRequestBody.name = newValue;
+    }
+  }"
+      @search="userSearch"
     />
 
-    <Sort
-      text="Headings.FilterBy"
-      class="mb-card"
-      :options="options"
-      :quantity="appUsers.length"
-      @selected="onSelectedOption($event)"
-    />
+    <div class="flex items-center justify-between text-accent text-sm">
+      {{ t('Headings.Result', { n: totalAppUsers }, totalAppUsers) }}
+      <div class="flex gap-2">
+        <button
+          @click="modalOpen = true"
+          class="inline-block rounded-full bg-accent px-6 pb-2 pt-2 text-xs font-medium leading-normal text-primary hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] dark:shadow-[0_4px_9px_-4px_rgba(59,113,202,0.5)] dark:hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] hover:scale-105"
+        >
+          Filter
+        </button>
+        <button
+          @click="resetAllFilter"
+          class="inline-block rounded-full bg-accent px-6 pb-2 pt-2 text-xs font-medium leading-normal text-primary hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] dark:shadow-[0_4px_9px_-4px_rgba(59,113,202,0.5)] dark:hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] hover:scale-105"
+        >
+          Reset Filter
+        </button>
+      </div>
+    </div>
 
     <AppUsersTable :data="appUsers" :loading="loading" />
 
-    <Btn
-      secondary
-      class="mx-auto mt-card"
-      @click="onclickLoadMore"
-      :class="{
-        'pointer-events-none opacity-70':
-          loading || appUsers.length >= totalAppUsers,
-      }"
-    >
-      <template v-if="loading">
-        <span class="mr-2">Loading</span>
-        <LoadingCircular />
-      </template>
-
-      <span v-else-if="appUsers.length < totalAppUsers">Load More</span>
-
-      <span v-else>No more users</span>
-    </Btn>
+    <Pagination
+      :current="currentPage"
+      :total-results="totalAppUsers"
+      :perPage="getUserRequestBody.limit"
+      @change="changePage"
+      @change-per-page="changePerPage"
+    />
 
     <ScrollToBtn :scrollRef="scrollRef" />
+
+    <Modal
+      v-if="modalOpen"
+      @hide-modal="modalOpen = false"
+      @backdrop="modalOpen = false"
+    >
+      <Select
+        @cancel="(modalOpen = false), resetExpandedSearchOptions()"
+        v-model="expandedSearchOptions"
+        @save="expandedSearch"
+        ok-label="Apply"
+      />
+    </Modal>
   </main>
 </template>
 
 <script lang="ts">
-import type { Ref } from "vue";
+import type { Ref } from 'vue';
+import {
+  USERSORT,
+  USER_LOCALES,
+  User,
+  UserSearchRequestBody,
+} from '@/types/userTypes';
+import { getUserTest } from '@/composables/appUsers';
+import { useI18n } from 'vue-i18n';
+import { CheckOption } from '~/types/componentTypes';
 
 definePageMeta({
-  middleware: ["auth"],
-  layout: "dashboard",
+  middleware: ['auth'],
+  layout: 'dashboard',
 });
 
 export default {
   head: {
-    title: "Users",
+    title: 'Users',
   },
   setup() {
-    const scrollRef = ref<HTMLElement | null>(null);
+    onMounted(() => {
+      userSearch();
+      resetExpandedSearchOptions();
+    });
+    const { t } = useI18n();
+    const scrollRef = ref<HTMLElement | undefined>(undefined);
 
-    const appUsers: Ref<any[]> = useAppUsers();
+    const appUsers: Ref<User[]> = useAppUsers();
     const totalAppUsers: Ref<number> = useTotalAppUsers();
 
+    const emailSearch = ref(true);
     const loading = ref(appUsers.value.length <= 0);
-
     const offset = useOffset();
-    const limit = useLimit();
+    const modalOpen = ref(false);
+    const getUserRequestBody = reactive(new UserSearchRequestBody());
 
-    const cookie_filters = <any>useCookie("users_filter");
-    const filters = reactive(
-      cookie_filters.value ?? {
-        email: "",
-        enabled: false,
-        admin: false,
-        mfa_enabled: false,
-        email_verified: false,
-        newsletter: false,
-      }
-    );
-
-    async function setFilters(paramFilters: any) {
-      Object.assign(filters, {
-        ...filters,
-        ...paramFilters,
-      });
-
-      cookie_filters.value = JSON.stringify(filters);
-
+    const userSearch = async () => {
       loading.value = true;
-      await getAppUsers(filters);
-      loading.value = false;
-
-      appUsers.value = await Promise.all(
-        appUsers.value.map(async (user: any) => {
-          let balance = user?.balance ?? null;
-          if (balance == null) {
-            const [success, error] = await getBalanceOfThisUser(user.id);
-            balance = success?.coins ?? 0;
-          }
-
-          let xp = user?.xp ?? 0;
-          if (!!!balance) {
-            const [success, error] = await getXPOfThisUser(user.id);
-            xp = success?.total_xp ?? 0;
-          }
-
-          return {
-            ...user,
-            balance: balance,
-            xp: xp,
-          };
+      await getUserTest(getUserRequestBody)
+        .then(() => {
+          loading.value = false;
         })
+        .catch((error) => {
+          loading.value = false;
+          throw new Error('Error in userSearch', error);
+        });
+    };
+
+    const changePage = (page: number) => {
+      currentPage.value = page;
+      getUserRequestBody.offset = (page - 1) * getUserRequestBody.limit;
+      userSearch();
+    };
+
+    const changePerPage = (pageSize: number) => {
+      getUserRequestBody.limit = pageSize;
+      changePage(1);
+      userSearch();
+    };
+
+    const resetSearch = () => {
+      getUserRequestBody.clearSearch();
+      userSearch();
+    };
+
+    const resetAllFilter = () => {
+      getUserRequestBody.clearFilters();
+      getUserRequestBody.clearSearch();
+      userSearch();
+      resetExpandedSearchOptions();
+    };
+    const currentPage = ref<number>(1);
+
+    const expandedSearchOptions = ref<CheckOption[]>([]);
+
+    const resetExpandedSearchOptions = () => {
+      expandedSearchOptions.value.splice(0);
+      expandedSearchOptions.value.push(
+        new CheckOption(USER_LOCALES.USER_ENABLED),
+        new CheckOption(USER_LOCALES.USER_ADMIN),
+        new CheckOption(USER_LOCALES.USER_MFA),
+        new CheckOption(USER_LOCALES.USER_EMAIL_VERIFIED),
+        new CheckOption(USER_LOCALES.USER_NEWSLETTER)
       );
-    }
+    };
+
+    const expandedSearch = (options: CheckOption[]) => {
+      options.forEach((option) => {
+        switch (option.label) {
+          case USER_LOCALES.USER_ENABLED:
+            getUserRequestBody.enabled = option.value;
+            break;
+          case USER_LOCALES.USER_ADMIN:
+            getUserRequestBody.admin = option.value;
+            break;
+          case USER_LOCALES.USER_MFA:
+            getUserRequestBody.mfa_enabled = option.value;
+            break;
+          case USER_LOCALES.USER_EMAIL_VERIFIED:
+            getUserRequestBody.email_verified = option.value;
+            break;
+          case USER_LOCALES.USER_NEWSLETTER:
+            getUserRequestBody.newsletter = option.value;
+            break;
+        }
+      });
+      userSearch();
+      modalOpen.value = false;
+    };
 
     const options = [
       {
-        label: "Headings.None",
-        value: "none",
+        label: 'Headings.None',
+        value: USERSORT.NONE,
       },
       {
-        label: "Headings.Enabled",
-        value: "enabled",
+        label: 'Headings.Enabled',
+        value: USERSORT.ENABLED,
       },
       {
-        label: "Headings.Admin",
-        value: "admin",
+        label: 'Headings.UserDisabled',
+        value: USERSORT.DISABLED,
       },
       {
-        label: "Headings.MFA",
-        value: "mfa_enabled",
+        label: 'Headings.Admin',
+        value: USERSORT.ADMIN,
       },
       {
-        label: "Headings.Verified",
-        value: "email_verified",
+        label: 'Headings.MFA',
+        value: USERSORT.MFA,
       },
       {
-        label: "Headings.Newsletter",
-        value: "newsletter",
+        label: 'Headings.NOMFA',
+        value: USERSORT.NOMFA,
+      },
+      {
+        label: 'Headings.Verified',
+        value: USERSORT.EMAILVERIFIED,
+      },
+      {
+        label: 'Headings.NotVerified',
+        value: USERSORT.NOTEMAILVERIFIED,
+      },
+      {
+        label: 'Headings.Newsletter',
+        value: USERSORT.NEWSLETTER,
+      },
+      {
+        label: 'Headings.NoNewsletter',
+        value: USERSORT.NOTNEWSLETTER,
       },
     ];
 
-    function onSelectedOption(option: string) {
-      setFilters({
-        enabled: option == "enabled",
-        admin: option == "admin",
-        mfa_enabled: option == "mfa_enabled",
-        email_verified: option == "email_verified",
-        newsletter: option == "newsletter",
-      });
-    }
-
-    async function onclickLoadMore() {
-      offset.value = offset.value + limit.value;
-      await setFilters(filters);
+    async function onSelectedOption(option: USERSORT) {
+      switch (option) {
+        case USERSORT.NONE:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.clearSearch();
+          userSearch();
+          break;
+        case USERSORT.ENABLED:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.enabled = true;
+          getUserRequestBody.admin = false;
+          userSearch();
+          break;
+        case USERSORT.DISABLED:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.enabled = false;
+          userSearch();
+          break;
+        case USERSORT.ADMIN:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.admin = true;
+          userSearch();
+          break;
+        case USERSORT.MFA:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.mfa_enabled = true;
+          userSearch();
+          break;
+        case USERSORT.NOMFA:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.mfa_enabled = false;
+          userSearch();
+          break;
+        case USERSORT.EMAILVERIFIED:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.email_verified = true;
+          userSearch();
+          break;
+        case USERSORT.NOTEMAILVERIFIED:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.email_verified = false;
+          userSearch();
+          break;
+        case USERSORT.NEWSLETTER:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.newsletter = true;
+          userSearch();
+          break;
+        case USERSORT.NOTNEWSLETTER:
+          getUserRequestBody.clearFilters();
+          getUserRequestBody.newsletter = false;
+          userSearch();
+          break;
+      }
     }
 
     return {
       loading,
       appUsers,
-      setFilters,
-      filters,
       onSelectedOption,
       options,
       scrollRef,
-      onclickLoadMore,
       offset,
       totalAppUsers,
+      emailSearch,
+      getUserRequestBody,
+      UserSearchRequestBody,
+      userSearch,
+      resetSearch,
+      changePage,
+      currentPage,
+      changePerPage,
+      modalOpen,
+      t,
+      expandedSearchOptions,
+      expandedSearch,
+      resetAllFilter,
+      resetExpandedSearchOptions,
     };
   },
 };

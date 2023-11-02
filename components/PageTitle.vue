@@ -14,7 +14,6 @@ export default defineComponent({
 
     const pageTitle = computed((): string => {
       let routeName = (<string>route?.name ?? "").toLocaleLowerCase();
-      console.log("name of page", routeName);
       switch (routeName) {
         case "dashboard":
           return "Headings.Dashboard";

@@ -118,7 +118,6 @@ export default defineComponent({
 						!form[key].valid
 					) {
 						isValid = false;
-						console.log(key);
 					}
 				}
 
