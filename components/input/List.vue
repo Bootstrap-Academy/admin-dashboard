@@ -32,7 +32,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, Ref } from 'vue';
+import { defineComponent } from 'vue';
+import type { Ref } from 'vue';
 import { PlusCircleIcon, XMarkIcon } from '@heroicons/vue/24/solid/index.js';
 
 export default defineComponent({

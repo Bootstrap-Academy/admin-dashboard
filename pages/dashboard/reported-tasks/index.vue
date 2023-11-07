@@ -30,7 +30,8 @@
 </template>
 
 <script lang="ts">
-import { Ref, ref, onMounted } from "vue";
+import { ref, onMounted } from "vue";
+import type { Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   getreportedSubtasksList,

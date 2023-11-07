@@ -1,25 +1,25 @@
 <template>
-	<form
-		class="rounded shadow-xl flex items-center overflow-clip h-fit bg-accent w-full max-w-sm"
-		@submit.prevent="onenter()"
-	>
-		<input
-			type="text"
-			:placeholder="translatedPlaceholder"
-			@change="onchange"
-			v-model.trim="search"
-			class="py-2 px-4 text-primary text-body-1 font-body placeholder:text-secondary placeholder:text-body-1 placeholder:font-body outline-none w-full"
-		/>
+  <form
+    class="rounded shadow-xl flex items-center overflow-clip h-fit bg-accent w-full max-w-sm"
+    @submit.prevent="onenter()"
+  >
+    <input
+      type="text"
+      :placeholder="translatedPlaceholder"
+      @change="onchange"
+      v-model.trim="search"
+      class="py-2 px-4 text-primary text-body-1 font-body placeholder:text-secondary placeholder:text-body-1 placeholder:font-body outline-none w-full"
+    />
 
-		<button
-			@click.prevent="onenter"
-			class="px-4 bg-accent"
-			:class="{ 'pointer-events-none': loading }"
-		>
-			<LoadingCircular v-if="loading" />
-			<MagnifyingGlassIcon v-else class="h-5 w-5 fill-white" />
-		</button>
-	</form>
+    <button
+      @click.prevent="onenter"
+      class="px-4 bg-accent"
+      :class="{ 'pointer-events-none': loading }"
+    >
+      <LoadingCircular v-if="loading" />
+      <MagnifyingGlassIcon v-else class="h-5 w-5 fill-white" />
+    </button>
+  </form>
 </template>
 
 <script>
@@ -27,40 +27,48 @@ import { MagnifyingGlassIcon } from '@heroicons/vue/24/solid/index.js';
 import { useI18n } from 'vue-i18n';
 
 export default {
-	props: {
-		loading: { type: Boolean, default: false },
-		placeholder: { type: String, default: '' },
-		modelValue: { type: String, default: '' },
-		enterOnly: { type: Boolean, default: false },
-	},
-	emits: ['update:modelValue'],
-	components: { MagnifyingGlassIcon },
-	setup(props, { emit }) {
-		const search = ref(props.modelValue);
+  props: {
+    loading: { type: Boolean, default: false },
+    placeholder: { type: String, default: '' },
+    modelValue: { type: String, default: '' },
+    enterOnly: { type: Boolean, default: false },
+  },
+  emits: ['update:modelValue', 'search'],
+  components: { MagnifyingGlassIcon },
+  setup(props, { emit }) {
 
-		function onchange() {
-			if (props.enterOnly == true) return;
-			emit('update:modelValue', search.value);
-		}
+    const search = computed({
+      get() {
+        return props.modelValue;
+      },
+      set(value) {
+        emit('update:modelValue', value);
+      },
+    });
 
-		function onenter() {
-			emit('update:modelValue', search.value);
-		}
+    function onchange() {
+      if (props.enterOnly === true) return;
+      emit('update:modelValue', search.value);
+    }
 
-		const { t } = useI18n();
+    function onenter() {
+      emit('search', search.value);
+    }
 
-		const translatedPlaceholder = computed(() => {
-			return t(props.placeholder);
-		});
+    const { t } = useI18n();
 
-		return {
-			MagnifyingGlassIcon,
-			translatedPlaceholder,
-			search,
-			onchange,
-			onenter,
-		};
-	},
+    const translatedPlaceholder = computed(() => {
+      return t(props.placeholder);
+    });
+
+    return {
+      MagnifyingGlassIcon,
+      translatedPlaceholder,
+      search,
+      onchange,
+      onenter,
+    };
+  },
 };
 </script>
 

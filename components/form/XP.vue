@@ -19,8 +19,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, Ref } from 'vue';
-import { IForm } from '~/types/form';
+import { defineComponent, inject } from 'vue';
+import type { Ref } from 'vue';
+import type { IForm } from '~/types/form';
 
 export default defineComponent({
 	props: {

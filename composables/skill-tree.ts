@@ -1,4 +1,4 @@
-import { Ref } from 'nuxt/dist/app/compat/capi';
+import type { Ref } from 'vue';
 
 export const useRootSkills = () => useState('rootSkills', () => null);
 export const useRootSkill = () => useState('rootSkill', () => null);

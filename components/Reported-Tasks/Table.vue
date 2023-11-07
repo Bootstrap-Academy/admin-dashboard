@@ -54,7 +54,8 @@
 
 <script lang="ts">
 import { EyeIcon } from "@heroicons/vue/24/outline/index.js";
-import { computed, PropType } from "vue";
+import { computed } from "vue";
+import type { PropType } from "vue";
 import {
   useReportReason,
   useReportSubtaskType,

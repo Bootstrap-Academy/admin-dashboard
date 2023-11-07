@@ -123,7 +123,7 @@
 </template>
 
 <script lang="ts">
-import { Ref, PropType } from "vue";
+import type { Ref, PropType } from "vue";
 import { useI18n } from "vue-i18n";
 
 import {
@@ -304,7 +304,6 @@ export default {
 
     async function fnBanFromPosting(user: any, action: any) {
       if (user.createBan) {
-        console.log("delete subtask creation ban", user.createBan);
 
         const [success, error] = await unbanAppUser(user.createSubtaskBan_id);
         if (success) {
@@ -312,7 +311,6 @@ export default {
           user.createBan = false;
         } else errorHandler(error);
       } else {
-        console.log("createBan", user.createBan);
         const [success, error] = await banAppUser({
           user_id: user.id,
           action: action,
@@ -327,7 +325,6 @@ export default {
 
     async function fnBanFromReporting(user: any, action: any) {
       if (user.reportBan) {
-        console.log("delete report ban", user.reportBan);
 
         const [success, error] = await unbanAppUser(user.reportBan_id);
         if (success) {
@@ -335,7 +332,6 @@ export default {
           user.reportBan = false;
         } else errorHandler(error);
       } else {
-        console.log("reportBan", user.reportBan);
         const [success, error] = await banAppUser({
           user_id: user.id,
           action: action,

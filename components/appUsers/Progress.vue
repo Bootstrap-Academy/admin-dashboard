@@ -35,7 +35,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, provide } from 'vue';
+import { defineComponent, provide } from 'vue';
+import type { PropType } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
@@ -81,7 +82,6 @@ export default defineComponent({
 					if (success) {
 						Object.assign(progress, success);
 					}
-					console.log('progress', progress);
 
 					if (activeSkills.value && activeSkills.value.length <= 0) {
 						Object.assign(header, {

@@ -45,8 +45,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
-import { IForm } from '~/types/form';
+import { defineComponent } from 'vue';
+import type { PropType } from 'vue';
+import type { IForm } from '~/types/form';
 
 export default defineComponent({
 	props: {
