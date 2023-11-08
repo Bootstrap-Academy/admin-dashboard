@@ -5,7 +5,7 @@
 		<Language class="h-[33px]" />
 
 		<div
-			class="modal-content container-fluid pt-card pb-card grid place-items-center"
+			class="flex flex-col justify-center h-full gap-40 items-center modal-content"
 			@click.self="emit('backdrop', true)"
 		>
 			<slot></slot>
@@ -27,7 +27,6 @@ export default defineComponent({
 <style scoped>
 .modal-content {
 	animation: modalContent 0.75s ease-out forwards;
-	height: calc(100vh - 33px);
 }
 
 @keyframes modalContent {

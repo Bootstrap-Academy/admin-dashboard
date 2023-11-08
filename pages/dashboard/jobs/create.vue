@@ -37,7 +37,7 @@
 </template>
 
 <script lang="ts">
-import { Ref } from 'vue';
+import type { Ref } from 'vue';
 definePageMeta({
 	middleware: ['auth'],
 });
