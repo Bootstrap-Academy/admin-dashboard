@@ -17,7 +17,7 @@ export default {
 		const dialog = useDialog();
 
 		function handleDialogOnBackdrop() {
-			return dialog.value && dialog.value.triggerPrimaryActionOnBackdropClick;
+			return dialog.value?.triggerPrimaryActionOnBackdropClick;
 		}
 
 		const user = useUser();

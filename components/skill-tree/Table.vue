@@ -121,21 +121,21 @@ export default {
 		const rootSkill = useRootSkill();
 
 		function onclickManageItem(item: any) {
-			if (!!!item || !!!item.id) return;
+			if (Boolean(!item) || Boolean(!item.id)) return;
 			rootSkill.value = item;
 
 			router.push(`/dashboard/skill-tree/${item.id}/manage`);
 		}
 
 		function onclickEditItem(item: any) {
-			if (!!!item || !!!item.id) return;
+			if (Boolean(!item) || Boolean(!item.id)) return;
 			rootSkill.value = item;
 
 			router.push(`/dashboard/skill-tree/${item.id}/edit`);
 		}
 
 		function onclickViewItem(item: any) {
-			if (!!!item || !!!item.id) return;
+			if (Boolean(!item) || Boolean(!item.id)) return;
 			rootSkill.value = item;
 
 			router.push(`/dashboard/skill-tree/${item.id}/sub-skills`);

@@ -31,7 +31,7 @@ export default defineComponent({
 			return window.history.length > 2;
 		}
 		function onclickNavigate() {
-			if (!!!pathname.value) {
+			if (!pathname.value) {
 				hasHistory() ? router.go(-1) : router.push('/');
 			} else {
 				router.push(pathname.value);

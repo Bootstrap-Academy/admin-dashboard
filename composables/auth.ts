@@ -17,7 +17,7 @@ export async function getOAuthProviders() {
 
 export async function loginViaOAuthProvider(body: any) {
 	try {
-		const response = await POST(`/auth/sessions/oauth`, body);
+		const response = await POST("/auth/sessions/oauth", body);
 
 		return [response, null];
 	} catch (error: any) {
@@ -49,7 +49,7 @@ export async function logout() {
 	const user = <any>useUser();
 
 	try {
-		if (!!!user.value || !!!user.value.id) {
+		if (Boolean(!user.value) || Boolean(!user.value.id)) {
 			throw { data: 'Invalid User Id' };
 		}
 
@@ -96,10 +96,10 @@ export async function requestEmailVerification() {
 	if (isAccountVerified) return [true, null];
 
 	try {
-		if (!!!user_id) {
+		if (!user_id) {
 			throw { data: { detail: 'Invalid User Id' } };
 		}
-		if (!!!user_email) {
+		if (!user_email) {
 			throw { data: { detail: 'User does not have email' } };
 		}
 
@@ -119,7 +119,7 @@ export async function verifyAccount(body: any) {
 	if (isAccountVerified) return [true, null];
 
 	try {
-		if (!!!user_id) {
+		if (!user_id) {
 			throw { data: 'Invalid User Id' };
 		}
 

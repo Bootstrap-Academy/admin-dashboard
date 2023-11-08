@@ -81,7 +81,7 @@ export default {
 
 		const subSkills: Ref<any> = useSubSkills();
 
-		const loading = ref(!!!subSkills.value);
+		const loading = ref(Boolean(!subSkills.value));
 
 		const cookie_filters = <any>useCookie('subSkills_filter');
 		const filters = reactive(

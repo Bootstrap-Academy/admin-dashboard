@@ -60,19 +60,19 @@ export default defineComponent({
 				valid: false,
 				value: '',
 				rules: [
-					(v: string) => !!v || 'Error.InputEmpty_Inputs.EmailOrUsername',
+					(v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.EmailOrUsername',
 				],
 			},
 			password: {
 				valid: false,
 				value: '',
-				rules: [(v: string) => !!v || 'Error.InputEmpty_Inputs.Password'],
+				rules: [(v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.Password'],
 			},
 			mfa_code: {
 				valid: true,
 				value: '',
 				rules: [
-					(v: string) => !!v || 'Error.InputEmpty_Inputs.MFACode',
+					(v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.MFACode',
 					(v: string) => v.length >= 6 || 'Error.InputMinLength_6',
 				],
 			},
@@ -134,7 +134,7 @@ export default defineComponent({
 				form.submitting = false;
 
 				// checking is logged in user is admin or not
-				if (!!success && user.value.admin == false) {
+				if (Boolean(success) && user.value.admin == false) {
 					errorHandler({ detail: 'Error.NotAuthorized' });
 					setStates(null);
 					return;
@@ -147,7 +147,7 @@ export default defineComponent({
 		}
 
 		function successHandler(res: any) {
-			router.push(`/dashboard`);
+			router.push("/dashboard");
 		}
 
 		const needMFA = ref(false);
@@ -157,7 +157,7 @@ export default defineComponent({
 
 			let isMFA = msg == 'Error.InvalidCode';
 
-			if (!!isMFA && !!needMFA.value) {
+			if (Boolean(isMFA) && Boolean(needMFA.value)) {
 				openSnackbar('error', msg);
 			}
 

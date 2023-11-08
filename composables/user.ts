@@ -8,7 +8,7 @@ export const useRefreshToken = () => useState('refreshToken', () => '');
 export function getAccessToken() {
 	const accessToken = useAccessToken();
 
-	if (!!!accessToken.value) return null;
+	if (!accessToken.value) return null;
 
 	const cookie_accessToken = useCookie('accessToken');
 	if (cookie_accessToken.value != accessToken.value) {
@@ -21,7 +21,7 @@ export function getAccessToken() {
 export function getRefreshToken() {
 	const refreshToken = useRefreshToken();
 
-	if (!!!refreshToken.value) return null;
+	if (!refreshToken.value) return null;
 
 	const cookie_refreshToken = useCookie('refreshToken');
 	if (cookie_refreshToken.value != refreshToken.value) {
@@ -60,12 +60,12 @@ export function setStates(response: any) {
 
 export const isAuth = computed((): boolean => {
 	const accessToken = useAccessToken();
-	return !!accessToken.value;
+	return Boolean(accessToken.value);
 });
 
 export const hasEmail = computed((): boolean => {
 	const user = <any>useUser();
-	return !!(user.value?.email ?? '');
+	return Boolean(user.value?.email ?? '');
 });
 
 export async function getUser() {
@@ -73,7 +73,7 @@ export async function getUser() {
 	let user_id = user?.value?.id ?? null;
 
 	try {
-		if (!!!user_id) {
+		if (!user_id) {
 			throw { data: 'Invalid User Id' };
 		}
 		const response = await GET(`/auth/users/${user_id}`);

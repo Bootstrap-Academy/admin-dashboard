@@ -7,20 +7,20 @@ export function getRandomNumber(min: number, max: number) {
 export function abbreviateNumber(number: number) {
 	if (number == 0) return 0;
 	if (number < 1e3) return number;
-	if (number >= 1e3 && number < 1e6) return +(number / 1e3).toFixed(1) + 'K';
-	if (number >= 1e6 && number < 1e9) return +(number / 1e6).toFixed(1) + 'M';
-	if (number >= 1e9 && number < 1e12) return +(number / 1e9).toFixed(1) + 'B';
-	if (number >= 1e12) return +(number / 1e12).toFixed(1) + 'T';
+	if (number >= 1e3 && number < 1e6) return Number((number / 1e3).toFixed(1)) + 'K';
+	if (number >= 1e6 && number < 1e9) return Number((number / 1e6).toFixed(1)) + 'M';
+	if (number >= 1e9 && number < 1e12) return Number((number / 1e9).toFixed(1)) + 'B';
+	if (number >= 1e12) return Number((number / 1e12).toFixed(1)) + 'T';
 }
 
 export function get_x_timeAgo(timestamp: number) {
-	if (!!!timestamp) return timestamp;
+	if (!timestamp) return timestamp;
 	let dateObj = new Date(timestamp * 1000);
 
 	const seconds = Math.floor((Date.now() - dateObj.getTime()) / 1000);
 	const interval = intervals.find((i) => i.seconds < seconds);
 
-	if (!!!interval) return `Just created`;
+	if (!interval) return "Just created";
 
 	const count = Math.floor(seconds / interval.seconds);
 	return `${count} ${interval.label}${count !== 1 ? 's' : ''} ago`;

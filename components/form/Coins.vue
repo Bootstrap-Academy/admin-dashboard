@@ -66,14 +66,14 @@ export default defineComponent({
 				valid: false,
 				value: 0,
 				rules: [
-					(v: number) => !!v || 'Coins cannot be empty',
+					(v: number) => Boolean(v) || 'Coins cannot be empty',
 					(v: number) => v >= 0 || 'Coins cannot be less than 0',
 				],
 			},
 			description: {
 				valid: false,
 				value: '',
-				rules: [(v: number) => !!v || 'Description cannot be empty'],
+				rules: [(v: number) => Boolean(v) || 'Description cannot be empty'],
 			},
 			credit_note: {
 				valid: true,

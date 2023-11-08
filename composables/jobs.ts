@@ -19,7 +19,7 @@ export async function getJob(id: string) {
 
 export async function createJob(body: any) {
 	try {
-		const response = await POST(`/jobs/jobs`, body);
+		const response = await POST("/jobs/jobs", body);
 
 		const job = useJob();
 		job.value = response ?? null;
@@ -72,7 +72,7 @@ export async function getJobs(filters: any[]) {
 				query = query + `${key}=${filters[key]}&`;
 			} else if (
 				typeof filters[key] == 'string' &&
-				!!filters[key] &&
+				Boolean(filters[key]) &&
 				filters[key] != '---'
 			) {
 				query = query + `${key}=${filters[key]}&`;
@@ -98,7 +98,7 @@ export async function getJobMaxSalary() {
 
 		const jobMaxSalary = useJobMaxSalary();
 
-		if (!!!response || response.length <= 0) {
+		if (Boolean(!response) || response.length <= 0) {
 			jobMaxSalary.value = 10000;
 		} else {
 			jobMaxSalary.value = Math.max(...response.map((job) => job.salary.max));

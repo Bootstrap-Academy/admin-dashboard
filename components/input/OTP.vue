@@ -58,7 +58,7 @@ export default defineComponent({
 		});
 
 		// ============================================================= refs
-		const touched = ref(!!props.modelValue);
+		const touched = ref(Boolean(props.modelValue));
 		const DOM_INPUTS = ref<HTMLInputElement[] | []>([]);
 
 		const totalOTPChars = computed(() => {
@@ -87,7 +87,7 @@ export default defineComponent({
 			let finalOTP = '';
 
 			for (let i = 0; i < otp.length; i++) {
-				if (!!otp[i] && !!DOM_INPUTS.value[i]) {
+				if (Boolean(otp[i]) && Boolean(DOM_INPUTS.value[i])) {
 					DOM_INPUTS.value[i].value = otp[i];
 					finalOTP = finalOTP + otp[i];
 					DOM_INPUTS.value[i].focus();
@@ -96,7 +96,7 @@ export default defineComponent({
 
 			emit('update:modelValue', finalOTP);
 
-			let msg: string = '';
+			let msg = '';
 
 			props.rules
 				.slice()
@@ -105,11 +105,11 @@ export default defineComponent({
 					if (rule(finalOTP) != true) {
 						const [string, placeholder] = rule(finalOTP).split('_');
 
-						if (!!placeholder) {
+						if (placeholder) {
 							msg = t(string, {
 								placeholder: t(placeholder),
 							});
-						} else if (!!string) {
+						} else if (string) {
 							msg = t(string);
 						} else {
 							msg = t(rule(finalOTP));
@@ -118,14 +118,14 @@ export default defineComponent({
 				});
 
 			DOM_INPUTS.value[0].setCustomValidity(msg);
-			emit('valid', !!!msg);
+			emit('valid', Boolean(!msg));
 			error.value = msg;
 		}
 
 		function onkeydownDelete(index: number) {
 			let value = DOM_INPUTS.value[index].value;
 
-			if (!!!value && index > 0) {
+			if (Boolean(!value) && index > 0) {
 				DOM_INPUTS.value[index].focus();
 			}
 		}
@@ -138,7 +138,7 @@ export default defineComponent({
 
 		onMounted(() => {
 			nextTick(() => {
-				if (!!DOM_INPUTS.value[0]) DOM_INPUTS.value[0].focus();
+				if (DOM_INPUTS.value[0]) DOM_INPUTS.value[0].focus();
 			});
 		});
 

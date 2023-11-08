@@ -190,14 +190,14 @@ export default {
 		const job = useJob();
 
 		function onclickViewItem(item: any) {
-			if (!!!item || !!!item.id) return;
+			if (Boolean(!item) || Boolean(!item.id)) return;
 
 			job.value = item;
 			router.push(`/dashboard/jobs/${item.id}`);
 		}
 
 		function onclickEditItem(item: any) {
-			if (!!!item || !!!item.id) return;
+			if (Boolean(!item) || Boolean(!item.id)) return;
 
 			job.value = item;
 			router.push(`/dashboard/jobs/${item.id}/edit`);

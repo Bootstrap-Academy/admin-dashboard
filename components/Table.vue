@@ -70,7 +70,7 @@ export default defineComponent({
 		function handleWindowResize() {
 			windowWidth.value = window?.innerWidth ?? 0;
 			if (
-				!!windowWidth.value &&
+				Boolean(windowWidth.value) &&
 				windowWidth.value > 0 &&
 				windowWidth.value <= 767
 			) {

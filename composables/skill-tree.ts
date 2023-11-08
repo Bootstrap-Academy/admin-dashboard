@@ -10,7 +10,7 @@ export const useSkillTree = () => useState('skillTree', () => null);
 
 export async function getRootSkills() {
 	try {
-		const response = await GET(`/skills/skilltree`);
+		const response = await GET("/skills/skilltree");
 
 		const rootSkills = useRootSkills();
 		rootSkills.value = response ?? null;
@@ -36,7 +36,7 @@ export async function getRootSkill(id: string) {
 
 export async function getSubSkills(rootSkillID: string) {
 	try {
-		if (!!!rootSkillID) {
+		if (!rootSkillID) {
 			throw { data: 'Invalid root skill id' };
 		}
 
@@ -53,13 +53,13 @@ export async function getSubSkills(rootSkillID: string) {
 
 export async function getSkillTreeByRootID(rootSkillID: string) {
 	try {
-		if (!!!rootSkillID) {
+		if (!rootSkillID) {
 			throw { data: 'Invalid root skill id' };
 		}
 
 		const url =
 			rootSkillID == 'root'
-				? `/skills/skilltree`
+				? "/skills/skilltree"
 				: `/skills/skilltree/${rootSkillID}`;
 
 		const response = await GET(url);
@@ -76,7 +76,7 @@ export async function getSkillTreeByRootID(rootSkillID: string) {
 export async function createNewSkill(rootSkillID: string, body: any) {
 	const isRoot = rootSkillID == 'root';
 	try {
-		if (!!!rootSkillID) {
+		if (!rootSkillID) {
 			throw { data: 'Invalid root skill id' };
 		}
 
@@ -88,7 +88,7 @@ export async function createNewSkill(rootSkillID: string, body: any) {
 
 		const url =
 			rootSkillID == 'root'
-				? `/skills/skilltree`
+				? "/skills/skilltree"
 				: `/skills/skilltree/${rootSkillID}`;
 
 		const response = await POST(url, body);
@@ -111,11 +111,11 @@ export async function updateSkill(
 ) {
 	const isRoot = rootSkillID == 'root';
 	try {
-		if (!!!rootSkillID) {
+		if (!rootSkillID) {
 			throw { data: 'Invalid root skill id' };
 		}
 
-		if (isRoot && !!!subSkillID) {
+		if (isRoot && Boolean(!subSkillID)) {
 			throw { data: 'Invalid sub skill id' };
 		}
 
@@ -148,11 +148,11 @@ export async function updateSkill(
 export async function deleteSkill(rootSkillID: string, subSkillID: string) {
 	const isRoot = rootSkillID == 'root';
 	try {
-		if (!!!rootSkillID) {
+		if (!rootSkillID) {
 			throw { data: 'Invalid root skill id' };
 		}
 
-		if (isRoot && !!!subSkillID) {
+		if (isRoot && Boolean(!subSkillID)) {
 			throw { data: 'Invalid sub skill id' };
 		}
 
@@ -177,14 +177,14 @@ export async function deleteSkill(rootSkillID: string, subSkillID: string) {
 export async function updateTreeSettings(rootSkillID: string, body: any) {
 	const isRoot = rootSkillID == 'root';
 	try {
-		if (!!!rootSkillID) {
+		if (!rootSkillID) {
 			throw { data: 'Invalid root skill id' };
 		}
 
 		let response = null;
 
 		if (isRoot) {
-			response = await PATCH(`/skills/skilltree`, body);
+			response = await PATCH("/skills/skilltree", body);
 		} else {
 			response = await PATCH(`/skills/skilltree/${rootSkillID}`, <any>{
 				sub_tree_rows: body.rows,

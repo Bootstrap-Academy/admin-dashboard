@@ -99,7 +99,7 @@ export default defineComponent({
 				valid: false,
 				value: '',
 				rules: [
-					(v: string) => !!v || 'Error.InputEmpty_Inputs.CompanyName',
+					(v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.CompanyName',
 					(v: string) => !v || v.length >= 3 || 'Error.InputMinLength_3',
 					(v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
 				],
@@ -181,7 +181,7 @@ export default defineComponent({
 		watch(
 			() => props.data,
 			(newValue, oldValue) => {
-				if (!!!newValue) return;
+				if (!newValue) return;
 				form.name.value = newValue?.name ?? '';
 				form.description.value = newValue?.description ?? '';
 				form.website.value = newValue?.website ?? '';
@@ -196,7 +196,7 @@ export default defineComponent({
 		async function onclickSubmitForm() {
 			if (form.validate()) {
 				form.submitting = true;
-				const [success, error] = !!props.data
+				const [success, error] = (props.data)
 					? await editCompany(props.data.id, form.body())
 					: await createCompany(form.body());
 				form.submitting = false;
@@ -209,7 +209,7 @@ export default defineComponent({
 
 		const router = useRouter();
 		function successHandler(res: any) {
-			router.push(`/dashboard/companies`);
+			router.push("/dashboard/companies");
 		}
 
 		function errorHandler(res: any) {

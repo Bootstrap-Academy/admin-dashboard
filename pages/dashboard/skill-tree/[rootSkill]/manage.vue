@@ -123,11 +123,11 @@ export default {
 				return <string>(route?.query?.subSkillID ?? '');
 			},
 			set(value: string) {
-				if (!!!value) return;
+				if (!value) return;
 
 				router.replace({
 					path: route.path,
-					query: !!value ? { subSkillID: value } : undefined,
+					query: (value) ? { subSkillID: value } : undefined,
 				});
 			},
 		});
@@ -275,7 +275,7 @@ export default {
 			loading.value = false;
 
 			// if theres already a selected skill, use their current col and row #
-			if (!!selectedSkill.value) {
+			if (selectedSkill.value) {
 				selectedCol.value = selectedSkill.value.column ?? 0;
 				selectedRow.value = selectedSkill.value.row ?? 0;
 			}

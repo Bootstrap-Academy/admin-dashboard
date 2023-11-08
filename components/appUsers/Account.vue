@@ -145,7 +145,7 @@ export default defineComponent({
 		watch(
 			() => id.value,
 			async (newValue, oldValue) => {
-				if (!!newValue) {
+				if (newValue) {
 					const [balance, errorBalance] = await getBalanceOfThisUser(newValue);
 					totalCoins.value = balance?.coins ?? 0;
 				}

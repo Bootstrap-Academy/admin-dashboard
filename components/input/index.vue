@@ -90,14 +90,14 @@ export default defineComponent({
 			},
 		});
 
-		const touched = ref(!!props.modelValue);
+		const touched = ref(Boolean(props.modelValue));
 
 		const DOM_INPUT = ref<HTMLInputElement | null>(null);
 
 		const error = computed(() => {
-			if (!!!DOM_INPUT.value || (!touched.value && !input.value)) return '';
+			if (Boolean(!DOM_INPUT.value) || (!touched.value && !input.value)) return '';
 
-			let msg: string = '';
+			let msg = '';
 
 			props.rules
 				.slice()
@@ -106,11 +106,11 @@ export default defineComponent({
 					if (rule(input.value) != true) {
 						const [string, placeholder] = rule(input.value).split('_');
 
-						if (!!placeholder) {
+						if (placeholder) {
 							msg = t(string, {
 								placeholder: t(placeholder),
 							});
-						} else if (!!string) {
+						} else if (string) {
 							msg = t(string);
 						} else {
 							msg = t(rule(input.value));
@@ -119,7 +119,7 @@ export default defineComponent({
 				});
 
 			DOM_INPUT.value.setCustomValidity(msg);
-			emit('valid', !!!msg);
+			emit('valid', Boolean(!msg));
 
 			return msg;
 		});

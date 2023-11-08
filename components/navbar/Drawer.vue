@@ -46,7 +46,7 @@ export default {
 
       // for small screens, make navbar drawer absolute
       if (
-        !!windowWidth.value &&
+        Boolean(windowWidth.value) &&
         windowWidth.value > 0 &&
         windowWidth.value <= 1024
       ) {

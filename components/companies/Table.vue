@@ -172,7 +172,7 @@ export default {
     const company = useCompany();
 
     function onclickEditItem(item: any) {
-      if (!!!item || !!!item.id) return;
+      if (Boolean(!item) || Boolean(!item.id)) return;
 
       company.value = item;
       router.push(`/dashboard/companies/${item.id}`);

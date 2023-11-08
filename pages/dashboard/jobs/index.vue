@@ -123,7 +123,7 @@ export default {
 		];
 
 		function onselectSortJobsBy(option: string) {
-			if (!!!jobs.value || jobs.value.length <= 0) return;
+			if (Boolean(!jobs.value) || jobs.value.length <= 0) return;
 
 			if (option == 'latest') {
 				jobs.value.sort(function (x, y) {

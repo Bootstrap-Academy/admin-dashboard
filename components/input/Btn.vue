@@ -76,7 +76,7 @@ export default defineComponent({
           ? `bg-transparent text-heading font-medium hover:bg-transparent border ${props.borderColor} hover:ring-8 hover:ring-tertiary`
           : "",
         props.tertiary
-          ? `bg-transparent text-heading font-medium hover:bg-transparent hover:scale-105 border border-transparent hover:ring-8 hover:ring-transparent`
+          ? "bg-transparent text-heading font-medium hover:bg-transparent hover:scale-105 border border-transparent hover:ring-8 hover:ring-transparent"
           : "",
       ];
     });

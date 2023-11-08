@@ -6,7 +6,7 @@ export const useCompany = () => useState<any>('company', () => null);
 export async function getCompany(id: string) {
 	try {
 		// const response = await GET(`/jobs/companies/${id}`);
-		const response = await GET(`/jobs/companies`);
+		const response = await GET("/jobs/companies");
 
 		const companies = useCompanies();
 		companies.value = response ?? [];
@@ -23,7 +23,7 @@ export async function getCompany(id: string) {
 export async function createCompany(body: any) {
 	try {
 
-		const response = await POST(`/jobs/companies`, body);
+		const response = await POST("/jobs/companies", body);
 
 		const company = useCompany();
 		company.value = response ?? null;
@@ -76,7 +76,7 @@ export async function getCompanies(filters: any[]) {
 				query = query + `${key}=${filters[key]}&`;
 			} else if (
 				typeof filters[key] == 'string' &&
-				!!filters[key] &&
+				Boolean(filters[key]) &&
 				filters[key] != '---'
 			) {
 				query = query + `${key}=${filters[key]}&`;
