@@ -35,7 +35,8 @@
 			class="mb-card-sm mt-card"
 			placeholder="Search by Name"
 			:modelValue="filters.search_term"
-			@update:modelValue="setFilters({ search_term: $event })"
+			@update:modelValue="value => filters.search_term = value"
+			@search="setFilters({ search_term: filters.search_term })"
 			:loading="loading"
 		/>
 
@@ -59,7 +60,7 @@
 </template>
 
 <script lang="ts">
-import { Ref } from 'vue';
+import type { Ref } from 'vue';
 
 import { PlusIcon } from '@heroicons/vue/24/outline/index.js';
 

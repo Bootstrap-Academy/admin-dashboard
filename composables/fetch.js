@@ -1,10 +1,10 @@
-import jwt_decode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { Mutex, Semaphore, withTimeout } from "async-mutex";
 
 export const mutex = new Mutex();
 
-export function GET(url) {
-  return createApiFetch(url, "GET", null);
+export function GET(url, query) {
+  return createApiFetch(url, "GET", null, query);
 }
 
 export function POST(url, body = null) {
@@ -23,7 +23,7 @@ export function DELETE(url, body = null) {
   return createApiFetch(url, "DELETE", body);
 }
 
-async function createApiFetch(url, method, body) {
+async function createApiFetch(url, method, body, query) {
   const config = useRuntimeConfig().public;
   const accessToken = getAccessToken();
 
@@ -31,6 +31,7 @@ async function createApiFetch(url, method, body) {
     baseURL: config.BASE_API_URL,
     method: method,
     body: body,
+    query: query,
     headers: {
       Authorization: `Bearer ${accessToken}`,
       //
@@ -146,7 +147,7 @@ function isAccessTokenExpired() {
       throw { data: "Invalid Access Token: " + accessToken };
     }
 
-    let exp = jwt_decode(accessToken).exp;
+    let exp = jwtDecode(accessToken).exp;
     let time = parseInt(Math.round(new Date().getTime() / 1000));
     let difference = exp - time;
     let isTokenExpired = difference <= 100 ? true : false;

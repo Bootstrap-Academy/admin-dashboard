@@ -48,7 +48,7 @@
 
 <script lang="ts">
 import { useI18n } from 'vue-i18n';
-import { Ref } from 'vue';
+import type { Ref } from 'vue';
 
 definePageMeta({
 	middleware: ['auth'],
@@ -79,7 +79,6 @@ export default {
 			loading.value = true;
 			await getAppUser(userID.value);
 			loading.value = false;
-			console.log('appUser', appUser.value);
 		});
 
 		const router = useRouter();
