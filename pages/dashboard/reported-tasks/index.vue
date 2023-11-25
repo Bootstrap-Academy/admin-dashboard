@@ -1,12 +1,11 @@
 <template>
   <div>
     <Head>
+      <!-- Todo: solve this issue below -->
       <Title>Manage User - {{ appUser?.name ?? "" }}</Title>
     </Head>
     <PageTitle class="mb-8" />
     <div ref="scrollRef"></div>
-    <button @click="() => console.log(reportedSubtasksList)" class="text-accent">testF</button>
-
     <Reported-TasksTable :data="reportedSubtasksList" :loading="loading" />
 
     <Btn
@@ -25,7 +24,7 @@
     <p v-else class="text-center mt-10">
       {{ t("Headings.NoMoreSubtasks") }}
     </p>
-
+    <!-- Todo: solve this issue below -->
     <ScrollToBtn :scrollRef="scrollRef" />
   </div>
 </template>
@@ -58,23 +57,20 @@ export default {
     const noMoreSubtasks = useNoMoreSubtasks();
     const { t } = useI18n();
     const reportedSubtasksList = useReportedSubtasks();
-    const loading = ref(
-      !(reportedSubtasksList.value && reportedSubtasksList.value.length > 0)
-    );
+    const loading = useReportedTasksLoading()
 
     const scrollRef = ref<HTMLElement | null>(null);
     async function onclickLoadMore() {
       offset.value = offset.value + limit.value;
-      loading.value = true;
       await getreportedSubtasksList(false);
-      loading.value = false;
     }
 
     onMounted(async () => {
+      console.log("mounted");
+      offset.value = 0;
+      limit.value = 10;
       reportedSubtasksList.value = [];
-      loading.value = true;
       await getreportedSubtasksList(true);
-      loading.value = false;
     });
 
     return {

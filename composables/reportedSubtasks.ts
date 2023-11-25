@@ -1,4 +1,3 @@
-import { RefSymbol } from "@vue/reactivity";
 import type { ReportBase } from "~/types/reportedTaskTypes";
 
 export const useReportedSubtasks = () =>
@@ -53,15 +52,16 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 
 		// Information: below code is used to append response
 		arr = [...reportedSubtasks.value, ...(response ?? [])];
+        // Todo: split code below into a function that only does these calls if creator or reporter is not already set
 
 		arr.forEach((subTask: ReportBase) => {
 			subTask.creator_id = allSubTasks.find(
 				(allSubTask: any) => allSubTask.task_id === subTask.task_id
 			).creator;
 		});
-        
         // Information: below code is used to get user name & id of reporter and creator 
 		try {
+            loading.value = true;
 			// Combine all promises into an array
 			const reporterPromises = arr.map(
 				async (subtask) => await getAppUser(subtask?.user_id ?? "")
@@ -88,10 +88,13 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 					);
 				}
 			});
-
+            let testArr :string[] = [] // testF
 			creators.forEach(([creator, creatorError], index) => {
+                
 				if (creator.name) {
 					arr[index].creatorName = creator.name;
+                    arr[index].taskType = creator.subtask_type;
+                    if(!testArr.includes(arr[index].subtask_type)) testArr.push(arr[index].subtask_type) // testF
 				} else {
 					console.log(
 						"No creator for creator_id:",
@@ -100,11 +103,14 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 					);
 				}
 			});
+            console.log(testArr); // testF
+            
+            loading.value = false;
 		} catch (error) {
 			console.log("Error in parallel execution:", error);
+            loading.value = false;
 		}
         reportedSubtasks.value = arr;
-        loading.value = false;
 		return [response, null];
 	} catch (error: any) {
         loading.value = false
@@ -113,6 +119,8 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 }
 
 export async function resolveReport(report_id: any, body: any) {
+    // Todo: edit this so i can choose between block reporter, block creator, revise
+    // Todo: edit body arg -> get RESOLVE enum and build body from that
 	try {
 		const res = await PUT(`/challenges/subtask_reports/${report_id}`, body);
 		return [res, null];

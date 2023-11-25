@@ -14,4 +14,12 @@ export class ReportBase {
     // Information: creator_id & name is the task-creator
     creator_id: string = ''
     creatorName: string = ''
+
+    taskType: string = '' // MATCHING || MULTIPLE_CHOICE_QUESTION
+}
+
+export enum RESOLVE{
+    REVISE = 'REVISE',
+    BLOCK_REPORTER = 'BLOCK_REPORTER',
+    BLOCK_CREATOR = 'BLOCK_CREATOR',
 }
