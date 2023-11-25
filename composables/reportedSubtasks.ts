@@ -30,7 +30,8 @@ export async function getreportedSubtasksList(firstCall: any) {
             reportedSubtasks.value = []
         }
         arr = [...reportedSubtasks.value, ...response ?? []]
-
+        console.log(reportedSubtasks.value, arr, 'getreportedSubtasksList');
+        
         arr.forEach(async (subtask: any, index: any) => {
             if (index >= reportedSubtasks.value.length) {
                 try {
@@ -44,6 +45,9 @@ export async function getreportedSubtasksList(firstCall: any) {
                 }
             }
         });
+        // Todo: here are all subtasks. map subtasks.id === reportedSubtasks.subtask_id
+        const subTasks = await GET(`challenges/subtasks`)
+        console.log(subTasks, 'subTasks');
 
         // reportedSubtasks.value = arr;
 
