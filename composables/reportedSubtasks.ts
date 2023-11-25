@@ -15,8 +15,11 @@ export const useCodingChallengeSolution = () =>
 	useState("codingChallengeSolution", () => null);
 export const useMcq = () => useState("mcq", () => null);
 export const useNoMoreSubtasks = () => useState("noMoreSubtasks", () => false);
+export const useReportedTasksLoading = () => useState("useReportedTasksLoading", () => false);
 
 export async function getreportedSubtasksList(firstCall: boolean) {
+    const loading = useReportedTasksLoading() 
+    loading.value = true;
 	try {
 		const limit = useLimitReportedTasks();
 		const offset = useOffsetReportedTasks();
@@ -101,8 +104,10 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 			console.log("Error in parallel execution:", error);
 		}
         reportedSubtasks.value = arr;
+        loading.value = false;
 		return [response, null];
 	} catch (error: any) {
+        loading.value = false
 		return [null, error.data];
 	}
 }
