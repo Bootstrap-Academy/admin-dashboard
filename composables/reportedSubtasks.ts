@@ -1,3 +1,4 @@
+import { RefSymbol } from "@vue/reactivity";
 import type { ReportBase } from "~/types/reportedTaskTypes";
 
 export const useReportedSubtasks = () =>
@@ -20,7 +21,13 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 		const limit = useLimitReportedTasks();
 		const offset = useOffsetReportedTasks();
 		const noMoreSubtasks = useNoMoreSubtasks();
-        
+		const reportedSubtasks = useReportedSubtasks();
+
+        if (firstCall) {
+            offset.value = 0;
+            limit.value = 10;
+        }
+
 		const response: ReportBase[] = await GET(
 			`/challenges/subtask_reports?limit=${limit.value}&offset=${offset.value}`
 		);
@@ -33,8 +40,7 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 		}
 		if (arr.length < 10) {
 			noMoreSubtasks.value = true;
-		}
-		const reportedSubtasks = useReportedSubtasks();
+		}else noMoreSubtasks.value = false;
 
 		if (firstCall) {
 			reportedSubtasks.value = [];
@@ -50,7 +56,7 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 				(allSubTask: any) => allSubTask.task_id === subTask.task_id
 			).creator;
 		});
-
+        
         // Information: below code is used to get user name & id of reporter and creator 
 		try {
 			// Combine all promises into an array
@@ -71,7 +77,6 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 			reporters.forEach(([reporter, error], index) => {
 				if (reporter) {
 					arr[index].userName = reporter.name ?? "";
-					reportedSubtasks.value.push(arr[index]);
 				} else {
 					console.log(
 						"Error in getAppUser for user_id:",
@@ -95,7 +100,7 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 		} catch (error) {
 			console.log("Error in parallel execution:", error);
 		}
-
+        reportedSubtasks.value = arr;
 		return [response, null];
 	} catch (error: any) {
 		return [null, error.data];
