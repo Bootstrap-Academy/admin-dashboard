@@ -20,12 +20,13 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 		const limit = useLimitReportedTasks();
 		const offset = useOffsetReportedTasks();
 		const noMoreSubtasks = useNoMoreSubtasks();
-
+        
 		const response: ReportBase[] = await GET(
 			`/challenges/subtask_reports?limit=${limit.value}&offset=${offset.value}`
 		);
 
 		let arr: ReportBase[] = response ?? [];
+        
 		if (!arr.length) {
 			noMoreSubtasks.value = true;
 			return openSnackbar("info", "Body.NoMoreReports");
@@ -34,7 +35,6 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 			noMoreSubtasks.value = true;
 		}
 		const reportedSubtasks = useReportedSubtasks();
-		console.log(reportedSubtasks.value, "reportetSubtasks");
 
 		if (firstCall) {
 			reportedSubtasks.value = [];
@@ -51,25 +51,50 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 			).creator;
 		});
 
-		arr.forEach(async (subtask: ReportBase, index: number) => {
-			if (index >= reportedSubtasks.value.length) {
-				try {
-					const [reporter, error] = await getAppUser(subtask?.user_id ?? "");
-					if (reporter) {
-						subtask.userName = reporter?.name ?? "";
-						reportedSubtasks.value.push(subtask);
-					}
+        // Information: below code is used to get user name & id of reporter and creator 
+		try {
+			// Combine all promises into an array
+			const reporterPromises = arr.map(
+				async (subtask) => await getAppUser(subtask?.user_id ?? "")
+			);
+			const creatorPromises = arr.map(
+				async (subtask) => await getAppUser(subtask.creator_id)
+			);
 
-                    const [creator, creatorError] = await getAppUser(subtask.creator_id)
-                    if (creator){
-                        subtask.creatorName = creator.name ?? ""
-                    }
-                
-				} catch (error: any) {
-					console.log("error in get app user", error);
+			// Execute all promises concurrently
+			const [reporters, creators] = await Promise.all([
+				Promise.all(reporterPromises),
+				Promise.all(creatorPromises),
+			]);
+
+			// Process results
+			reporters.forEach(([reporter, error], index) => {
+				if (reporter) {
+					arr[index].userName = reporter.name ?? "";
+					reportedSubtasks.value.push(arr[index]);
+				} else {
+					console.log(
+						"Error in getAppUser for user_id:",
+						arr[index]?.user_id,
+						error
+					);
 				}
-			}
-		});
+			});
+
+			creators.forEach(([creator, creatorError], index) => {
+				if (creator.name) {
+					arr[index].creatorName = creator.name;
+				} else {
+					console.log(
+						"No creator for creator_id:",
+						arr[index]?.creator_id,
+						creatorError
+					);
+				}
+			});
+		} catch (error) {
+			console.log("Error in parallel execution:", error);
+		}
 
 		return [response, null];
 	} catch (error: any) {
