@@ -14,113 +14,119 @@ export const useCodingChallengeSolution = () =>
 	useState("codingChallengeSolution", () => null);
 export const useMcq = () => useState("mcq", () => null);
 export const useNoMoreSubtasks = () => useState("noMoreSubtasks", () => false);
-export const useReportedTasksLoading = () => useState("useReportedTasksLoading", () => false);
+export const useReportedTasksLoading = () =>
+	useState("useReportedTasksLoading", () => false);
 
 export async function getreportedSubtasksList(firstCall: boolean) {
-    const loading = useReportedTasksLoading() 
-    loading.value = true;
+	const loading = useReportedTasksLoading();
+	loading.value = true;
 	try {
 		const limit = useLimitReportedTasks();
 		const offset = useOffsetReportedTasks();
 		const noMoreSubtasks = useNoMoreSubtasks();
 		const reportedSubtasks = useReportedSubtasks();
 
-        if (firstCall) {
-            offset.value = 0;
-            limit.value = 10;
-        }
+		if (firstCall) {
+			offset.value = 0;
+			limit.value = 10;
+		}
 
 		const response: ReportBase[] = await GET(
 			`/challenges/subtask_reports?limit=${limit.value}&offset=${offset.value}`
 		);
 
 		let arr: ReportBase[] = response ?? [];
-        
+
 		if (!arr.length) {
 			noMoreSubtasks.value = true;
 			return openSnackbar("info", "Body.NoMoreReports");
 		}
 		if (arr.length < 10) {
 			noMoreSubtasks.value = true;
-		}else noMoreSubtasks.value = false;
+		} else noMoreSubtasks.value = false;
 
 		if (firstCall) {
 			reportedSubtasks.value = [];
 		}
 
-		const allSubTasks = await GET(`challenges/subtasks`);
+		reportedSubtasks.value = [...reportedSubtasks.value, ...(response ?? [])];
 
-		// Information: below code is used to append response
-		arr = [...reportedSubtasks.value, ...(response ?? [])];
-        // Todo: split code below into a function that only does these calls if creator or reporter is not already set
+        await assignReportUser();
 
-		arr.forEach((subTask: ReportBase) => {
-			subTask.creator_id = allSubTasks.find(
-				(allSubTask: any) => allSubTask.task_id === subTask.task_id
-			).creator;
-		});
-        // Information: below code is used to get user name & id of reporter and creator 
-		try {
-            loading.value = true;
-			// Combine all promises into an array
-			const reporterPromises = arr.map(
-				async (subtask) => await getAppUser(subtask?.user_id ?? "")
-			);
-			const creatorPromises = arr.map(
-				async (subtask) => await getAppUser(subtask.creator_id)
-			);
-
-			// Execute all promises concurrently
-			const [reporters, creators] = await Promise.all([
-				Promise.all(reporterPromises),
-				Promise.all(creatorPromises),
-			]);
-
-			// Process results
-			reporters.forEach(([reporter, error], index) => {
-				if (reporter) {
-					arr[index].userName = reporter.name ?? "";
-				} else {
-					console.log(
-						"Error in getAppUser for user_id:",
-						arr[index]?.user_id,
-						error
-					);
-				}
-			});
-            let testArr :string[] = [] // testF
-			creators.forEach(([creator, creatorError], index) => {
-                
-				if (creator.name) {
-					arr[index].creatorName = creator.name;
-                    arr[index].taskType = creator.subtask_type;
-                    if(!testArr.includes(arr[index].subtask_type)) testArr.push(arr[index].subtask_type) // testF
-				} else {
-					console.log(
-						"No creator for creator_id:",
-						arr[index]?.creator_id,
-						creatorError
-					);
-				}
-			});
-            console.log(testArr); // testF
-            
-            loading.value = false;
-		} catch (error) {
-			console.log("Error in parallel execution:", error);
-            loading.value = false;
-		}
-        reportedSubtasks.value = arr;
+        loading.value = false;
 		return [response, null];
 	} catch (error: any) {
-        loading.value = false
+		loading.value = false;
 		return [null, error.data];
 	}
 }
 
+export async function assignReportUser() {
+	const allSubTasks = await GET(`challenges/subtasks`);
+	const arr = useReportedSubtasks();
+    const loading = useReportedTasksLoading();
+
+
+	// Information: below code is used to append response
+	// Todo: split code below into a function that only does these calls if creator or reporter is not already set
+
+	arr.value.forEach((subTask: ReportBase) => {
+		subTask.creator_id = allSubTasks.find(
+			(allSubTask: any) => allSubTask.task_id === subTask.task_id
+		).creator;
+	});
+	// Information: below code is used to get user name & id of reporter and creator
+	try {
+		loading.value = true;
+		// Combine all promises into an array
+		const reporterPromises = arr.value.map(
+			async (subtask) => await getAppUser(subtask?.user_id ?? "")
+		);
+		const creatorPromises = arr.value.map(
+			async (subtask) => await getAppUser(subtask.creator_id)
+		);
+
+		// Execute all promises concurrently
+		const [reporters, creators] = await Promise.all([
+			Promise.all(reporterPromises),
+			Promise.all(creatorPromises),
+		]);
+
+		// Process results
+		reporters.forEach(([reporter, error], index) => {
+			if (reporter) {
+				arr.value[index].userName = reporter.name ?? "";
+			} else {
+				console.log(
+					"Error in getAppUser for user_id:",
+					arr.value[index]?.user_id,
+					error
+				);
+			}
+		});
+		creators.forEach(([creator, creatorError], index) => {
+			if (creator.name) {
+				arr.value[index].creatorName = creator.name;
+				arr.value[index].taskType = creator.subtask_type;
+			} else {
+				console.log(
+					"No creator for creator_id:",
+					arr.value[index]?.creator_id,
+					creatorError
+				);
+			}
+		});
+
+		loading.value = false;
+	} catch (error) {
+		console.log("Error in parallel execution:", error);
+		loading.value = false;
+	}
+}
+
 export async function resolveReport(report_id: any, body: any) {
-    // Todo: edit this so i can choose between block reporter, block creator, revise
-    // Todo: edit body arg -> get RESOLVE enum and build body from that
+	// Todo: edit this so i can choose between block reporter, block creator, revise
+	// Todo: edit body arg -> get RESOLVE enum and build body from that
 	try {
 		const res = await PUT(`/challenges/subtask_reports/${report_id}`, body);
 		return [res, null];
