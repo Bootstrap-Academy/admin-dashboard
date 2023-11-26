@@ -1,45 +1,42 @@
 <template>
-  <div>
-    <p class="text-accent">QuizInfo</p>
-    <p class="text-3xl mt-5 mb-1 text-white">{{ t("Headings.Quiz") }}</p>
-    <p>
-      <span> {{ t("Headings.Question") }}: </span>{{ mcq?.question ?? "" }}
-    </p>
-    <p class="text-2xl mt-5 mb-2 text-white">{{ t("Headings.Options") }}</p>
+	<div class="flex flex-col items-center gap-3 py-2">
+    <!-- Information: Quiz Question -->
+		<div class="w-2/3">
+			<p class="text-xl mb-1 text-white">{{ t("Headings.Quiz") }}</p>
+			<p>
+				<span> {{ t("Headings.Question") }}: </span>{{ mcq?.question ?? "" }}
+			</p>
+		</div>
 
-    <p
-      :class="answer.correct ? 'bg-success' : 'bg-error'"
-      class="flex gap-3 py-2 text-white text-lg rounded-md px-3 mb-3"
-      v-for="(answer, i) of mcq?.answers"
-      :key="i"
-    >
-      <span class="h-10 w-10">
-        <CheckIcon v-if="answer?.correct" class="min-h-[32px] min-w-[32px]" />
-        <XMarkIcon v-else class="min-h-[32px] min-w-[32px]" />
-      </span>
+    <!-- Information: Quiz Options -->
+		<div class="w-2/3">
+			<p class="text-xl mb-2 text-white">{{ t("Headings.Options") }}</p>
+			<div class="flex flex-col gap-2">
+				<p
+					:class="answer.correct ? 'bg-success' : 'bg-error'"
+					class="flex items-center gap-3 px-5 text-white justify-center rounded-md"
+					v-for="(answer, i) of mcq?.answers"
+					:key="i"
+				>
+					<IconCheck v-if="answer?.correct" size="1rem" />
+					<IconXMark v-else size="1rem" />
 
-      {{ answer?.answer ?? "" }}
-    </p>
-  </div>
+					{{ answer?.answer ?? "" }}
+				</p>
+			</div>
+		</div>
+	</div>
 </template>
 
-<script lang="ts">
-import {
-  ExclamationCircleIcon,
-  CheckIcon,
-  XMarkIcon,
-} from "@heroicons/vue/24/outline";
-import { useI18n } from "vue-i18n";
-export default {
-  components: { ExclamationCircleIcon, XMarkIcon, CheckIcon },
-  props: {
-    mcq: { type: Object, default: null },
-  },
-  setup() {
-    const { t } = useI18n();
-    return { t, ExclamationCircleIcon, XMarkIcon, CheckIcon };
-  },
-};
+<script lang="ts" setup>
+	import type { IconXMark } from "#build/components";
+	import { ExclamationCircleIcon } from "@heroicons/vue/24/outline";
+	import { useI18n } from "vue-i18n";
+
+	defineProps<{
+		mcq: any;
+	}>();
+	const { t } = useI18n();
 </script>
 
 <style scoped></style>

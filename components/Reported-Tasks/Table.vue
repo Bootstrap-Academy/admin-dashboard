@@ -107,9 +107,12 @@
 			});
 
 			const router = useRouter();
+			const reportedTask = useReportedSubtask()
 
 			function onclickEditItem(item: ReportBase) {
+				reportedTask.value = item;
 				if (Boolean(!item) || Boolean(!item.id)) return;
+				// Todo: remove this unrelated stuff -> all info is already in reportedTask
 				const reportReason = useReportReason();
 				reportReason.value = item?.comment ?? "";
 				const reportSubtaskType = useReportSubtaskType();

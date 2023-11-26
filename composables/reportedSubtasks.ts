@@ -1,8 +1,8 @@
-import type { ReportBase } from "~/types/reportedTaskTypes";
+import { ReportBase } from "~/types/reportedTaskTypes";
 
 export const useReportedSubtasks = () =>
 	useState<ReportBase[]>("reportedSubtasks", () => []);
-export const useReportedSubtask = () => useState("reportedSubtask", () => null);
+export const useReportedSubtask = () => useState<ReportBase>("reportedSubtask", () => new ReportBase());
 export const useOffsetReportedTasks = () =>
 	useState("offsetReportedTasks", () => 0);
 export const useLimitReportedTasks = () =>
@@ -133,12 +133,13 @@ export async function resolveReport(report_id: any, body: any) {
 			error.data.detail = "Error.ReportNotFound";
 		}
 
-		console.log("error is this", error.data);
+		console.log("error in resolveReport", error.data, report_id, body);
 		return [null, error.data.detail];
 	}
 }
 
 export async function getCodingChallenge(task_id: any, subtask_id: any) {
+	// Bug: this does not work for coding-challenges
 	try {
 		const res = await GET(
 			`/challenges/tasks/${task_id}/coding_challenges/${subtask_id}`
@@ -153,7 +154,7 @@ export async function getCodingChallenge(task_id: any, subtask_id: any) {
 			error.data.detail = "Error.CodingChallengeNotFound";
 		}
 
-		console.log("error is this", error.data);
+		console.log("Error in getCodingChallenge", error.data, task_id, subtask_id);
 		return [null, error.data.detail];
 	}
 }
@@ -188,7 +189,7 @@ export async function getMcq(task_id: any, subtask_id: any) {
 			error.data.detail = "Error.McqNotFound";
 		}
 
-		console.log("error is this", error.data);
+		console.log("error in getMcq", error.data, task_id, subtask_id);
 		return [null, error.data.detail];
 	}
 }

@@ -1,5 +1,5 @@
 <template>
-	<div class="mb-20">
+	<div class="flex flex-col gap-5">
 		<PageTitle class="mb-2" />
 		<!-- Todo: add Information Reported By, Reason, Comment, Reported At, and Creator of the task -->
 		<section
@@ -10,35 +10,63 @@
 			</div>
 			<p class="text-white">
 				<span class="font-bold text-xl"> {{ t("Headings.Reason") }} </span>
-				{{ reportReason }}
+				{{ reportedTask.reason.toLowerCase() }}
 			</p>
 		</section>
+
+		<div>
+			<!-- Information: Report Info -->
+			<p class="text-xl text-white">Report Info</p>
+			<p class="text-md text-white">
+				Reported by:
+				<span class="text-accent">{{ reportedTask.userName }}</span>
+			</p>
+			<p class="text-md text-white">
+				Reason: <span class="text-accent">{{ reportedTask.reason.toLowerCase() }}</span
+				>
+			</p>
+			<p class="text-md text-white">
+				Comment: <span class="text-accent">{{ reportedTask.comment }}</span>
+			</p>
+			<p class="text-md text-white">
+				Reported at:
+				<span class="text-accent">{{
+					`${reportedAt.date} ${reportedAt.month.string}, ${reportedAt.year}`
+				}}</span>
+			</p>
+			<p class="text-md text-white">
+				Task Creator:
+				<span class="text-accent">{{ reportedTask.creatorName }}</span>
+			</p>
+		</div>
 
 		<section v-if="reportSubtaskType?.includes('MULTIPLE_CHOICE_QUESTION')">
 			<Reported-TasksQuizInfo :mcq="mcq" />
 		</section>
+
 		<Reported-TasksCodingChallengeInfo
 			v-else
 			:codingChallenge="CodingChallenge"
 			:codingChallengeSolution="codingChallengeSolution"
 		/>
-		<section class="flex justify-end gap-4 mt-10">
+
+		<section class="flex justify-center gap-4 mt-10">
 			<!-- Todo: add & edit locales for buttons -->
 			<!-- Todo: fix Icons -->
 			<InputBtn sm> Adjust Task </InputBtn>
 			<InputBtn sm> Delete Task </InputBtn>
 			<InputBtn sm :loading="loadingInCorrect">
-				<IconXMark color="red" size="1.1rem"/>
+				<IconXMark color="red" size="1.1rem" />
 				<!-- @click="fnResolveReport('BLOCK_REPORTER'), (loadingInCorrect = true)" -->
 				<!-- Information: Block-reporter -->
-				{{ t("Buttons.Incorrect") }}</InputBtn
+				Block reporter</InputBtn
 			>
 			<InputBtn sm :loading="loadingCorrect">
 				<!-- Question: Check if I even need these Icons? -->
-				<IconCheck color="black" size="1.1rem"/>
+				<IconCheck color="black" size="1.1rem" />
 				<!-- @click="fnResolveReport('BLOCK_CREATOR'), (loadingCorrect = true)" -->
 				<!-- Information: Block-creator -->
-				{{ t("Buttons.Correct") }}
+				Block creator
 			</InputBtn>
 		</section>
 	</div>
@@ -46,7 +74,6 @@
 
 <script lang="ts" setup>
 	import {
-		useReportReason,
 		resolveReport,
 		useReportSubtaskType,
 		getCodingChallenge,
@@ -62,13 +89,12 @@
 		middleware: ["auth"],
 		layout: "dashboard",
 	});
+
 	const { t } = useI18n();
 	const route = useRoute();
 	const router = useRouter();
-	const reportReason = useReportReason();
 	const reportSubtaskType: any = useReportSubtaskType(); // Todo: remove this -> is not needed
 	const codingChallengeSolution: any = useCodingChallengeSolution();
-	const answers = ["haha", "hahaha", "hahahaha", "hahahahaha"];
 	const reportId = computed(() => {
 		return route.params?.id ?? "";
 	});
@@ -78,6 +104,13 @@
 	});
 	const subtask_id = computed(() => {
 		return route.query?.subtaskId ?? "";
+	});
+
+	const reportedTask = useReportedSubtask();
+	const reportedAt = computed(() => {
+		return convertTimestampToDate(
+			convertDateToTimestamp(reportedTask.value.timestamp)
+		);
 	});
 
 	const loadingCorrect = ref(false);
