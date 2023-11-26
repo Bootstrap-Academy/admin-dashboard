@@ -1,7 +1,7 @@
 <template>
-	<div class="flex flex-col items-center gap-3 py-2">
+	<div class="flex flex-col items-start gap-3 py-2">
     <!-- Information: Quiz Question -->
-		<div class="w-2/3">
+		<div>
 			<p class="text-xl mb-1 text-white">{{ t("Headings.Quiz") }}</p>
 			<p>
 				<span> {{ t("Headings.Question") }}: </span>{{ mcq?.question ?? "" }}
@@ -9,7 +9,7 @@
 		</div>
 
     <!-- Information: Quiz Options -->
-		<div class="w-2/3">
+		<div>
 			<p class="text-xl mb-2 text-white">{{ t("Headings.Options") }}</p>
 			<div class="flex flex-col gap-2">
 				<p

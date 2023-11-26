@@ -1,6 +1,5 @@
 <template>
   <section>
-    <!-- testF -->
     <p class="text-accent">Coding Challenge Info</p>
     <p class="text-3xl mt-14 mb-3 text-white">
       {{ t("Headings.CodingChallenge") }}

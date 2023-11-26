@@ -1,7 +1,6 @@
 <template>
 	<div class="flex flex-col gap-5">
 		<PageTitle class="mb-2" />
-		<!-- Todo: add Information Reported By, Reason, Comment, Reported At, and Creator of the task -->
 		<section
 			class="bg-[#3fdfa933] p-2 flex items-center capitalize gap-2 rounded-md"
 		>
@@ -13,46 +12,46 @@
 				{{ reportedTask.reason.toLowerCase() }}
 			</p>
 		</section>
-
-		<div>
-			<!-- Information: Report Info -->
-			<p class="text-xl text-white">Report Info</p>
-			<p class="text-md text-white">
-				Reported by:
-				<span class="text-accent">{{ reportedTask.userName }}</span>
-			</p>
-			<p class="text-md text-white">
-				Reason: <span class="text-accent">{{ reportedTask.reason.toLowerCase() }}</span
+		<div class="flex flex-wrap xl:flex-nowrap justify-center">
+			<div class="w-1/3 p-3 min-w-[400px] flex-grow xl:flex-grow-0">
+				<!-- Information: Report Info -->
+				<p class="text-xl text-white">Report Info</p>
+				<p class="text-md text-white">
+					Reported by:
+					<span class="text-accent">{{ reportedTask.userName }}</span>
+				</p>
+				<p class="text-md text-white">
+					Reason: <span class="text-accent">{{ reportedTask.reason.toLowerCase() }}</span
 				>
-			</p>
-			<p class="text-md text-white">
-				Comment: <span class="text-accent">{{ reportedTask.comment }}</span>
-			</p>
-			<p class="text-md text-white">
-				Reported at:
-				<span class="text-accent">{{
-					`${reportedAt.date} ${reportedAt.month.string}, ${reportedAt.year}`
-				}}</span>
-			</p>
-			<p class="text-md text-white">
-				Task Creator:
-				<span class="text-accent">{{ reportedTask.creatorName }}</span>
-			</p>
+				</p>
+				<p class="text-md text-white">
+					Comment: <span class="text-accent">{{ reportedTask.comment }}</span>
+				</p>
+				<p class="text-md text-white">
+					Reported at:
+					<span class="text-accent">{{
+						`${reportedAt.date} ${reportedAt.month.string}, ${reportedAt.year}`
+					}}</span>
+				</p>
+				<p class="text-md text-white">
+					Task Creator:
+					<span class="text-accent">{{ reportedTask.creatorName }}</span>
+				</p>
+			</div>
+			<div class="w-2/3 p-3 flex-grow xl:flex-grow-0">
+				<section v-if="reportSubtaskType?.includes('MULTIPLE_CHOICE_QUESTION')">
+					<Reported-TasksQuizInfo :mcq="mcq" />
+				</section>
+
+				<Reported-TasksCodingChallengeInfo
+					v-else
+					:codingChallenge="CodingChallenge"
+					:codingChallengeSolution="codingChallengeSolution"
+				/>
+			</div>
 		</div>
-
-		<section v-if="reportSubtaskType?.includes('MULTIPLE_CHOICE_QUESTION')">
-			<Reported-TasksQuizInfo :mcq="mcq" />
-		</section>
-
-		<Reported-TasksCodingChallengeInfo
-			v-else
-			:codingChallenge="CodingChallenge"
-			:codingChallengeSolution="codingChallengeSolution"
-		/>
-
-		<section class="flex justify-center gap-4 mt-10">
+		<section class="flex justify-center gap-4 mt-2 flex-wrap xl:flex-nowrap">
 			<!-- Todo: add & edit locales for buttons -->
-			<!-- Todo: fix Icons -->
 			<InputBtn sm> Adjust Task </InputBtn>
 			<InputBtn sm> Delete Task </InputBtn>
 			<InputBtn sm :loading="loadingInCorrect">
