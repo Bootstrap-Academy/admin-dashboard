@@ -113,6 +113,7 @@
 				reportedTask.value = item;
 				if (Boolean(!item) || Boolean(!item.id)) return;
 				// Todo: remove this unrelated stuff -> all info is already in reportedTask
+				// Todo: I have to edit and remove reportReasen & type everywhere it's used
 				const reportReason = useReportReason();
 				reportReason.value = item?.comment ?? "";
 				const reportSubtaskType = useReportSubtaskType();

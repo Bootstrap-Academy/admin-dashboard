@@ -11,7 +11,9 @@
 				<span class="font-bold text-xl"> {{ t("Headings.Reason") }} </span>
 				{{ reportedTask.reason.toLowerCase() }}
 			</p>
+
 		</section>
+				<button class="text-accent text-3xl bg-secondary" @click="console.log(reportedTask.subtask_type === TASK_TYPE.MULTIPLE_CHOICE_QUESTION)">testF</button>
 		<div class="flex flex-wrap xl:flex-nowrap justify-center">
 			<div class="w-1/3 p-3 min-w-[400px] flex-grow xl:flex-grow-0">
 				<!-- Information: Report Info -->
@@ -41,15 +43,19 @@
 				</p>
 			</div>
 			<div class="w-2/3 p-3 flex-grow xl:flex-grow-0">
-				<section v-if="reportSubtaskType?.includes('MULTIPLE_CHOICE_QUESTION')">
-					<Reported-TasksQuizInfo :mcq="mcq" />
-				</section>
-
+				<Reported-TasksQuizInfo
+					:mcq="mcq"
+					v-if="reportedTask.subtask_type === TASK_TYPE.MULTIPLE_CHOICE_QUESTION"
+				/>
 				<Reported-TasksCodingChallengeInfo
-					v-else
+					v-if="reportedTask.subtask_type === TASK_TYPE.CODING_CHALLENGE"
 					:codingChallenge="CodingChallenge"
 					:codingChallengeSolution="codingChallengeSolution"
 				/>
+
+				<Reported-TasksMatching v-if="reportedTask.subtask_type === TASK_TYPE.MATCHING"/>
+
+				<Reported-TasksQuestion v-if="reportedTask.subtask_type === TASK_TYPE.QUESTION"/>
 			</div>
 		</div>
 		<section class="flex justify-center gap-4 mt-2 flex-wrap xl:flex-nowrap">
@@ -104,7 +110,7 @@
 	} from "~~/composables/reportedSubtasks";
 	import { ExclamationCircleIcon, CheckIcon } from "@heroicons/vue/24/outline";
 	import { useI18n } from "vue-i18n";
-	import { RESOLVE } from "~/types/reportedTaskTypes";
+	import { RESOLVE, TASK_TYPE } from "~/types/reportedTaskTypes";
 
 	definePageMeta({
 		middleware: ["auth"],
@@ -171,13 +177,26 @@
 	}
 
 	onMounted(async () => {
-		if (reportSubtaskType.value.includes("MULTIPLE_CHOICE_QUESTION")) {
+		if (
+			reportedTask.value.subtask_type === TASK_TYPE.MULTIPLE_CHOICE_QUESTION
+		) {
 			const [success, error] = await getMcq(task_id.value, subtask_id.value);
 			if (error) {
 				openSnackbar("error", error ?? "");
 				router.push("/dashboard/reported-tasks");
 			}
-		} else {
+		} else if (reportedTask.value.subtask_type === TASK_TYPE.MATCHING) {
+			// Todo: Matching
+			console.log("matching");
+			const [success, error] = await getMatching(
+				reportedTask.value.task_id,
+				reportedTask.value.subtask_id
+			);
+			if (error) {
+				openSnackbar("error", error ?? "");
+				router.push("/dashboard/reported-tasks");
+			}
+		} else if (reportedTask.value.subtask_type === TASK_TYPE.CODING_CHALLENGE) {
 			// Todo: I need more if statements here, some tasks are neither MCQ nor Coding Challenges
 			const [success, error] = await getCodingChallenge(
 				task_id.value,
@@ -187,6 +206,8 @@
 				openSnackbar("error", error ?? "");
 				// router.push("/dashboard/reported-tasks");
 			}
+		} else if (reportedTask.value.subtask_type === TASK_TYPE.QUESTION) {
+			console.log("question");
 		}
 	});
 </script>

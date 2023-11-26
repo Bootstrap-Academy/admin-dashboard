@@ -18,7 +18,7 @@
         <span class="mr-2">Loading</span>
         <LoadingCircular />
       </template>
-      <span v-else>Load More</span>
+      <span v-else-if="!loading">Load More</span>
     </Btn>
 
     <p v-else class="text-center mt-10">
@@ -61,6 +61,7 @@ export default {
 
     const scrollRef = ref<HTMLElement | null>(null);
     async function onclickLoadMore() {
+      loading.value = true
       offset.value = offset.value + limit.value;
       await getreportedSubtasksList(false);
     }

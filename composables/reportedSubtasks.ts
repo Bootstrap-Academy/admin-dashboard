@@ -1,4 +1,4 @@
-import { ReportBase } from "~/types/reportedTaskTypes";
+import { MatchingWithSolution, ReportBase } from "~/types/reportedTaskTypes";
 
 export const useReportedSubtasks = () =>
 	useState<ReportBase[]>("reportedSubtasks", () => []);
@@ -17,6 +17,7 @@ export const useMcq = () => useState("mcq", () => null);
 export const useNoMoreSubtasks = () => useState("noMoreSubtasks", () => false);
 export const useReportedTasksLoading = () =>
 	useState("useReportedTasksLoading", () => false);
+export const useMatching = () => useState<MatchingWithSolution>("matching", () => new MatchingWithSolution())
 
 export async function getreportedSubtasksList(firstCall: boolean) {
 	const loading = useReportedTasksLoading();
@@ -111,10 +112,12 @@ export async function assignReportUser() {
 				);
 			}
 		});
+		loading.value = false;
 	} catch (error) {
+		loading.value = false;
+
 		console.log("Error in parallel execution:", error);
 	}
-	loading.value = false;
 }
 
 export async function resolveReport(report_id: any, body: any) {
@@ -191,6 +194,22 @@ export async function getMcq(task_id: any, subtask_id: any) {
 		return [null, error.data.detail];
 	}
 }
+
+export async function getMatching(taskId: string, subTaskId: string) {
+	const matching = useMatching()
+	try {
+		const res :MatchingWithSolution= await GET(
+			`/challenges/tasks/${taskId}/matchings/${subTaskId}/solution`
+		);
+		matching.value = res ?? null;
+		return [res, null];
+	} catch (error: any) {
+
+		console.log("error in getMatching", error.data, taskId, subTaskId);
+		return [null, error];
+	}
+}
+
 
 export async function deleteReportedTask(taskId: string, subTaskId: string) {
 	let error: Error | undefined;
