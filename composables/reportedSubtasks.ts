@@ -51,9 +51,9 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 
 		reportedSubtasks.value = [...reportedSubtasks.value, ...(response ?? [])];
 
-        await assignReportUser();
+		await assignReportUser();
 
-        loading.value = false;
+		loading.value = false;
 		return [response, null];
 	} catch (error: any) {
 		loading.value = false;
@@ -61,21 +61,17 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 	}
 }
 
+// Information: below code is used to get user name & id of reporter and creator
 export async function assignReportUser() {
 	const allSubTasks = await GET(`challenges/subtasks`);
 	const arr = useReportedSubtasks();
-    const loading = useReportedTasksLoading();
-
-
-	// Information: below code is used to append response
-	// Todo: split code below into a function that only does these calls if creator or reporter is not already set
+	const loading = useReportedTasksLoading();
 
 	arr.value.forEach((subTask: ReportBase) => {
 		subTask.creator_id = allSubTasks.find(
 			(allSubTask: any) => allSubTask.task_id === subTask.task_id
 		).creator;
 	});
-	// Information: below code is used to get user name & id of reporter and creator
 	try {
 		loading.value = true;
 		// Combine all promises into an array
@@ -117,11 +113,10 @@ export async function assignReportUser() {
 			}
 		});
 
-		loading.value = false;
 	} catch (error) {
 		console.log("Error in parallel execution:", error);
-		loading.value = false;
 	}
+    loading.value = false;
 }
 
 export async function resolveReport(report_id: any, body: any) {
