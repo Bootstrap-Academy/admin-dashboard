@@ -1,10 +1,11 @@
 <template>
   <div>
-    <p class="text-3xl mt-14 mb-3 text-white">{{ t("Headings.Quiz") }}</p>
+    <p class="text-accent">QuizInfo</p>
+    <p class="text-3xl mt-5 mb-1 text-white">{{ t("Headings.Quiz") }}</p>
     <p>
       <span> {{ t("Headings.Question") }}: </span>{{ mcq?.question ?? "" }}
     </p>
-    <p class="text-2xl mt-6 mb-2 text-white">{{ t("Headings.Options") }}</p>
+    <p class="text-2xl mt-5 mb-2 text-white">{{ t("Headings.Options") }}</p>
 
     <p
       :class="answer.correct ? 'bg-success' : 'bg-error'"

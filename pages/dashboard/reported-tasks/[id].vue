@@ -1,13 +1,15 @@
 <template>
 	<div class="mb-20">
-		<PageTitle class="mb-8" />
+		<PageTitle class="mb-2" />
 		<!-- Todo: add Information Reported By, Reason, Comment, Reported At, and Creator of the task -->
-		<section class="bg-[#3fdfa933] p-4 flex capitalize gap-2 rounded-md">
+		<section
+			class="bg-[#3fdfa933] p-2 flex items-center capitalize gap-2 rounded-md"
+		>
 			<div class="h-10 w-10 mt-0.5">
-				<ExclamationCircleIcon class="text-info min-w-[32px] min-h-[32px]" />
+				<ExclamationCircleIcon class="text-info min-w-[20px] min-h-[20px]" />
 			</div>
 			<p class="text-white">
-				<span class="font-bold text-3xl"> {{ t("Headings.Reason") }} </span>
+				<span class="font-bold text-xl"> {{ t("Headings.Reason") }} </span>
 				{{ reportReason }}
 			</p>
 		</section>
@@ -21,26 +23,28 @@
 			:codingChallengeSolution="codingChallengeSolution"
 		/>
 		<section class="flex justify-end gap-4 mt-10">
-			<!-- Todo: add Buttons "Delete Task", "Adjust Task", "Ban Creator", and "Ban Reporter". -->
-			<InputBtn
-				:loading="loadingInCorrect"
-				:icon="XMarkIcon"
-				secondary
-				@click="fnResolveReport('BLOCK_REPORTER'), (loadingInCorrect = true)"
-			>
+			<!-- Todo: add & edit locales for buttons -->
+			<!-- Todo: fix Icons -->
+			<InputBtn sm> Adjust Task </InputBtn>
+			<InputBtn sm> Delete Task </InputBtn>
+			<InputBtn sm :loading="loadingInCorrect">
+				<IconXMark color="red" size="1.1rem"/>
+				<!-- @click="fnResolveReport('BLOCK_REPORTER'), (loadingInCorrect = true)" -->
+				<!-- Information: Block-reporter -->
 				{{ t("Buttons.Incorrect") }}</InputBtn
 			>
-			<InputBtn
-				:loading="loadingCorrect"
-				:icon="CheckIcon"
-				@click="fnResolveReport('BLOCK_CREATOR'), (loadingCorrect = true)"
-				>{{ t("Buttons.Correct") }}</InputBtn
-			>
+			<InputBtn sm :loading="loadingCorrect">
+				<!-- Question: Check if I even need these Icons? -->
+				<IconCheck color="black" size="1.1rem"/>
+				<!-- @click="fnResolveReport('BLOCK_CREATOR'), (loadingCorrect = true)" -->
+				<!-- Information: Block-creator -->
+				{{ t("Buttons.Correct") }}
+			</InputBtn>
 		</section>
 	</div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 	import {
 		useReportReason,
 		resolveReport,
@@ -51,104 +55,75 @@
 		useMcq,
 		useCodingChallengeSolution,
 	} from "~~/composables/reportedSubtasks";
-	import {
-		ExclamationCircleIcon,
-		CheckIcon,
-		XMarkIcon,
-	} from "@heroicons/vue/24/outline";
+	import { ExclamationCircleIcon, CheckIcon } from "@heroicons/vue/24/outline";
 	import { useI18n } from "vue-i18n";
+
 	definePageMeta({
 		middleware: ["auth"],
 		layout: "dashboard",
 	});
-	export default {
-		components: { ExclamationCircleIcon, CheckIcon, XMarkIcon },
-		setup() {
-			const { t } = useI18n();
-			const route = useRoute();
-			const router = useRouter();
-			const reportReason = useReportReason();
-			const reportSubtaskType: any = useReportSubtaskType(); // Todo: remove this -> is not needed
-			const codingChallengeSolution: any = useCodingChallengeSolution();
-			const answers = ["haha", "hahaha", "hahahaha", "hahahahaha"];
-			const reportId = computed(() => {
-				return route.params?.id ?? "";
-			});
+	const { t } = useI18n();
+	const route = useRoute();
+	const router = useRouter();
+	const reportReason = useReportReason();
+	const reportSubtaskType: any = useReportSubtaskType(); // Todo: remove this -> is not needed
+	const codingChallengeSolution: any = useCodingChallengeSolution();
+	const answers = ["haha", "hahaha", "hahahaha", "hahahahaha"];
+	const reportId = computed(() => {
+		return route.params?.id ?? "";
+	});
 
-			const task_id = computed(() => {
-				return route.query?.taskId ?? "";
-			});
-			const subtask_id = computed(() => {
-				return route.query?.subtaskId ?? "";
-			});
+	const task_id = computed(() => {
+		return route.query?.taskId ?? "";
+	});
+	const subtask_id = computed(() => {
+		return route.query?.subtaskId ?? "";
+	});
 
-			const loadingCorrect = ref(false);
-			const loadingInCorrect = ref(false);
-			const CodingChallenge: any = useCodingChallenge();
-			const solution: any = useCodingChallengeSolution();
-			const mcq: any = useMcq();
+	const loadingCorrect = ref(false);
+	const loadingInCorrect = ref(false);
+	const CodingChallenge: any = useCodingChallenge();
+	const solution: any = useCodingChallengeSolution();
+	const mcq: any = useMcq();
 
-			async function fnResolveReport(action: String) {
-				const [success, error] = await resolveReport(reportId.value, {
-					action: action,
-				});
-				loadingCorrect.value = false;
-				loadingInCorrect.value = false;
-				if (success) sucessHandler(success);
-				else errorHandler(error);
-			}
+	async function fnResolveReport(action: String) {
+		const [success, error] = await resolveReport(reportId.value, {
+			action: action,
+		});
+		loadingCorrect.value = false;
+		loadingInCorrect.value = false;
+		if (success) sucessHandler(success);
+		else errorHandler(error);
+	}
 
-			function sucessHandler(success: any) {
-				openSnackbar("success", "Success.ResolveReport");
+	function sucessHandler(success: any) {
+		openSnackbar("success", "Success.ResolveReport");
+		router.push("/dashboard/reported-tasks");
+	}
+
+	function errorHandler(error: any) {
+		openSnackbar("error", error);
+	}
+
+	onMounted(async () => {
+		if (reportSubtaskType.value.includes("MULTIPLE_CHOICE_QUESTION")) {
+			const [success, error] = await getMcq(task_id.value, subtask_id.value);
+			if (error) {
+				openSnackbar("error", error ?? "");
 				router.push("/dashboard/reported-tasks");
 			}
-
-			function errorHandler(error: any) {
-				openSnackbar("error", error);
+		} else {
+			// Todo: I need more if statements here, some tasks are neither MCQ nor Coding Challenges
+			const [success, error] = await getCodingChallenge(
+				task_id.value,
+				subtask_id.value
+			);
+			if (error) {
+				openSnackbar("error", error ?? "");
+				// router.push("/dashboard/reported-tasks");
 			}
-
-			onMounted(async () => {
-				if (reportSubtaskType.value.includes("MULTIPLE_CHOICE_QUESTION")) {
-					const [success, error] = await getMcq(
-						task_id.value,
-						subtask_id.value
-					);
-					if (error) {
-						openSnackbar("error", error ?? "");
-						router.push("/dashboard/reported-tasks");
-					}
-				} else {
-					// Todo: I need more if statements here, some tasks are neither MCQ nor Coding Challenges
-					const [success, error] = await getCodingChallenge(
-						task_id.value,
-						subtask_id.value
-					);
-					if (error) {
-						openSnackbar("error", error ?? "");
-						// router.push("/dashboard/reported-tasks");
-					}
-				}
-			});
-
-			return {
-				reportReason,
-				ExclamationCircleIcon,
-				answers,
-				XMarkIcon,
-				CheckIcon,
-				fnResolveReport,
-				reportId,
-				loadingCorrect,
-				reportSubtaskType,
-				loadingInCorrect,
-				t,
-				CodingChallenge,
-				solution,
-				mcq,
-				codingChallengeSolution,
-			};
-		},
-	};
+		}
+	});
 </script>
 
 <style scoped></style>
