@@ -21,8 +21,10 @@
 					<span class="text-accent">{{ reportedTask.userName }}</span>
 				</p>
 				<p class="text-md text-white">
-					Reason: <span class="text-accent">{{ reportedTask.reason.toLowerCase() }}</span
-				>
+					Reason:
+					<span class="text-accent">{{
+						reportedTask.reason.toLowerCase()
+					}}</span>
 				</p>
 				<p class="text-md text-white">
 					Comment: <span class="text-accent">{{ reportedTask.comment }}</span>
@@ -52,18 +54,37 @@
 		</div>
 		<section class="flex justify-center gap-4 mt-2 flex-wrap xl:flex-nowrap">
 			<!-- Todo: add & edit locales for buttons -->
-			<InputBtn sm> Adjust Task </InputBtn>
-			<InputBtn sm> Delete Task </InputBtn>
-			<InputBtn sm :loading="loadingInCorrect">
-				<IconXMark color="red" size="1.1rem" />
-				<!-- @click="fnResolveReport('BLOCK_REPORTER'), (loadingInCorrect = true)" -->
-				<!-- Information: Block-reporter -->
-				Block reporter</InputBtn
+			<InputBtn
+				sm
+				:loading="loadingCorrect"
+				@click="fnResolveReport(RESOLVE.REVISE), (loadingCorrect = true)"
 			>
-			<InputBtn sm :loading="loadingCorrect">
-				<!-- Question: Check if I even need these Icons? -->
-				<IconCheck color="black" size="1.1rem" />
-				<!-- @click="fnResolveReport('BLOCK_CREATOR'), (loadingCorrect = true)" -->
+				Adjust Task
+			</InputBtn>
+
+			<InputBtn
+				sm
+				:loading="loadingCorrect"
+				@click="deleteTask(), (loadingCorrect = true)"
+			>
+				Delete Task
+			</InputBtn>
+
+			<InputBtn
+				sm
+				:loading="loadingCorrect"
+				@click="
+					fnResolveReport(RESOLVE.BLOCK_REPORTER), (loadingCorrect = true)
+				"
+			>
+				Block reporter
+			</InputBtn>
+
+			<InputBtn
+				sm
+				:loading="loadingCorrect"
+				@click="fnResolveReport(RESOLVE.BLOCK_CREATOR), (loadingCorrect = true)"
+			>
 				<!-- Information: Block-creator -->
 				Block creator
 			</InputBtn>
@@ -83,6 +104,7 @@
 	} from "~~/composables/reportedSubtasks";
 	import { ExclamationCircleIcon, CheckIcon } from "@heroicons/vue/24/outline";
 	import { useI18n } from "vue-i18n";
+	import { RESOLVE } from "~/types/reportedTaskTypes";
 
 	definePageMeta({
 		middleware: ["auth"],
@@ -118,7 +140,7 @@
 	const solution: any = useCodingChallengeSolution();
 	const mcq: any = useMcq();
 
-	async function fnResolveReport(action: String) {
+	async function fnResolveReport(action: RESOLVE) {
 		const [success, error] = await resolveReport(reportId.value, {
 			action: action,
 		});
@@ -127,6 +149,17 @@
 		if (success) sucessHandler(success);
 		else errorHandler(error);
 	}
+
+	const deleteTask = async () => {
+		const [success, error] = await deleteReportedTask(
+			reportedTask.value.task_id,
+			reportedTask.value.subtask_id
+		);
+		loadingCorrect.value = false;
+		loadingInCorrect.value = false;
+		if (success) sucessHandler(success);
+		else errorHandler(error);
+	};
 
 	function sucessHandler(success: any) {
 		openSnackbar("success", "Success.ResolveReport");

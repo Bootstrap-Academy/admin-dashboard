@@ -2,7 +2,8 @@ import { ReportBase } from "~/types/reportedTaskTypes";
 
 export const useReportedSubtasks = () =>
 	useState<ReportBase[]>("reportedSubtasks", () => []);
-export const useReportedSubtask = () => useState<ReportBase>("reportedSubtask", () => new ReportBase());
+export const useReportedSubtask = () =>
+	useState<ReportBase>("reportedSubtask", () => new ReportBase());
 export const useOffsetReportedTasks = () =>
 	useState("offsetReportedTasks", () => 0);
 export const useLimitReportedTasks = () =>
@@ -53,10 +54,8 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 
 		await assignReportUser();
 
-		loading.value = false;
 		return [response, null];
 	} catch (error: any) {
-		loading.value = false;
 		return [null, error.data];
 	}
 }
@@ -112,11 +111,10 @@ export async function assignReportUser() {
 				);
 			}
 		});
-
 	} catch (error) {
 		console.log("Error in parallel execution:", error);
 	}
-    loading.value = false;
+	loading.value = false;
 }
 
 export async function resolveReport(report_id: any, body: any) {
@@ -191,5 +189,16 @@ export async function getMcq(task_id: any, subtask_id: any) {
 
 		console.log("error in getMcq", error.data, task_id, subtask_id);
 		return [null, error.data.detail];
+	}
+}
+
+export async function deleteReportedTask(taskId: string, subTaskId: string) {
+	let error: Error | undefined;
+	try {
+		await DELETE(`challenges/tasks/${taskId}/subtasks/${subTaskId}`);
+		return [true, error];
+	} catch (err: any) {
+		error = err;
+		return [false, error];
 	}
 }

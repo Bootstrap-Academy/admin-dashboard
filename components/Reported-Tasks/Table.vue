@@ -71,7 +71,7 @@
 		},
 		setup(props) {
 			const isLoading = computed(() => {
-				return props.loading && props.data.length <= 0;
+				return props.loading ;
 			});
 
 			const headers = computed(() => {
