@@ -127,7 +127,7 @@ import {
   User,
   UserSearchRequestBody,
 } from '@/types/userTypes';
-import { getUserTest } from '@/composables/appUsers';
+import { getUserTest, getAppUsers } from '@/composables/appUsers';
 import { useI18n } from 'vue-i18n';
 import { CheckOption } from '~/types/componentTypes';
 
@@ -159,7 +159,7 @@ export default {
 
     const userSearch = async () => {
       loading.value = true;
-      await getUserTest(getUserRequestBody)
+      await getAppUsers(getUserRequestBody)
         .then(() => {
           loading.value = false;
         })
