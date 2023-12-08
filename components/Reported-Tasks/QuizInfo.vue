@@ -17,11 +17,7 @@
         <XMarkIcon v-else class="min-h-[32px] min-w-[32px]" />
       </span>
 
-      {{ answer?.answer ?? "" }} Lorem, ipsum dolor sit amet consectetur
-      adipisicing elit. Pariatur repellat quod accusamus quaerat. Aliquam
-      voluptate earum mollitia, laudantium excepturi enim corporis iste,
-      repudiandae, officia vel corrupti. Numquam ad error alias! Sapiente, nam
-      fugiat!
+      {{ answer?.answer ?? "" }}
     </p>
   </div>
 </template>
