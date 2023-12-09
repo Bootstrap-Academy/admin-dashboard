@@ -81,8 +81,7 @@
 						key: "userName",
 					},
 					{
-						// AddLocale: TaskOwner
-						label: "Task Owner",
+						label: "Headings.TaskOwner",
 						key: "creatorName",
 					},
 					{

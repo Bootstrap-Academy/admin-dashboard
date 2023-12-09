@@ -93,12 +93,28 @@
 		"EmploymentType": "Beschäftigungsart",
 		"Salary": "Gehalt",
 		"ProfessionalLevel": "Berufliche Ebene",
-		"JobEnvironment": "Arbeitsumgebung"
+		"JobEnvironment": "Arbeitsumgebung",
+		"MatchingSolution": "Passende Lösung",
+		"TaskOwner": "Ersteller",
+		"reportedTasks": "Gemeldete Aufgaben"
 	},
 	"Body": {
 		"SearchByEmail": "Suche nach E-Mail",
 		"DeleteUser": "Sind Sie sicher, dass Sie diesen Benutzer löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
-		"NoMoreReports": "Keine weiteren Berichte gefunden."
+		"NoMoreReports": "Keine weiteren Berichte gefunden.",
+		"LeftMatchingSide": "Linke Seite",
+		"RightMatchingSide": "Rechte Seite",
+		"MULTIPLE_CHOICE_QUESTION": "Multiple-Choice-Frage",
+		"MATCHING": "Matching",
+		"QUESTION": "Frage",
+		"CODING_CHALLENGE": "Programmierherausforderung",
+		"reportInformation": "Berichts-informationen",
+		"taskType": "Aufgabentyp",
+		"reportedBy": "Gemeldet von",
+		"reason": "Grund",
+		"comment": "Kommentar",
+		"reportedAt": "Gemeldet am",
+		"taskCreator": "Aufgabenersteller"
 	},
 	"List": {
 		"Filter": {
@@ -176,7 +192,11 @@
 		"CreateJob": "Neuen Job erstellen",
 		"EditJob": "Job bearbeiten",
 		"EditCompany": "Firma bearbeiten",
-		"CreateCompany": "Neue Firma erstellen"
+		"CreateCompany": "Neue Firma erstellen",
+		"adjustTask": "Aufgabe anpassen",
+		"deleteTask": "Aufgabe löschen",
+		"blockReporter": "Reporter blockieren",
+		"blockCreator": "Ersteller blockieren"
 	},
 	"Links": {
 		"GoBack": "Zurück",
@@ -224,7 +244,8 @@
 		"InvalidVerificationCode": "Dieser Bestätigungscode ist ungültig. Bitte verwenden Sie einen gültigen.",
 		"EmailAlreadyVerified": "Diese E-Mail ist bereits verifiziert",
 		"PasswordResetFailed": "Das Zurücksetzen des Passworts war nicht möglich. Bitte versuchen Sie es später erneut.",
-		"InvalidCode": "Dieser Code ist ungültig. Bitte verwenden Sie einen gültigen."
+		"InvalidCode": "Dieser Code ist ungültig. Bitte verwenden Sie einen gültigen.",
+		"errorLoadingMatchingTask": "Fehler beim Laden der Matching-Aufgabe"
 	},
 	"Months": {
 		"January": "Januar",

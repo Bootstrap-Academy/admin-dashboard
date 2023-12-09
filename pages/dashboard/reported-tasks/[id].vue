@@ -14,35 +14,37 @@
 		</section>
 		<div class="flex flex-wrap xl:flex-nowrap justify-center">
 			<div class="w-1/3 p-3 min-w-[400px] flex-grow xl:flex-grow-0">
+				<!-- Todo: add task-type -->
 				<!-- Information: Report Info -->
-				<!-- AddLocale: Report Info -->
-				<p class="text-xl text-white">Report Info</p>
+				<p class="text-xl text-white">{{ t("Body.reportInformation") }}</p>
 				<p class="text-md text-white">
-					<!-- AddLocale: ReportedBy -->
-					Reported by:
+					{{ t("Body.taskType") }}:
+					<span class="text-accent">{{
+						t(`Body.${reportedTask.subtask_type}`)
+					}}</span>
+				</p>
+				<p class="text-md text-white">
+					{{ t("Body.reportedBy") }}:
 					<span class="text-accent">{{ reportedTask.userName }}</span>
 				</p>
 				<p class="text-md text-white">
-					<!-- AddLocale: Reason -->
-					Reason:
+					{{ t("Body.reason") }}:
 					<span class="text-accent">{{
 						reportedTask.reason.toLowerCase()
 					}}</span>
 				</p>
 				<p class="text-md text-white">
-					<!-- AddLocale: Comment -->
-					Comment: <span class="text-accent">{{ reportedTask.comment }}</span>
+					{{ t("Body.comment") }}:
+					<span class="text-accent">{{ reportedTask.comment }}</span>
 				</p>
 				<p class="text-md text-white">
-					<!-- AddLocale: ReportedAt -->
-					Reported at:
+					{{ t("Body.reportedAt") }}:
 					<span class="text-accent">{{
 						`${reportedAt.date} ${reportedAt.month.string}, ${reportedAt.year}`
 					}}</span>
 				</p>
 				<p class="text-md text-white">
-					<!-- AddLocale: TaskCreator -->
-					Task Creator:
+					{{ t("Body.taskCreator") }}:
 					<span class="text-accent">{{ reportedTask.creatorName }}</span>
 				</p>
 			</div>
@@ -69,14 +71,12 @@
 			</div>
 		</div>
 		<section class="flex justify-center gap-4 mt-2 flex-wrap xl:flex-nowrap">
-			<!-- Todo: add & edit locales for buttons -->
 			<InputBtn
 				sm
 				:loading="loadingCorrect"
 				@click="fnResolveReport(RESOLVE.REVISE), (loadingCorrect = true)"
 			>
-				<!-- AddLocale: Adjust Task -->
-				Adjust Task
+				{{ t("Buttons.adjustTask") }}
 			</InputBtn>
 
 			<InputBtn
@@ -84,8 +84,7 @@
 				:loading="loadingCorrect"
 				@click="deleteTask(), (loadingCorrect = true)"
 			>
-				<!-- AddLocale: Delete Task -->
-				Delete Task
+				{{ t("Buttons.deleteTask") }}
 			</InputBtn>
 
 			<InputBtn
@@ -95,8 +94,7 @@
 					fnResolveReport(RESOLVE.BLOCK_REPORTER), (loadingCorrect = true)
 				"
 			>
-				<!-- AddLocale: Block reporter -->
-				Block reporter
+				{{ t("Buttons.blockReporter") }}
 			</InputBtn>
 
 			<InputBtn
@@ -105,8 +103,7 @@
 				@click="fnResolveReport(RESOLVE.BLOCK_CREATOR), (loadingCorrect = true)"
 			>
 				<!-- Information: Block-creator -->
-				<!-- AddLocale: Block creator -->
-				Block creator
+				{{ t("Buttons.blockCreator") }}
 			</InputBtn>
 		</section>
 	</div>
@@ -208,8 +205,7 @@
 				reportedTask.value.subtask_id
 			);
 			if (error) {
-				// AddLocale: Error while loading matching task
-				openSnackbar('error', 'Fehler beim Laden der Matching-Aufgabe');
+				openSnackbar("error", t("Error.errorLoadingMatchingTask"));
 				router.push("/dashboard/reported-tasks");
 			}
 		} else if (reportedTask.value.subtask_type === TASK_TYPE.CODING_CHALLENGE) {

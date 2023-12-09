@@ -1,9 +1,7 @@
 <template>
   <div>
     <Head>
-      <!-- Todo: solve this issue below -->
-      <!-- AddLocale: ManageUser -->
-      <Title>Manage User - {{ appUser?.name ?? "" }}</Title>
+      <Title>{{ t('Headings.reportedTasks') }}</Title>
     </Head>
     <PageTitle class="mb-8" />
     <div ref="scrollRef"></div>
@@ -25,14 +23,12 @@
     <p v-else class="text-center mt-10">
       {{ t("Headings.NoMoreSubtasks") }}
     </p>
-    <!-- Todo: solve this issue below -->
     <ScrollToBtn :scrollRef="scrollRef" />
   </div>
 </template>
 
 <script lang="ts">
 import { ref, onMounted } from "vue";
-import type { Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   getreportedSubtasksList,
