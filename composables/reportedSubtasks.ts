@@ -197,6 +197,7 @@ export async function getMcq(task_id: any, subtask_id: any) {
 
 export async function getMatching(taskId: string, subTaskId: string) {
 	const matching = useMatching()
+	matching.value = new MatchingWithSolution()
 	try {
 		const res :MatchingWithSolution= await GET(
 			`/challenges/tasks/${taskId}/matchings/${subTaskId}/solution`

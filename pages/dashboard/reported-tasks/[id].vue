@@ -11,7 +11,6 @@
 				<span class="font-bold text-xl"> {{ t("Headings.Reason") }} </span>
 				{{ reportedTask.reason.toLowerCase() }}
 			</p>
-
 		</section>
 		<div class="flex flex-wrap xl:flex-nowrap justify-center">
 			<div class="w-1/3 p-3 min-w-[400px] flex-grow xl:flex-grow-0">
@@ -50,7 +49,9 @@
 			<div class="w-2/3 p-3 flex-grow xl:flex-grow-0">
 				<Reported-TasksQuizInfo
 					:mcq="mcq"
-					v-if="reportedTask.subtask_type === TASK_TYPE.MULTIPLE_CHOICE_QUESTION"
+					v-if="
+						reportedTask.subtask_type === TASK_TYPE.MULTIPLE_CHOICE_QUESTION
+					"
 				/>
 				<Reported-TasksCodingChallengeInfo
 					v-if="reportedTask.subtask_type === TASK_TYPE.CODING_CHALLENGE"
@@ -58,9 +59,13 @@
 					:codingChallengeSolution="codingChallengeSolution"
 				/>
 
-				<Reported-TasksMatching v-if="reportedTask.subtask_type === TASK_TYPE.MATCHING"/>
+				<Reported-TasksMatching
+					v-if="reportedTask.subtask_type === TASK_TYPE.MATCHING"
+				/>
 
-				<Reported-TasksQuestion v-if="reportedTask.subtask_type === TASK_TYPE.QUESTION"/>
+				<Reported-TasksQuestion
+					v-if="reportedTask.subtask_type === TASK_TYPE.QUESTION"
+				/>
 			</div>
 		</div>
 		<section class="flex justify-center gap-4 mt-2 flex-wrap xl:flex-nowrap">
@@ -70,7 +75,7 @@
 				:loading="loadingCorrect"
 				@click="fnResolveReport(RESOLVE.REVISE), (loadingCorrect = true)"
 			>
-			<!-- AddLocale: Adjust Task -->
+				<!-- AddLocale: Adjust Task -->
 				Adjust Task
 			</InputBtn>
 
@@ -79,7 +84,7 @@
 				:loading="loadingCorrect"
 				@click="deleteTask(), (loadingCorrect = true)"
 			>
-			<!-- AddLocale: Delete Task -->
+				<!-- AddLocale: Delete Task -->
 				Delete Task
 			</InputBtn>
 
@@ -90,7 +95,7 @@
 					fnResolveReport(RESOLVE.BLOCK_REPORTER), (loadingCorrect = true)
 				"
 			>
-			<!-- AddLocale: Block reporter -->
+				<!-- AddLocale: Block reporter -->
 				Block reporter
 			</InputBtn>
 
@@ -189,24 +194,26 @@
 		if (
 			reportedTask.value.subtask_type === TASK_TYPE.MULTIPLE_CHOICE_QUESTION
 		) {
+			// Information: Multiple Choice Question
 			const [success, error] = await getMcq(task_id.value, subtask_id.value);
 			if (error) {
 				openSnackbar("error", error ?? "");
 				router.push("/dashboard/reported-tasks");
 			}
 		} else if (reportedTask.value.subtask_type === TASK_TYPE.MATCHING) {
-			// Todo: Matching
+			// Information: Matching
 			console.log("matching");
 			const [success, error] = await getMatching(
 				reportedTask.value.task_id,
 				reportedTask.value.subtask_id
 			);
 			if (error) {
-				openSnackbar("error", error ?? "");
+				// AddLocale: Error while loading matching task
+				openSnackbar('error', 'Fehler beim Laden der Matching-Aufgabe');
 				router.push("/dashboard/reported-tasks");
 			}
 		} else if (reportedTask.value.subtask_type === TASK_TYPE.CODING_CHALLENGE) {
-			// Todo: I need more if statements here, some tasks are neither MCQ nor Coding Challenges
+			// Information: Coding Challenge
 			const [success, error] = await getCodingChallenge(
 				task_id.value,
 				subtask_id.value
@@ -216,6 +223,7 @@
 				// router.push("/dashboard/reported-tasks");
 			}
 		} else if (reportedTask.value.subtask_type === TASK_TYPE.QUESTION) {
+			// Information: Question
 			console.log("question");
 		}
 	});
