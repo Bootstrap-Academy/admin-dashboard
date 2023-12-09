@@ -2,6 +2,7 @@
   <div>
     <Head>
       <!-- Todo: solve this issue below -->
+      <!-- AddLocale: ManageUser -->
       <Title>Manage User - {{ appUser?.name ?? "" }}</Title>
     </Head>
     <PageTitle class="mb-8" />

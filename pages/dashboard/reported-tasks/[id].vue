@@ -13,31 +13,36 @@
 			</p>
 
 		</section>
-				<button class="text-accent text-3xl bg-secondary" @click="console.log(reportedTask.subtask_type === TASK_TYPE.MULTIPLE_CHOICE_QUESTION)">testF</button>
 		<div class="flex flex-wrap xl:flex-nowrap justify-center">
 			<div class="w-1/3 p-3 min-w-[400px] flex-grow xl:flex-grow-0">
 				<!-- Information: Report Info -->
+				<!-- AddLocale: Report Info -->
 				<p class="text-xl text-white">Report Info</p>
 				<p class="text-md text-white">
+					<!-- AddLocale: ReportedBy -->
 					Reported by:
 					<span class="text-accent">{{ reportedTask.userName }}</span>
 				</p>
 				<p class="text-md text-white">
+					<!-- AddLocale: Reason -->
 					Reason:
 					<span class="text-accent">{{
 						reportedTask.reason.toLowerCase()
 					}}</span>
 				</p>
 				<p class="text-md text-white">
+					<!-- AddLocale: Comment -->
 					Comment: <span class="text-accent">{{ reportedTask.comment }}</span>
 				</p>
 				<p class="text-md text-white">
+					<!-- AddLocale: ReportedAt -->
 					Reported at:
 					<span class="text-accent">{{
 						`${reportedAt.date} ${reportedAt.month.string}, ${reportedAt.year}`
 					}}</span>
 				</p>
 				<p class="text-md text-white">
+					<!-- AddLocale: TaskCreator -->
 					Task Creator:
 					<span class="text-accent">{{ reportedTask.creatorName }}</span>
 				</p>
@@ -65,6 +70,7 @@
 				:loading="loadingCorrect"
 				@click="fnResolveReport(RESOLVE.REVISE), (loadingCorrect = true)"
 			>
+			<!-- AddLocale: Adjust Task -->
 				Adjust Task
 			</InputBtn>
 
@@ -73,6 +79,7 @@
 				:loading="loadingCorrect"
 				@click="deleteTask(), (loadingCorrect = true)"
 			>
+			<!-- AddLocale: Delete Task -->
 				Delete Task
 			</InputBtn>
 
@@ -83,6 +90,7 @@
 					fnResolveReport(RESOLVE.BLOCK_REPORTER), (loadingCorrect = true)
 				"
 			>
+			<!-- AddLocale: Block reporter -->
 				Block reporter
 			</InputBtn>
 
@@ -92,6 +100,7 @@
 				@click="fnResolveReport(RESOLVE.BLOCK_CREATOR), (loadingCorrect = true)"
 			>
 				<!-- Information: Block-creator -->
+				<!-- AddLocale: Block creator -->
 				Block creator
 			</InputBtn>
 		</section>
