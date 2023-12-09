@@ -16,6 +16,14 @@ export class ReportBase {
     creatorName: string = ''
 }
 
+export enum REASON {
+    ABUSE = 'ABUSE',
+    DISLIKE = 'DISLIKE',
+    OTHER = 'OTHER',
+    UNRELATED_SKILL = 'UNRELATED_SKILL',
+    WRONG = 'WRONG',
+}
+
 export enum RESOLVE{
     REVISE = 'REVISE',
     BLOCK_REPORTER = 'BLOCK_REPORTER',

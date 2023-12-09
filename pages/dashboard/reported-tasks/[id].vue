@@ -7,9 +7,9 @@
 			<div class="h-10 w-10 mt-0.5">
 				<ExclamationCircleIcon class="text-info min-w-[20px] min-h-[20px]" />
 			</div>
-			<p class="text-white">
+			<p class="text-white max-w-fit flex gap-5">
 				<span class="font-bold text-xl"> {{ t("Headings.Reason") }} </span>
-				{{ reportedTask.reason.toLowerCase() }}
+				{{ t(`Body.${reportedTask.reason}`) }}
 			</p>
 		</section>
 		<div class="flex flex-wrap xl:flex-nowrap justify-center">

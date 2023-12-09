@@ -115,7 +115,12 @@
 		"comment": "Kommentar",
 		"reportedAt": "Gemeldet am",
 		"taskCreator": "Aufgabenersteller",
-		"codingChallengeInfo": "Informationen zur Programmierherausforderung"
+		"codingChallengeInfo": "Informationen zur Programmierherausforderung",
+		"ABUSE": "Missbrauch",
+		"DISLIKE": "Abneigung",
+		"OTHER": "Andere",
+		"UNRELATED_SKILL": "Unrelated Skill",
+		"WRONG": "Falsch"
 	},
 	"List": {
 		"Filter": {

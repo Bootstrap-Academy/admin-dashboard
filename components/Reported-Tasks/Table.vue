@@ -11,8 +11,7 @@
 
 			<template #reason="{ item }">
 				<chip class="w-fit">
-					<!-- AddLocale: reason-enums -->
-					{{ item?.reason ?? "" }}
+					{{ item?.reason ? t(`Body.${item.reason}`): "" }}
 				</chip>
 			</template>
 
@@ -56,6 +55,7 @@
 	import { EyeIcon } from "@heroicons/vue/24/outline/index.js";
 	import { computed } from "vue";
 	import type { PropType } from "vue";
+import { useI18n } from "vue-i18n";
 	import type { ReportBase } from "~/types/reportedTaskTypes";
 	import {
 		useReportReason,
@@ -74,6 +74,8 @@
 			const isLoading = computed(() => {
 				return props.loading ;
 			});
+
+			const { t } = useI18n()
 
 			const headers = computed(() => {
 				let arrHeaders = [
@@ -123,6 +125,7 @@
 				onclickEditItem,
 				isLoading,
 				EyeIcon,
+				t,
 			};
 		},
 	};
