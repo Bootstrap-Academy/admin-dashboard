@@ -14,8 +14,6 @@
 		</section>
 		<div class="flex flex-wrap xl:flex-nowrap justify-center">
 			<div class="w-1/3 p-3 min-w-[400px] flex-grow xl:flex-grow-0">
-				<!-- Todo: add task-type -->
-				<!-- Information: Report Info -->
 				<p class="text-xl text-white">{{ t("Body.reportInformation") }}</p>
 				<p class="text-md text-white">
 					{{ t("Body.taskType") }}:
@@ -102,7 +100,6 @@
 				:loading="loadingCorrect"
 				@click="fnResolveReport(RESOLVE.BLOCK_CREATOR), (loadingCorrect = true)"
 			>
-				<!-- Information: Block-creator -->
 				{{ t("Buttons.blockCreator") }}
 			</InputBtn>
 		</section>
@@ -131,7 +128,6 @@
 	const { t } = useI18n();
 	const route = useRoute();
 	const router = useRouter();
-	const reportSubtaskType: any = useReportSubtaskType(); // Todo: remove this -> is not needed
 	const codingChallengeSolution: any = useCodingChallengeSolution();
 	const reportId = computed(() => {
 		return route.params?.id ?? "";
@@ -191,15 +187,12 @@
 		if (
 			reportedTask.value.subtask_type === TASK_TYPE.MULTIPLE_CHOICE_QUESTION
 		) {
-			// Information: Multiple Choice Question
 			const [success, error] = await getMcq(task_id.value, subtask_id.value);
 			if (error) {
 				openSnackbar("error", error ?? "");
 				router.push("/dashboard/reported-tasks");
 			}
 		} else if (reportedTask.value.subtask_type === TASK_TYPE.MATCHING) {
-			// Information: Matching
-			console.log("matching");
 			const [success, error] = await getMatching(
 				reportedTask.value.task_id,
 				reportedTask.value.subtask_id
@@ -209,17 +202,15 @@
 				router.push("/dashboard/reported-tasks");
 			}
 		} else if (reportedTask.value.subtask_type === TASK_TYPE.CODING_CHALLENGE) {
-			// Information: Coding Challenge
 			const [success, error] = await getCodingChallenge(
 				task_id.value,
 				subtask_id.value
 			);
 			if (error) {
 				openSnackbar("error", error ?? "");
-				// router.push("/dashboard/reported-tasks");
+				router.push("/dashboard/reported-tasks");
 			}
 		} else if (reportedTask.value.subtask_type === TASK_TYPE.QUESTION) {
-			// Information: Question
 			console.log("question");
 		}
 	});

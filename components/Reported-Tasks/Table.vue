@@ -11,6 +11,7 @@
 
 			<template #reason="{ item }">
 				<chip class="w-fit">
+					<!-- AddLocale: reason-enums -->
 					{{ item?.reason ?? "" }}
 				</chip>
 			</template>
@@ -112,12 +113,6 @@
 			function onclickEditItem(item: ReportBase) {
 				reportedTask.value = item;
 				if (Boolean(!item) || Boolean(!item.id)) return;
-				// Todo: remove this unrelated stuff -> all info is already in reportedTask
-				// Todo: I have to edit and remove reportReasen & type everywhere it's used
-				const reportReason = useReportReason();
-				reportReason.value = item?.comment ?? "";
-				const reportSubtaskType = useReportSubtaskType();
-				reportSubtaskType.value = item?.subtask_type ?? "";
 				router.push(
 					`/dashboard/reported-tasks/${item.id}?taskId=${item.task_id}&subtaskId=${item.subtask_id}`
 				);

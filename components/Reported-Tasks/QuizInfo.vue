@@ -1,6 +1,5 @@
 <template>
 	<div class="flex flex-col items-start gap-3 py-2">
-    <!-- Information: Quiz Question -->
 		<div>
 			<p class="text-xl mb-1 text-white">{{ t("Headings.Quiz") }}</p>
 			<p>
@@ -8,7 +7,6 @@
 			</p>
 		</div>
 
-    <!-- Information: Quiz Options -->
 		<div>
 			<p class="text-xl mb-2 text-white">{{ t("Headings.Options") }}</p>
 			<div class="flex flex-col gap-2">

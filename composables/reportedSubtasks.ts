@@ -121,8 +121,6 @@ export async function assignReportUser() {
 }
 
 export async function resolveReport(report_id: any, body: any) {
-	// Todo: edit this so i can choose between block reporter, block creator, revise
-	// Todo: edit body arg -> get RESOLVE enum and build body from that
 	try {
 		const res = await PUT(`/challenges/subtask_reports/${report_id}`, body);
 		return [res, null];
@@ -140,7 +138,6 @@ export async function resolveReport(report_id: any, body: any) {
 }
 
 export async function getCodingChallenge(task_id: any, subtask_id: any) {
-	// Bug: this does not work for coding-challenges
 	try {
 		const res = await GET(
 			`/challenges/tasks/${task_id}/coding_challenges/${subtask_id}`
