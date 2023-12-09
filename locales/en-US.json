@@ -117,7 +117,8 @@
 		"reason": "Reason",
 		"comment": "Comment",
 		"reportedAt": "Reported at",
-		"taskCreator": "Task Creator"
+		"taskCreator": "Task Creator",
+		"codingChallengeInfo": "Coding Challenge Info"
 	},
 	"List": {
 		"Filter": {

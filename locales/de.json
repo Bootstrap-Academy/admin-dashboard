@@ -114,7 +114,8 @@
 		"reason": "Grund",
 		"comment": "Kommentar",
 		"reportedAt": "Gemeldet am",
-		"taskCreator": "Aufgabenersteller"
+		"taskCreator": "Aufgabenersteller",
+		"codingChallengeInfo": "Informationen zur Programmierherausforderung"
 	},
 	"List": {
 		"Filter": {
