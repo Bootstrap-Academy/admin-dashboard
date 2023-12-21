@@ -155,9 +155,9 @@ export default {
 
             success
               ? openSnackbar(
-                  "success",
-                  `Deleted ${item?.name ?? "this"} company successfully`
-                )
+                "success",
+                `Deleted ${item?.name ?? "this"} company successfully`
+              )
               : openSnackbar("error", error?.detail ?? "");
           },
         },

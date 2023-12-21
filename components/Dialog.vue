@@ -54,51 +54,51 @@ import type { PropType } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
-	props: {
-		dialog: { type: Object as PropType<any>, default: null },
-	},
-	setup(props) {
-		const { t } = useI18n();
+  props: {
+    dialog: { type: Object as PropType<any>, default: null },
+  },
+  setup(props) {
+    const { t } = useI18n();
 
-		const type = computed(() => {
-			return props.dialog?.type ?? 'info';
-		});
+    const type = computed(() => {
+      return props.dialog?.type ?? 'info';
+    });
 
-		const theme = computed(() => {
-			return getTheme(type.value);
-		});
+    const theme = computed(() => {
+      return getTheme(type.value);
+    });
 
-		const heading = computed(() => {
-			return props.dialog?.heading ?? '';
-		});
+    const heading = computed(() => {
+      return props.dialog?.heading ?? '';
+    });
 
-		const body = computed(() => {
-			return props.dialog?.body ?? '';
-		});
+    const body = computed(() => {
+      return props.dialog?.body ?? '';
+    });
 
-		const primaryBtn = computed(() => {
-			return {
-				label: props.dialog?.primaryBtn?.label ?? '',
-				onclick: props.dialog.primaryBtn.onclick,
-			};
-		});
+    const primaryBtn = computed(() => {
+      return {
+        label: props.dialog?.primaryBtn?.label ?? '',
+        onclick: props.dialog.primaryBtn.onclick,
+      };
+    });
 
-		const secondaryBtn = computed(() => {
-			return {
-				label: props.dialog?.secondaryBtn?.label ?? '',
-				onclick: props.dialog.secondaryBtn.onclick,
-			};
-		});
+    const secondaryBtn = computed(() => {
+      return {
+        label: props.dialog?.secondaryBtn?.label ?? '',
+        onclick: props.dialog.secondaryBtn.onclick,
+      };
+    });
 
-		return {
-			t,
-			theme,
-			heading,
-			body,
-			primaryBtn,
-			secondaryBtn,
-		};
-	},
+    return {
+      t,
+      theme,
+      heading,
+      body,
+      primaryBtn,
+      secondaryBtn,
+    };
+  },
 });
 </script>
 

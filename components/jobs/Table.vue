@@ -82,139 +82,139 @@ import type { Ref, PropType } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
-	CheckCircleIcon,
-	XCircleIcon,
-	XMarkIcon,
-	CheckIcon,
-	TrashIcon,
-	PencilIcon,
-	EyeIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  XMarkIcon,
+  CheckIcon,
+  TrashIcon,
+  PencilIcon,
+  EyeIcon,
 } from '@heroicons/vue/24/outline/index.js';
 
 export default {
-	props: {
-		data: { type: Array as PropType<any[]>, default: [] },
-		loading: { type: Boolean, default: true },
-	},
-	components: {
-		CheckCircleIcon,
-		XCircleIcon,
-		XMarkIcon,
-		CheckIcon,
-		TrashIcon,
-		PencilIcon,
-		EyeIcon,
-	},
-	setup(props) {
-		const { t } = useI18n();
+  props: {
+    data: { type: Array as PropType<any[]>, default: [] },
+    loading: { type: Boolean, default: true },
+  },
+  components: {
+    CheckCircleIcon,
+    XCircleIcon,
+    XMarkIcon,
+    CheckIcon,
+    TrashIcon,
+    PencilIcon,
+    EyeIcon,
+  },
+  setup(props) {
+    const { t } = useI18n();
 
-		const isLoading = computed(() => {
-			return props.loading && props.data.length <= 0;
-		});
+    const isLoading = computed(() => {
+      return props.loading && props.data.length <= 0;
+    });
 
-		const headers = computed(() => {
-			let arrHeaders = [
-				{
-					label: 'Title',
-					key: 'title',
-				},
-				{
-					label: 'Remote',
-					key: 'remote',
-				},
-				{
-					label: 'Type',
-					key: 'type',
-				},
-				{
-					label: 'Salary Amount',
-					key: 'salary',
-				},
-				{
-					label: 'Salary Occurrence',
-					key: 'occurrence',
-					class: 'text-center',
-				},
-				{
-					label: 'Salary Unit',
-					key: 'unit',
-				},
-				{
-					label: 'Professional Level',
-					key: 'professional_level',
-					class: 'text-center',
-				},
-				// {
-				// 	label: 'Location',
-				// 	key: 'location',
-				// },
-				{
-					label: 'Headings.Actions',
-					key: 'actions',
-					class: 'text-center',
-				},
-			];
+    const headers = computed(() => {
+      let arrHeaders = [
+        {
+          label: 'Title',
+          key: 'title',
+        },
+        {
+          label: 'Remote',
+          key: 'remote',
+        },
+        {
+          label: 'Type',
+          key: 'type',
+        },
+        {
+          label: 'Salary Amount',
+          key: 'salary',
+        },
+        {
+          label: 'Salary Occurrence',
+          key: 'occurrence',
+          class: 'text-center',
+        },
+        {
+          label: 'Salary Unit',
+          key: 'unit',
+        },
+        {
+          label: 'Professional Level',
+          key: 'professional_level',
+          class: 'text-center',
+        },
+        // {
+        // 	label: 'Location',
+        // 	key: 'location',
+        // },
+        {
+          label: 'Headings.Actions',
+          key: 'actions',
+          class: 'text-center',
+        },
+      ];
 
-			return arrHeaders;
-		});
+      return arrHeaders;
+    });
 
-		async function onclickDeleteItem(item: any) {
-			openDialog(
-				'warning',
-				'Delete Job',
-				'Are you sure you want to delete job? This action cannot be undone.',
-				false,
-				{
-					label: 'Yes, Delete Job',
-					onclick: async () => {
-						setLoading(true);
-						const [success, error] = await deleteJob(item.id);
-						setLoading(false);
+    async function onclickDeleteItem(item: any) {
+      openDialog(
+        'warning',
+        'Delete Job',
+        'Are you sure you want to delete job? This action cannot be undone.',
+        false,
+        {
+          label: 'Yes, Delete Job',
+          onclick: async () => {
+            setLoading(true);
+            const [success, error] = await deleteJob(item.id);
+            setLoading(false);
 
-						success
-							? openSnackbar(
-									'success',
-									`Delete ${item?.title ?? 'this'} job successfully`
+            success
+              ? openSnackbar(
+                'success',
+                `Delete ${item?.title ?? 'this'} job successfully`
 							  )
-							: openSnackbar('error', error?.detail ?? '');
-					},
-				},
-				{
-					label: 'Buttons.Cancel',
-					onclick: () => {},
-				}
-			);
-		}
+              : openSnackbar('error', error?.detail ?? '');
+          },
+        },
+        {
+          label: 'Buttons.Cancel',
+          onclick: () => {},
+        }
+      );
+    }
 
-		const router = useRouter();
-		const job = useJob();
+    const router = useRouter();
+    const job = useJob();
 
-		function onclickViewItem(item: any) {
-			if (Boolean(!item) || Boolean(!item.id)) return;
+    function onclickViewItem(item: any) {
+      if (Boolean(!item) || Boolean(!item.id)) return;
 
-			job.value = item;
-			router.push(`/dashboard/jobs/${item.id}`);
-		}
+      job.value = item;
+      router.push(`/dashboard/jobs/${item.id}`);
+    }
 
-		function onclickEditItem(item: any) {
-			if (Boolean(!item) || Boolean(!item.id)) return;
+    function onclickEditItem(item: any) {
+      if (Boolean(!item) || Boolean(!item.id)) return;
 
-			job.value = item;
-			router.push(`/dashboard/jobs/${item.id}/edit`);
-		}
+      job.value = item;
+      router.push(`/dashboard/jobs/${item.id}/edit`);
+    }
 
-		return {
-			isLoading,
-			headers,
-			XMarkIcon,
-			TrashIcon,
-			PencilIcon,
-			EyeIcon,
-			onclickDeleteItem,
-			onclickViewItem,
-			onclickEditItem,
-		};
-	},
+    return {
+      isLoading,
+      headers,
+      XMarkIcon,
+      TrashIcon,
+      PencilIcon,
+      EyeIcon,
+      onclickDeleteItem,
+      onclickViewItem,
+      onclickEditItem,
+    };
+  },
 };
 </script>
 

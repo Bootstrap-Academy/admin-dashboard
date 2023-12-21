@@ -34,19 +34,19 @@ import type { PropType } from 'vue';
 import { EllipsisVerticalIcon } from '@heroicons/vue/24/outline/index.js';
 
 export default defineComponent({
-	components: { EllipsisVerticalIcon },
-	props: {
-		list: { type: Array as PropType<any[]>, default: [] },
-		sm: { type: Boolean, default: false },
-		filled: { type: Boolean, default: false },
-	},
-	setup(props) {
-		const { t } = useI18n();
+  components: { EllipsisVerticalIcon },
+  props: {
+    list: { type: Array as PropType<any[]>, default: [] },
+    sm: { type: Boolean, default: false },
+    filled: { type: Boolean, default: false },
+  },
+  setup(props) {
+    const { t } = useI18n();
 
-		const show = ref(false);
+    const show = ref(false);
 
-		return { t, show };
-	},
+    return { t, show };
+  },
 });
 </script>
 

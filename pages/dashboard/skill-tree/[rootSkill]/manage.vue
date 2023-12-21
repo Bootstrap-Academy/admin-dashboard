@@ -87,234 +87,234 @@
 <script lang="ts">
 import type { ComputedRef, Ref } from 'vue';
 definePageMeta({
-	middleware: ['auth'],
+  middleware: ['auth'],
 });
 
 export default {
-	head: {
-		title: 'Manage Skill Tree - ',
-	},
-	setup() {
-		const route = useRoute();
-		const router = useRouter();
+  head: {
+    title: 'Manage Skill Tree - ',
+  },
+  setup() {
+    const route = useRoute();
+    const router = useRouter();
 
-		// ! ==================================================================== Skill Tree
-		const isRoot = computed(() => {
-			return rootSkillID.value == 'root';
-		});
+    // ! ==================================================================== Skill Tree
+    const isRoot = computed(() => {
+      return rootSkillID.value == 'root';
+    });
 
-		const rootSkillID = computed(() => {
-			return <string>(route?.params?.rootSkill ?? '');
-		});
+    const rootSkillID = computed(() => {
+      return <string>(route?.params?.rootSkill ?? '');
+    });
 
-		const rootSkillName = computed(() => {
-			return rootSkillID.value.replace(/_/g, ' ');
-		});
+    const rootSkillName = computed(() => {
+      return rootSkillID.value.replace(/_/g, ' ');
+    });
 
-		const skillTree: Ref<any> = useSkillTree();
+    const skillTree: Ref<any> = useSkillTree();
 
-		const skills: ComputedRef<any[]> = computed(() => {
-			return skillTree.value?.skills ?? [];
-		});
+    const skills: ComputedRef<any[]> = computed(() => {
+      return skillTree.value?.skills ?? [];
+    });
 
-		// ! ==================================================================== Selected Skill Data
-		const subSkillID = computed({
-			get() {
-				return <string>(route?.query?.subSkillID ?? '');
-			},
-			set(value: string) {
-				if (!value) return;
+    // ! ==================================================================== Selected Skill Data
+    const subSkillID = computed({
+      get() {
+        return <string>(route?.query?.subSkillID ?? '');
+      },
+      set(value: string) {
+        if (!value) return;
 
-				router.replace({
-					path: route.path,
-					query: (value) ? { subSkillID: value } : undefined,
-				});
-			},
-		});
+        router.replace({
+          path: route.path,
+          query: (value) ? { subSkillID: value } : undefined,
+        });
+      },
+    });
 
-		const selectedSkill = computed(() => {
-			return skills.value.find((skill) => skill.id == subSkillID.value);
-		});
+    const selectedSkill = computed(() => {
+      return skills.value.find((skill) => skill.id == subSkillID.value);
+    });
 
-		const selectedCol = ref(0);
-		const selectedRow = ref(0);
+    const selectedCol = ref(0);
+    const selectedRow = ref(0);
 
-		// ! ==================================================================== Grid
-		const totalRows: ComputedRef<number> = computed(() => {
-			return skillTree.value?.rows ?? 0;
-		});
+    // ! ==================================================================== Grid
+    const totalRows: ComputedRef<number> = computed(() => {
+      return skillTree.value?.rows ?? 0;
+    });
 
-		const totalColumns: ComputedRef<number> = computed(() => {
-			return skillTree.value?.columns ?? 0;
-		});
+    const totalColumns: ComputedRef<number> = computed(() => {
+      return skillTree.value?.columns ?? 0;
+    });
 
-		const cellGap = 10;
-		const cellSize = 100;
+    const cellGap = 10;
+    const cellSize = 100;
 
-		const gridWidth = computed(() => {
-			return (totalRows.value - 1) * cellSize;
-		});
-		const gridHeight = computed(() => {
-			return (totalColumns.value - 1) * cellSize;
-		});
+    const gridWidth = computed(() => {
+      return (totalRows.value - 1) * cellSize;
+    });
+    const gridHeight = computed(() => {
+      return (totalColumns.value - 1) * cellSize;
+    });
 
-		function onclickCreateNewSkill(row: number, column: number) {
-			// clear selected sub skill id from URL
-			router.replace({
-				path: route.path,
-				query: undefined,
-			});
+    function onclickCreateNewSkill(row: number, column: number) {
+      // clear selected sub skill id from URL
+      router.replace({
+        path: route.path,
+        query: undefined,
+      });
 
-			selectedRow.value = row - 1;
-			selectedCol.value = column - 1;
+      selectedRow.value = row - 1;
+      selectedCol.value = column - 1;
 
-		}
+    }
 
-		// ! ==================================================================== Drag Skill
-		const pos1 = ref(0);
-		const pos2 = ref(0);
-		const pos3 = ref(0);
-		const pos4 = ref(0);
+    // ! ==================================================================== Drag Skill
+    const pos1 = ref(0);
+    const pos2 = ref(0);
+    const pos3 = ref(0);
+    const pos4 = ref(0);
 
-		let localSelectedSkill: any = null;
+    let localSelectedSkill: any = null;
 
-		function startDraggingProcess(event: any, skill: any) {
-			event.target.onmousedown = grabElement;
-			localSelectedSkill = skill;
-		}
+    function startDraggingProcess(event: any, skill: any) {
+      event.target.onmousedown = grabElement;
+      localSelectedSkill = skill;
+    }
 
-		function grabElement(event: any) {
-			event = event || window.event;
+    function grabElement(event: any) {
+      event = event || window.event;
 
-			pos3.value = event.clientX;
-			pos4.value = event.clientY;
+      pos3.value = event.clientX;
+      pos4.value = event.clientY;
 
-			event.target.onmouseup = releaseElement;
-			event.target.onmousemove = dragElement;
+      event.target.onmouseup = releaseElement;
+      event.target.onmousemove = dragElement;
 
-			subSkillID.value = localSelectedSkill.id;
-			selectedCol.value = localSelectedSkill.column;
-			selectedRow.value = localSelectedSkill.row;
-		}
+      subSkillID.value = localSelectedSkill.id;
+      selectedCol.value = localSelectedSkill.column;
+      selectedRow.value = localSelectedSkill.row;
+    }
 
-		function dragElement(event: any) {
-			event = event || window.event;
-			pos1.value = pos3.value - event.clientX;
-			pos2.value = pos4.value - event.clientY;
-			pos3.value = event.clientX;
-			pos4.value = event.clientY;
-			// set the element's new position:
-			event.target.style.top = event.target.offsetTop - pos2.value + 'px';
-			event.target.style.left = event.target.offsetLeft - pos1.value + 'px';
-		}
+    function dragElement(event: any) {
+      event = event || window.event;
+      pos1.value = pos3.value - event.clientX;
+      pos2.value = pos4.value - event.clientY;
+      pos3.value = event.clientX;
+      pos4.value = event.clientY;
+      // set the element's new position:
+      event.target.style.top = event.target.offsetTop - pos2.value + 'px';
+      event.target.style.left = event.target.offsetLeft - pos1.value + 'px';
+    }
 
-		function releaseElement(event: any) {
-			/* stop moving when mouse button is released:*/
-			event.target.onmouseup = null;
-			event.target.onmousemove = null;
+    function releaseElement(event: any) {
+      /* stop moving when mouse button is released:*/
+      event.target.onmouseup = null;
+      event.target.onmousemove = null;
 
-			let top = getFinalPosition(event.target.offsetTop);
-			let left = getFinalPosition(event.target.offsetLeft);
+      let top = getFinalPosition(event.target.offsetTop);
+      let left = getFinalPosition(event.target.offsetLeft);
 
-			event.target.style.top = top.style;
-			event.target.style.left = left.style;
+      event.target.style.top = top.style;
+      event.target.style.left = left.style;
 
-			selectedCol.value = top.grid;
-			selectedRow.value = left.grid;
+      selectedCol.value = top.grid;
+      selectedRow.value = left.grid;
 
-			skillTree.value.skills = skillTree.value.skills.map((skill: any) => {
-				return skill.id == subSkillID.value
-					? { ...skill, column: top.grid, row: left.grid }
-					: { ...skill };
-			});
-		}
+      skillTree.value.skills = skillTree.value.skills.map((skill: any) => {
+        return skill.id == subSkillID.value
+          ? { ...skill, column: top.grid, row: left.grid }
+          : { ...skill };
+      });
+    }
 
-		function getFinalPosition(currentVal: number) {
-			let roundedVal = Math.floor(currentVal / 100) * 100;
-			let difference = currentVal - roundedVal;
-			let finalVal = difference <= 50 ? roundedVal : roundedVal + cellSize;
+    function getFinalPosition(currentVal: number) {
+      let roundedVal = Math.floor(currentVal / 100) * 100;
+      let difference = currentVal - roundedVal;
+      let finalVal = difference <= 50 ? roundedVal : roundedVal + cellSize;
 
-			let style = finalVal + cellGap + 'px';
-			let grid = parseInt(finalVal.toString().replace(/^0+|0+$/g, ''));
+      let style = finalVal + cellGap + 'px';
+      let grid = parseInt(finalVal.toString().replace(/^0+|0+$/g, ''));
 
-			let lengthOfFinalVal = (finalVal ?? 0).toString().length;
-			let lengthOfGrid = (grid ?? 0).toString().length;
+      let lengthOfFinalVal = (finalVal ?? 0).toString().length;
+      let lengthOfGrid = (grid ?? 0).toString().length;
 
-			if (lengthOfGrid == 1) {
-				if (lengthOfFinalVal == 4) {
-					grid = parseInt(`${grid}0`);
-				} else if (lengthOfFinalVal == 5) {
-					grid = parseInt(`${grid}00`);
-				}
-			}
+      if (lengthOfGrid == 1) {
+        if (lengthOfFinalVal == 4) {
+          grid = parseInt(`${grid}0`);
+        } else if (lengthOfFinalVal == 5) {
+          grid = parseInt(`${grid}00`);
+        }
+      }
 
-			return {
-				style: style,
-				grid: grid,
-			};
-		}
+      return {
+        style: style,
+        grid: grid,
+      };
+    }
 
-		// ! ==================================================================== Skill Tree Settings
-		const showGrid = ref(true);
-		const cookie_showControls = useCookie<boolean>('showControls');
-		const showControls = computed({
-			get() {
-				return cookie_showControls.value || false;
-			},
-			set(data: boolean) {
-				cookie_showControls.value = data;
-			},
-		});
+    // ! ==================================================================== Skill Tree Settings
+    const showGrid = ref(true);
+    const cookie_showControls = useCookie<boolean>('showControls');
+    const showControls = computed({
+      get() {
+        return cookie_showControls.value || false;
+      },
+      set(data: boolean) {
+        cookie_showControls.value = data;
+      },
+    });
 
-		// ! ==================================================================== Starting Point
-		const loading = ref(true);
+    // ! ==================================================================== Starting Point
+    const loading = ref(true);
 
-		onMounted(async () => {
-			// getting skill tree
-			await getSkillTreeByRootID(rootSkillID.value);
-			loading.value = false;
+    onMounted(async () => {
+      // getting skill tree
+      await getSkillTreeByRootID(rootSkillID.value);
+      loading.value = false;
 
-			// if theres already a selected skill, use their current col and row #
-			if (selectedSkill.value) {
-				selectedCol.value = selectedSkill.value.column ?? 0;
-				selectedRow.value = selectedSkill.value.row ?? 0;
-			}
-		});
+      // if theres already a selected skill, use their current col and row #
+      if (selectedSkill.value) {
+        selectedCol.value = selectedSkill.value.column ?? 0;
+        selectedRow.value = selectedSkill.value.row ?? 0;
+      }
+    });
 
-		return {
-			// Skill Tree Data
-			isRoot,
-			rootSkillID,
-			rootSkillName,
-			skillTree,
-			skills,
+    return {
+      // Skill Tree Data
+      isRoot,
+      rootSkillID,
+      rootSkillName,
+      skillTree,
+      skills,
 
-			// Selected Skill Data
-			subSkillID,
-			selectedSkill,
-			selectedCol,
-			selectedRow,
+      // Selected Skill Data
+      subSkillID,
+      selectedSkill,
+      selectedCol,
+      selectedRow,
 
-			// Grid Data
-			totalRows,
-			totalColumns,
-			onclickCreateNewSkill,
-			cellSize,
-			cellGap,
-			gridWidth,
-			gridHeight,
+      // Grid Data
+      totalRows,
+      totalColumns,
+      onclickCreateNewSkill,
+      cellSize,
+      cellGap,
+      gridWidth,
+      gridHeight,
 
-			// Drag Skill
-			grabElement,
-			releaseElement,
-			dragElement,
-			startDraggingProcess,
+      // Drag Skill
+      grabElement,
+      releaseElement,
+      dragElement,
+      startDraggingProcess,
 
-			// Skill Tree Settings
-			showGrid,
-			showControls,
-		};
-	},
+      // Skill Tree Settings
+      showGrid,
+      showControls,
+    };
+  },
 };
 </script>
 

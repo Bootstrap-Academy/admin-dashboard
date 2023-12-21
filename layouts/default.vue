@@ -10,6 +10,6 @@
 
 <script>
 export default {
-	setup() {},
+  setup() {},
 };
 </script>

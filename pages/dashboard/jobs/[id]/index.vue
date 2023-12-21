@@ -57,31 +57,31 @@ import type { Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 definePageMeta({
-	middleware: ['auth'],
+  middleware: ['auth'],
 });
 
 export default {
-	head: {
-		title: 'Manage Job - ',
-	},
-	setup() {
-		const { t } = useI18n();
+  head: {
+    title: 'Manage Job - ',
+  },
+  setup() {
+    const { t } = useI18n();
 
-		const route = useRoute();
+    const route = useRoute();
 
-		const id = computed(() => {
-			return <string>(route?.params?.id ?? '');
-		});
+    const id = computed(() => {
+      return <string>(route?.params?.id ?? '');
+    });
 
-		const loading = ref(true);
-		const job: Ref<any> = useJob();
+    const loading = ref(true);
+    const job: Ref<any> = useJob();
 
-		onMounted(async () => {
-			await getJob(id.value);
-			loading.value = false;
-		});
+    onMounted(async () => {
+      await getJob(id.value);
+      loading.value = false;
+    });
 
-		return { t, id, loading, job };
-	},
+    return { t, id, loading, job };
+  },
 };
 </script>

@@ -242,9 +242,9 @@ export default {
 
             success
               ? openSnackbar(
-                  "success",
-                  t("Success.DeleteUser", { placeholder: user?.name ?? "User" })
-                )
+                "success",
+                t("Success.DeleteUser", { placeholder: user?.name ?? "User" })
+              )
               : openSnackbar("error", error?.detail ?? "");
           },
         },
@@ -264,11 +264,11 @@ export default {
 
       success
         ? openSnackbar(
-            "success",
-            status
-              ? t("Success.EnableUser", { placeholder: user?.name ?? "User" })
-              : t("Success.BanUser", { placeholder: user?.name ?? "User" })
-          )
+          "success",
+          status
+            ? t("Success.EnableUser", { placeholder: user?.name ?? "User" })
+            : t("Success.BanUser", { placeholder: user?.name ?? "User" })
+        )
         : openSnackbar("error", error?.detail ?? "");
     }
 
@@ -294,11 +294,11 @@ export default {
       let newStatus = success?.email_verified ?? false;
       success
         ? openSnackbar(
-            "success",
-            newStatus
-              ? `${user?.name ?? "User"} has been verified`
-              : `${user?.name ?? "User"} has been un-verified`
-          )
+          "success",
+          newStatus
+            ? `${user?.name ?? "User"} has been verified`
+            : `${user?.name ?? "User"} has been un-verified`
+        )
         : openSnackbar("error", error?.detail ?? "");
     }
 

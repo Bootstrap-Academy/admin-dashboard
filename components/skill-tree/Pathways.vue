@@ -44,51 +44,51 @@ import { defineComponent } from 'vue';
 import type { PropType } from 'vue';
 
 export default defineComponent({
-	props: {
-		height: { type: Number, default: 0 },
-		width: { type: Number, default: 0 },
-		cellSize: { type: Number, default: 0 },
-		skills: { type: Array as PropType<any[]>, default: [] },
-	},
-	setup(props) {
-		const pathways = computed(() => {
-			let arr: any[] = [];
+  props: {
+    height: { type: Number, default: 0 },
+    width: { type: Number, default: 0 },
+    cellSize: { type: Number, default: 0 },
+    skills: { type: Array as PropType<any[]>, default: [] },
+  },
+  setup(props) {
+    const pathways = computed(() => {
+      let arr: any[] = [];
 
-			props.skills.forEach((skill) => {
-				let dependencies: string[] = skill?.dependencies ?? [];
+      props.skills.forEach((skill) => {
+        let dependencies: string[] = skill?.dependencies ?? [];
 
-				let x1 = getGridCoord(skill.row);
-				let y1 = getGridCoord(skill.column);
+        let x1 = getGridCoord(skill.row);
+        let y1 = getGridCoord(skill.column);
 
-				dependencies.forEach((dependencyID) => {
-					let dependency = props.skills.find((s) => s.id == dependencyID);
+        dependencies.forEach((dependencyID) => {
+          let dependency = props.skills.find((s) => s.id == dependencyID);
 
-					if (!dependency) return;
+          if (!dependency) return;
 
-					let x2 = getGridCoord(dependency.row);
-					let y2 = getGridCoord(dependency.column);
+          let x2 = getGridCoord(dependency.row);
+          let y2 = getGridCoord(dependency.column);
 
-					arr.push(`M${x1} ${y1} L${x2} ${y2}`);
-				});
-			});
-			return arr;
-		});
+          arr.push(`M${x1} ${y1} L${x2} ${y2}`);
+        });
+      });
+      return arr;
+    });
 
-		function getGridCoord(val: number) {
-			let cellHalf = props.cellSize * 0.5;
-			return val * props.cellSize + cellHalf;
-		}
+    function getGridCoord(val: number) {
+      let cellHalf = props.cellSize * 0.5;
+      return val * props.cellSize + cellHalf;
+    }
 
-		const triangle = reactive({
-			markerWidth: 3,
-			markerHeight: 3,
-			refX: -10,
-			refY: 1.5,
-			points: '3 0, 3 3, 0 1.5',
-		});
+    const triangle = reactive({
+      markerWidth: 3,
+      markerHeight: 3,
+      refX: -10,
+      refY: 1.5,
+      points: '3 0, 3 3, 0 1.5',
+    });
 
-		return { pathways, triangle };
-	},
+    return { pathways, triangle };
+  },
 });
 </script>
 

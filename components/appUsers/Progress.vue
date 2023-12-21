@@ -40,62 +40,62 @@ import type { PropType } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
-	props: { data: { type: Object as PropType<any>, default: null } },
-	setup(props) {
-		const { t } = useI18n();
+  props: { data: { type: Object as PropType<any>, default: null } },
+  setup(props) {
+    const { t } = useI18n();
 
-		const header = reactive({
-			heading: 'Active Skills',
-			body: '',
-		});
+    const header = reactive({
+      heading: 'Active Skills',
+      body: '',
+    });
 
-		const loading = ref(true);
+    const loading = ref(true);
 
-		const id = computed(() => {
-			return props?.data?.id ?? '';
-		});
+    const id = computed(() => {
+      return props?.data?.id ?? '';
+    });
 
-		provide('userID', id);
+    provide('userID', id);
 
-		const progress: any = reactive({});
+    const progress: any = reactive({});
 
-		const skills = computed(() => {
-			return progress?.skills ?? [];
-		});
+    const skills = computed(() => {
+      return progress?.skills ?? [];
+    });
 
-		const activeSkills = computed(() => {
-			return skills.value.filter((skill: any) => skill.progress > 0);
-		});
+    const activeSkills = computed(() => {
+      return skills.value.filter((skill: any) => skill.progress > 0);
+    });
 
-		const otherSkills = computed(() => {
-			return skills.value.filter((skill: any) => skill.progress == 0);
-		});
+    const otherSkills = computed(() => {
+      return skills.value.filter((skill: any) => skill.progress == 0);
+    });
 
-		watch(
-			() => id.value,
-			async (newValue, oldValue) => {
-				if (newValue) {
-					loading.value = true;
-					const [success, error] = await getXPOfThisUser(newValue);
-					loading.value = false;
+    watch(
+      () => id.value,
+      async (newValue, oldValue) => {
+        if (newValue) {
+          loading.value = true;
+          const [success, error] = await getXPOfThisUser(newValue);
+          loading.value = false;
 
-					if (success) {
-						Object.assign(progress, success);
-					}
+          if (success) {
+            Object.assign(progress, success);
+          }
 
-					if (activeSkills.value && activeSkills.value.length <= 0) {
-						Object.assign(header, {
-							heading: 'No Active Skills',
-							body: 'User has not started any skills',
-						});
-					}
-				}
-			},
-			{ immediate: true, deep: true }
-		);
+          if (activeSkills.value && activeSkills.value.length <= 0) {
+            Object.assign(header, {
+              heading: 'No Active Skills',
+              body: 'User has not started any skills',
+            });
+          }
+        }
+      },
+      { immediate: true, deep: true }
+    );
 
-		return { t, loading, progress, header, activeSkills, otherSkills };
-	},
+    return { t, loading, progress, header, activeSkills, otherSkills };
+  },
 });
 </script>
 

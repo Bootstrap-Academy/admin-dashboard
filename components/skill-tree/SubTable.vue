@@ -52,90 +52,90 @@ import type { Ref, PropType } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
-	CheckCircleIcon,
-	XMarkIcon,
-	CheckIcon,
-	PencilIcon,
+  CheckCircleIcon,
+  XMarkIcon,
+  CheckIcon,
+  PencilIcon,
 } from '@heroicons/vue/24/outline/index.js';
 
 export default {
-	props: {
-		data: { type: Array as PropType<any[]>, default: [] },
-		loading: { type: Boolean, default: true },
-		rootSkillID: { type: String, default: '' },
-	},
-	components: {
-		CheckCircleIcon,
-		PencilIcon,
-		XMarkIcon,
-		CheckIcon,
-	},
-	setup(props) {
-		const { t } = useI18n();
+  props: {
+    data: { type: Array as PropType<any[]>, default: [] },
+    loading: { type: Boolean, default: true },
+    rootSkillID: { type: String, default: '' },
+  },
+  components: {
+    CheckCircleIcon,
+    PencilIcon,
+    XMarkIcon,
+    CheckIcon,
+  },
+  setup(props) {
+    const { t } = useI18n();
 
-		const isLoading = computed(() => {
-			return props.loading && props.data.length <= 0;
-		});
+    const isLoading = computed(() => {
+      return props.loading && props.data.length <= 0;
+    });
 
-		const isMobile = ref(false);
+    const isMobile = ref(false);
 
-		const headers = computed(() => {
-			return [
-				{
-					label: 'Icon',
-					key: 'icon',
-				},
-				{
-					label: 'Name',
-					key: 'name',
-				},
-				{
-					label: '# of Dependencies',
-					key: 'dependencies',
-				},
-				{
-					label: '# of Dependents',
-					key: 'dependents',
-				},
-				{
-					label: '# of Courses',
-					key: 'courses',
-				},
-				{
-					label: 'Headings.Actions',
-					key: 'actions',
-					class: 'text-center',
-				},
-			];
-		});
+    const headers = computed(() => {
+      return [
+        {
+          label: 'Icon',
+          key: 'icon',
+        },
+        {
+          label: 'Name',
+          key: 'name',
+        },
+        {
+          label: '# of Dependencies',
+          key: 'dependencies',
+        },
+        {
+          label: '# of Dependents',
+          key: 'dependents',
+        },
+        {
+          label: '# of Courses',
+          key: 'courses',
+        },
+        {
+          label: 'Headings.Actions',
+          key: 'actions',
+          class: 'text-center',
+        },
+      ];
+    });
 
-		const router = useRouter();
-		const subSkill = useSubSkill();
+    const router = useRouter();
+    const subSkill = useSubSkill();
 
-		function onclickManageItem(item: any) {
-			if (!props.rootSkillID) return;
-			router.push(
-				`/dashboard/skill-tree/${props.rootSkillID}/manage?subSkillID=${item.id}`
-			);
-		}
+    function onclickManageItem(item: any) {
+      if (!props.rootSkillID) return;
+      router.push(
+        `/dashboard/skill-tree/${props.rootSkillID}/manage?subSkillID=${item.id}`
+      );
+    }
 
-		function onclickEditItem(item: any) {
-			if (Boolean(!item) || Boolean(!item.id)) return;
-			subSkill.value = item;
+    function onclickEditItem(item: any) {
+      if (Boolean(!item) || Boolean(!item.id)) return;
+      subSkill.value = item;
 
-			router.push(`/dashboard/skill-tree/${props.rootSkillID}/edit/${item.id}`);
-		}
+      router.push(`/dashboard/skill-tree/${props.rootSkillID}/edit/${item.id}`);
+    }
 
-		return {
-			isLoading,
-			isMobile,
-			headers,
-			XMarkIcon,
-			PencilIcon,
-			onclickManageItem,
-			onclickEditItem,
-		};
-	},
+    return {
+      isLoading,
+      isMobile,
+      headers,
+      XMarkIcon,
+      PencilIcon,
+      onclickManageItem,
+      onclickEditItem,
+    };
+  },
 };
 </script>
 

@@ -59,100 +59,100 @@ import type { Ref, PropType } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
-	CheckCircleIcon,
-	XMarkIcon,
-	CheckIcon,
-	EyeIcon,
-	PencilIcon,
+  CheckCircleIcon,
+  XMarkIcon,
+  CheckIcon,
+  EyeIcon,
+  PencilIcon,
 } from '@heroicons/vue/24/outline/index.js';
 
 export default {
-	props: {
-		data: { type: Array as PropType<any[]>, default: [] },
-		loading: { type: Boolean, default: true },
-	},
-	components: {
-		CheckCircleIcon,
-		PencilIcon,
-		XMarkIcon,
-		CheckIcon,
-		EyeIcon,
-	},
-	setup(props) {
-		const { t } = useI18n();
+  props: {
+    data: { type: Array as PropType<any[]>, default: [] },
+    loading: { type: Boolean, default: true },
+  },
+  components: {
+    CheckCircleIcon,
+    PencilIcon,
+    XMarkIcon,
+    CheckIcon,
+    EyeIcon,
+  },
+  setup(props) {
+    const { t } = useI18n();
 
-		const isLoading = computed(() => {
-			return props.loading && props.data.length <= 0;
-		});
+    const isLoading = computed(() => {
+      return props.loading && props.data.length <= 0;
+    });
 
-		const isMobile = ref(false);
+    const isMobile = ref(false);
 
-		const headers = computed(() => {
-			return [
-				{
-					label: 'Icon',
-					key: 'icon',
-				},
-				{
-					label: 'Name',
-					key: 'name',
-				},
-				{
-					label: '# of Dependencies',
-					key: 'dependencies',
-				},
-				{
-					label: '# of Dependents',
-					key: 'dependents',
-				},
-				{
-					label: '# of Skills',
-					key: 'skills',
-				},
-				{
-					label: 'Headings.Actions',
-					key: 'actions',
-					class: 'text-center',
-				},
-			];
-		});
+    const headers = computed(() => {
+      return [
+        {
+          label: 'Icon',
+          key: 'icon',
+        },
+        {
+          label: 'Name',
+          key: 'name',
+        },
+        {
+          label: '# of Dependencies',
+          key: 'dependencies',
+        },
+        {
+          label: '# of Dependents',
+          key: 'dependents',
+        },
+        {
+          label: '# of Skills',
+          key: 'skills',
+        },
+        {
+          label: 'Headings.Actions',
+          key: 'actions',
+          class: 'text-center',
+        },
+      ];
+    });
 
-		const router = useRouter();
-		const rootSkill = useRootSkill();
+    const router = useRouter();
+    const rootSkill = useRootSkill();
 
-		function onclickManageItem(item: any) {
-			if (Boolean(!item) || Boolean(!item.id)) return;
-			rootSkill.value = item;
+    function onclickManageItem(item: any) {
+      if (Boolean(!item) || Boolean(!item.id)) return;
+      rootSkill.value = item;
 
-			router.push(`/dashboard/skill-tree/${item.id}/manage`);
-		}
+      router.push(`/dashboard/skill-tree/${item.id}/manage`);
+    }
 
-		function onclickEditItem(item: any) {
-			if (Boolean(!item) || Boolean(!item.id)) return;
-			rootSkill.value = item;
+    function onclickEditItem(item: any) {
+      if (Boolean(!item) || Boolean(!item.id)) return;
+      rootSkill.value = item;
 
-			router.push(`/dashboard/skill-tree/${item.id}/edit`);
-		}
+      router.push(`/dashboard/skill-tree/${item.id}/edit`);
+    }
 
-		function onclickViewItem(item: any) {
-			if (Boolean(!item) || Boolean(!item.id)) return;
-			rootSkill.value = item;
+    function onclickViewItem(item: any) {
+      if (Boolean(!item) || Boolean(!item.id)) return;
+      rootSkill.value = item;
 
-			router.push(`/dashboard/skill-tree/${item.id}/sub-skills`);
-		}
+      router.push(`/dashboard/skill-tree/${item.id}/sub-skills`);
+    }
 
-		return {
-			isLoading,
-			isMobile,
-			headers,
-			XMarkIcon,
-			EyeIcon,
-			PencilIcon,
-			onclickManageItem,
-			onclickEditItem,
-			onclickViewItem,
-		};
-	},
+    return {
+      isLoading,
+      isMobile,
+      headers,
+      XMarkIcon,
+      EyeIcon,
+      PencilIcon,
+      onclickManageItem,
+      onclickEditItem,
+      onclickViewItem,
+    };
+  },
 };
 </script>
 

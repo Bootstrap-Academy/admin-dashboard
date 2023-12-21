@@ -35,17 +35,17 @@
 
 <script lang="ts">
 definePageMeta({
-	middleware: ['auth'],
-	layout: 'dashboard',
+  middleware: ['auth'],
+  layout: 'dashboard',
 });
 
 export default {
-	head: {
-		title: 'Dashboard',
-	},
-	setup() {
-		return {};
-	},
+  head: {
+    title: 'Dashboard',
+  },
+  setup() {
+    return {};
+  },
 };
 </script>
 

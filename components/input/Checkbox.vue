@@ -52,39 +52,39 @@ import type { PropType } from 'vue';
 import { CheckIcon } from '@heroicons/vue/24/solid/index.js';
 
 export default defineComponent({
-	components: { CheckIcon },
-	props: {
-		sm: { type: Boolean, default: false },
-		target: { type: String, default: '' },
-		id: { type: String, default: '' },
-		required: { type: Boolean, default: false },
-		label: { type: String, default: '' },
-		link: {
-			type: Object as PropType<{ to: string; label: string }>,
-			default: null,
-		},
-		modelValue: { default: false },
-	},
-	emits: ['update:modelValue', 'valid'],
-	setup(props, { emit }) {
-		// ============================================================= computed
-		const input = computed({
-			get() {
-				return props.modelValue;
-			},
-			set(value) {
-				emit('update:modelValue', value);
-				error.value = value ? '' : 'This is required';
-				emit('valid', Boolean(!error.value));
-			},
-		});
+  components: { CheckIcon },
+  props: {
+    sm: { type: Boolean, default: false },
+    target: { type: String, default: '' },
+    id: { type: String, default: '' },
+    required: { type: Boolean, default: false },
+    label: { type: String, default: '' },
+    link: {
+      type: Object as PropType<{ to: string; label: string }>,
+      default: null,
+    },
+    modelValue: { default: false },
+  },
+  emits: ['update:modelValue', 'valid'],
+  setup(props, { emit }) {
+    // ============================================================= computed
+    const input = computed({
+      get() {
+        return props.modelValue;
+      },
+      set(value) {
+        emit('update:modelValue', value);
+        error.value = value ? '' : 'This is required';
+        emit('valid', Boolean(!error.value));
+      },
+    });
 
-		// ============================================================= refs
-		const error = ref('');
+    // ============================================================= refs
+    const error = ref('');
 
-		// ============================================================= functions
-		return { input, error };
-	},
+    // ============================================================= functions
+    return { input, error };
+  },
 });
 </script>
 

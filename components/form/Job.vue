@@ -149,225 +149,225 @@ import { useI18n } from 'vue-i18n';
 import type { IForm } from '~/types/form';
 
 export default defineComponent({
-	props: {
-		data: { type: Object as PropType<any>, default: null },
-		companiesList: { type: Array as PropType<any[]>, default: [] },
-		loading: { type: Boolean, default: true },
-	},
-	setup(props) {
-		const { t } = useI18n();
+  props: {
+    data: { type: Object as PropType<any>, default: null },
+    companiesList: { type: Array as PropType<any[]>, default: [] },
+    loading: { type: Boolean, default: true },
+  },
+  setup(props) {
+    const { t } = useI18n();
 
-		// ============================================================= refs
-		const refForm = ref<HTMLFormElement | null>(null);
+    // ============================================================= refs
+    const refForm = ref<HTMLFormElement | null>(null);
 
-		// ============================================================= reactive
-		const form = reactive<IForm>({
-			salary: {
-				valid: false,
-				value: {
-					min: 0,
-					max: 200,
-					unit: 'MC',
-					per: 'task',
-				},
-				rules: [(v: any) => Boolean(v) || 'Error.InputEmpty_Inputs.ThisField'],
-			},
-			company_id: {
-				valid: true,
-				value: '',
-				options: props.companiesList,
-			},
-			title: {
-				valid: false,
-				value: '',
-				rules: [
-					(v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.JobTitle',
-					(v: string) => !v || v.length >= 5 || 'Error.InputMinLength_5',
-					(v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
-				],
-			},
-			contact: {
-				valid: false,
-				value: '',
-				rules: [
-					(v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.Contact',
-					(v: string) => !v || v.length >= 5 || 'Error.InputMinLength_5',
-					(v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
-				],
-			},
-			location: {
-				valid: false,
-				value: '',
-				rules: [
-					(v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.JobLocation',
-					(v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
-				],
-			},
-			remote: {
-				valid: true,
-				value: false,
-			},
-			type: {
-				valid: true,
-				value: 'full_time',
-				options: [
-					{
-						value: 'full_time',
-						label: 'List.Filter.FullTime',
-					},
-					{
-						value: 'internship',
-						label: 'List.Filter.Internship',
-					},
-					{
-						value: 'part_time',
-						label: 'List.Filter.PartTime',
-					},
-					{
-						value: 'temporary',
-						label: 'List.Filter.Temporary',
-					},
-					{
-						value: 'mini_job',
-						label: 'List.Filter.MiniJob',
-					},
-				],
-			},
-			professional_level: {
-				valid: true,
-				value: 'entry',
-				options: [
-					{
-						value: 'entry',
-						label: 'List.Filter.Entry',
-					},
-					{
-						value: 'junior',
-						label: 'List.Filter.Junior',
-					},
-					{
-						value: 'senior',
-						label: 'List.Filter.Senior',
-					},
-					{
-						value: 'manager',
-						label: 'List.Filter.Manager',
-					},
-				],
-			},
-			description: {
-				valid: false,
-				value: '',
-				rules: [
-					(v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.Description',
-					(v: string) => v.length <= 2000 || 'Error.InputMaxLength_2000',
-				],
-			},
-			responsibilities: {
-				valid: false,
-				value: [],
-				rules: [
-					(v: any) =>
-						form.responsibilities.value.length > 0 ||
+    // ============================================================= reactive
+    const form = reactive<IForm>({
+      salary: {
+        valid: false,
+        value: {
+          min: 0,
+          max: 200,
+          unit: 'MC',
+          per: 'task',
+        },
+        rules: [(v: any) => Boolean(v) || 'Error.InputEmpty_Inputs.ThisField'],
+      },
+      company_id: {
+        valid: true,
+        value: '',
+        options: props.companiesList,
+      },
+      title: {
+        valid: false,
+        value: '',
+        rules: [
+          (v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.JobTitle',
+          (v: string) => !v || v.length >= 5 || 'Error.InputMinLength_5',
+          (v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
+        ],
+      },
+      contact: {
+        valid: false,
+        value: '',
+        rules: [
+          (v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.Contact',
+          (v: string) => !v || v.length >= 5 || 'Error.InputMinLength_5',
+          (v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
+        ],
+      },
+      location: {
+        valid: false,
+        value: '',
+        rules: [
+          (v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.JobLocation',
+          (v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
+        ],
+      },
+      remote: {
+        valid: true,
+        value: false,
+      },
+      type: {
+        valid: true,
+        value: 'full_time',
+        options: [
+          {
+            value: 'full_time',
+            label: 'List.Filter.FullTime',
+          },
+          {
+            value: 'internship',
+            label: 'List.Filter.Internship',
+          },
+          {
+            value: 'part_time',
+            label: 'List.Filter.PartTime',
+          },
+          {
+            value: 'temporary',
+            label: 'List.Filter.Temporary',
+          },
+          {
+            value: 'mini_job',
+            label: 'List.Filter.MiniJob',
+          },
+        ],
+      },
+      professional_level: {
+        valid: true,
+        value: 'entry',
+        options: [
+          {
+            value: 'entry',
+            label: 'List.Filter.Entry',
+          },
+          {
+            value: 'junior',
+            label: 'List.Filter.Junior',
+          },
+          {
+            value: 'senior',
+            label: 'List.Filter.Senior',
+          },
+          {
+            value: 'manager',
+            label: 'List.Filter.Manager',
+          },
+        ],
+      },
+      description: {
+        valid: false,
+        value: '',
+        rules: [
+          (v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.Description',
+          (v: string) => v.length <= 2000 || 'Error.InputMaxLength_2000',
+        ],
+      },
+      responsibilities: {
+        valid: false,
+        value: [],
+        rules: [
+          (v: any) =>
+            form.responsibilities.value.length > 0 ||
 						'Error.InputEmpty_Inputs.Responsibilities',
-				],
-			},
-			skill_requirements: {
-				valid: false,
-				value: {},
-				rules: [
-					(v: any) =>
-						Boolean(form.skill_requirements.value) ||
+        ],
+      },
+      skill_requirements: {
+        valid: false,
+        value: {},
+        rules: [
+          (v: any) =>
+            Boolean(form.skill_requirements.value) ||
 						'Error.InputEmpty_Inputs.SkillRequirements',
-				],
-			},
-			submitting: false,
-			validate: () => {
-				let isValid = true;
+        ],
+      },
+      submitting: false,
+      validate: () => {
+        let isValid = true;
 
-				for (const key in form) {
-					if (
-						key != 'validate' &&
+        for (const key in form) {
+          if (
+            key != 'validate' &&
 						key != 'body' &&
 						key != 'submitting' &&
 						!form[key].valid
-					) {
-						isValid = false;
-					}
-				}
+          ) {
+            isValid = false;
+          }
+        }
 
-				if (refForm.value) refForm.value.reportValidity();
-				return isValid;
-			},
-			body: () => {
-				let obj: any = {};
-				for (const key in form) {
-					if (key != 'validate' && key != 'body' && key != 'submitting')
-						obj[key] = form[key].value;
-				}
-				return obj;
-			},
-		});
+        if (refForm.value) refForm.value.reportValidity();
+        return isValid;
+      },
+      body: () => {
+        let obj: any = {};
+        for (const key in form) {
+          if (key != 'validate' && key != 'body' && key != 'submitting')
+            obj[key] = form[key].value;
+        }
+        return obj;
+      },
+    });
 
-		// ============================================================= Pre-set Input fields
-		watch(
-			() => props.data,
-			(newValue, oldValue) => {
-				if (!newValue) return;
-				form.company_id.value = newValue?.company?.id ?? '';
-				form.title.value = newValue?.title ?? '';
-				form.contact.value = newValue?.contact ?? '';
-				form.location.value = newValue?.location ?? '';
-				form.remote.value = newValue?.remote ?? false;
-				form.type.value = newValue?.type ?? 'full_time';
-				form.professional_level.value = newValue?.professional_level ?? 'entry';
-				form.description.value = newValue?.description ?? '';
-				form.responsibilities.value = newValue?.responsibilities ?? [];
-				form.responsibilities.valid = form.responsibilities.value.length > 0;
+    // ============================================================= Pre-set Input fields
+    watch(
+      () => props.data,
+      (newValue, oldValue) => {
+        if (!newValue) return;
+        form.company_id.value = newValue?.company?.id ?? '';
+        form.title.value = newValue?.title ?? '';
+        form.contact.value = newValue?.contact ?? '';
+        form.location.value = newValue?.location ?? '';
+        form.remote.value = newValue?.remote ?? false;
+        form.type.value = newValue?.type ?? 'full_time';
+        form.professional_level.value = newValue?.professional_level ?? 'entry';
+        form.description.value = newValue?.description ?? '';
+        form.responsibilities.value = newValue?.responsibilities ?? [];
+        form.responsibilities.valid = form.responsibilities.value.length > 0;
 
-				(newValue?.skill_requirements ?? []).forEach((subArray: string[]) => {
-					form.skill_requirements.value.push(subArray[0]);
-				});
-				form.skill_requirements.valid =
+        (newValue?.skill_requirements ?? []).forEach((subArray: string[]) => {
+          form.skill_requirements.value.push(subArray[0]);
+        });
+        form.skill_requirements.valid =
 					form.skill_requirements.value.length > 0;
-				form.salary.value.min = newValue?.salary?.min ?? 0;
-				form.salary.value.max = newValue?.salary?.max ?? 0;
-				form.salary.value.unit = newValue?.salary?.unit ?? 'MC';
-				form.salary.value.per = newValue?.salary?.per ?? 'task';
-			},
-			{ immediate: true, deep: true }
-		);
-		// ============================================================= functions
-		async function onclickSubmitForm() {
-			if (form.validate()) {
-				form.submitting = true;
-				const [success, error] = (props.data)
-					? await editJob(props.data.id, form.body())
-					: await createJob(form.body());
-				form.submitting = false;
+        form.salary.value.min = newValue?.salary?.min ?? 0;
+        form.salary.value.max = newValue?.salary?.max ?? 0;
+        form.salary.value.unit = newValue?.salary?.unit ?? 'MC';
+        form.salary.value.per = newValue?.salary?.per ?? 'task';
+      },
+      { immediate: true, deep: true }
+    );
+    // ============================================================= functions
+    async function onclickSubmitForm() {
+      if (form.validate()) {
+        form.submitting = true;
+        const [success, error] = (props.data)
+          ? await editJob(props.data.id, form.body())
+          : await createJob(form.body());
+        form.submitting = false;
 
-				success ? successHandler(success) : errorHandler(error);
-			} else {
-				openSnackbar('error', 'Error.InvalidForm');
-			}
-		}
+        success ? successHandler(success) : errorHandler(error);
+      } else {
+        openSnackbar('error', 'Error.InvalidForm');
+      }
+    }
 
-		const router = useRouter();
-		function successHandler(res: any) {
-			router.push(`/dashboard/jobs/${res.id}`);
-		}
+    const router = useRouter();
+    function successHandler(res: any) {
+      router.push(`/dashboard/jobs/${res.id}`);
+    }
 
-		function errorHandler(res: any) {
-			openSnackbar('error', res?.detail ?? '');
-		}
+    function errorHandler(res: any) {
+      openSnackbar('error', res?.detail ?? '');
+    }
 
-		return {
-			form,
-			onclickSubmitForm,
-			refForm,
-			t,
-		};
-	},
+    return {
+      form,
+      onclickSubmitForm,
+      refForm,
+      t,
+    };
+  },
 });
 </script>
 

@@ -37,62 +37,62 @@ import type { Ref } from 'vue';
 import { PlusCircleIcon, XMarkIcon } from '@heroicons/vue/24/solid/index.js';
 
 export default defineComponent({
-	props: {
-		label: { type: String, default: '' },
-		rules: { type: Array, default: [] },
-		modelValue: { default: [] },
-	},
-	emits: ['update:modelValue', 'valid'],
-	components: { PlusCircleIcon, XMarkIcon },
-	setup(props, { emit }) {
-		const input = reactive({
-			valid: false,
-			value: '',
-			rules: [
-				(v: string) => {
-					if (!v && Boolean(addToList.value)) {
-						return 'Cannot add empty string to list';
-					} else return true;
-				},
-				(v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
-				...props.rules,
-			],
-		});
+  props: {
+    label: { type: String, default: '' },
+    rules: { type: Array, default: [] },
+    modelValue: { default: [] },
+  },
+  emits: ['update:modelValue', 'valid'],
+  components: { PlusCircleIcon, XMarkIcon },
+  setup(props, { emit }) {
+    const input = reactive({
+      valid: false,
+      value: '',
+      rules: [
+        (v: string) => {
+          if (!v && Boolean(addToList.value)) {
+            return 'Cannot add empty string to list';
+          } else return true;
+        },
+        (v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
+        ...props.rules,
+      ],
+    });
 
-		const addToList = ref(false);
+    const addToList = ref(false);
 
-		function onclickAddToList() {
-			addToList.value = true;
-			if (!input.value) return;
+    function onclickAddToList() {
+      addToList.value = true;
+      if (!input.value) return;
 
-			let isSame = props.modelValue.find(
-				(item: string) =>
-					item.toLocaleLowerCase() == input.value.toLocaleLowerCase()
-			);
+      let isSame = props.modelValue.find(
+        (item: string) =>
+          item.toLocaleLowerCase() == input.value.toLocaleLowerCase()
+      );
 
-			if (!isSame) {
-				emit('update:modelValue', [...props.modelValue, input.value]);
-			}
+      if (!isSame) {
+        emit('update:modelValue', [...props.modelValue, input.value]);
+      }
 
-			input.value = '';
+      input.value = '';
 
-			setTimeout(() => {
-				addToList.value = false;
-			}, 0);
-		}
+      setTimeout(() => {
+        addToList.value = false;
+      }, 0);
+    }
 
-		function onclickRmFromList(index: number) {
-			let copyOfArray = [...props.modelValue];
-			copyOfArray.splice(index, 1);
-			emit('update:modelValue', [...copyOfArray]);
-		}
+    function onclickRmFromList(index: number) {
+      let copyOfArray = [...props.modelValue];
+      copyOfArray.splice(index, 1);
+      emit('update:modelValue', [...copyOfArray]);
+    }
 
-		function onvalid(status: boolean) {
-			emit('valid', status);
-		}
+    function onvalid(status: boolean) {
+      emit('valid', status);
+    }
 
-		return { input, onvalid, onclickAddToList, onclickRmFromList };
-	},
+    return { input, onvalid, onclickAddToList, onclickRmFromList };
+  },
 });
 </script>
 

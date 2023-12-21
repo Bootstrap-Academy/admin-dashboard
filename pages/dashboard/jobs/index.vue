@@ -65,87 +65,87 @@ import type { Ref } from 'vue';
 import { PlusIcon } from '@heroicons/vue/24/outline/index.js';
 
 definePageMeta({
-	middleware: ['auth'],
-	layout: 'dashboard',
+  middleware: ['auth'],
+  layout: 'dashboard',
 });
 
 export default {
-	head: {
-		title: 'Jobs',
-	},
-	components: { PlusIcon },
-	setup() {
-		const scrollRef = ref<HTMLElement | null>(null);
+  head: {
+    title: 'Jobs',
+  },
+  components: { PlusIcon },
+  setup() {
+    const scrollRef = ref<HTMLElement | null>(null);
 
-		const jobs: Ref<any[]> = useJobs();
+    const jobs: Ref<any[]> = useJobs();
 
-		const loading = ref(!(jobs.value && jobs.value.length > 0));
+    const loading = ref(!(jobs.value && jobs.value.length > 0));
 
-		const cookie_filters = <any>useCookie('job_filter');
-		const filters = reactive(
-			cookie_filters.value ?? {
-				// type: [],
-				// remote: false,
-				search_term: '',
-				// requirements_met: false,
-				// professional_level: [],
-				// salary_min: 0,
-				// salary_unit: '---',
-			}
-		);
+    const cookie_filters = <any>useCookie('job_filter');
+    const filters = reactive(
+      cookie_filters.value ?? {
+        // type: [],
+        // remote: false,
+        search_term: '',
+        // requirements_met: false,
+        // professional_level: [],
+        // salary_min: 0,
+        // salary_unit: '---',
+      }
+    );
 
-		async function setFilters(paramFilters: any) {
-			Object.assign(filters, {
-				...filters,
-				...paramFilters,
-			});
+    async function setFilters(paramFilters: any) {
+      Object.assign(filters, {
+        ...filters,
+        ...paramFilters,
+      });
 
-			cookie_filters.value = JSON.stringify(filters);
+      cookie_filters.value = JSON.stringify(filters);
 
-			loading.value = true;
-			await getJobs(filters);
-			loading.value = false;
-		}
+      loading.value = true;
+      await getJobs(filters);
+      loading.value = false;
+    }
 
-		onMounted(async () => {
-			await setFilters(filters);
-		});
+    onMounted(async () => {
+      await setFilters(filters);
+    });
 
-		const sortOptions = [
-			{
-				label: 'Latest',
-				value: 'latest',
-			},
-			{
-				label: 'Oldest',
-				value: 'oldest',
-			},
-		];
+    const sortOptions = [
+      {
+        label: 'Latest',
+        value: 'latest',
+      },
+      {
+        label: 'Oldest',
+        value: 'oldest',
+      },
+    ];
 
-		function onselectSortJobsBy(option: string) {
-			if (Boolean(!jobs.value) || jobs.value.length <= 0) return;
+    function onselectSortJobsBy(option: string) {
+      if (Boolean(!jobs.value) || jobs.value.length <= 0) return;
 
-			if (option == 'latest') {
-				jobs.value.sort(function (x, y) {
-					return x.last_update - y.last_update;
-				});
-			} else if (option == 'oldest') {
-				jobs.value.sort(function (x, y) {
-					return y.last_update - x.last_update;
-				});
-			}
-		}
+      if (option == 'latest') {
+        jobs.value.sort(function (x, y) {
+          return x.last_update - y.last_update;
+        });
+      } else if (option == 'oldest') {
+        jobs.value.sort(function (x, y) {
+          return y.last_update - x.last_update;
+        });
+      }
+    }
 
-		return {
-			PlusIcon,
-			loading,
-			jobs,
-			setFilters,
-			filters,
-			sortOptions,
-			scrollRef,
-			onselectSortJobsBy,
-		};
-	},
+    return {
+      PlusIcon,
+      loading,
+      jobs,
+      setFilters,
+      filters,
+      sortOptions,
+      scrollRef,
+      onselectSortJobsBy,
+    };
+  },
 };
 </script>

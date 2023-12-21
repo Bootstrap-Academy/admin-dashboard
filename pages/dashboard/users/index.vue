@@ -210,21 +210,21 @@ export default {
     const expandedSearch = (options: CheckOption[]) => {
       options.forEach((option) => {
         switch (option.label) {
-          case USER_LOCALES.USER_ENABLED:
-            getUserRequestBody.enabled = option.value;
-            break;
-          case USER_LOCALES.USER_ADMIN:
-            getUserRequestBody.admin = option.value;
-            break;
-          case USER_LOCALES.USER_MFA:
-            getUserRequestBody.mfa_enabled = option.value;
-            break;
-          case USER_LOCALES.USER_EMAIL_VERIFIED:
-            getUserRequestBody.email_verified = option.value;
-            break;
-          case USER_LOCALES.USER_NEWSLETTER:
-            getUserRequestBody.newsletter = option.value;
-            break;
+        case USER_LOCALES.USER_ENABLED:
+          getUserRequestBody.enabled = option.value;
+          break;
+        case USER_LOCALES.USER_ADMIN:
+          getUserRequestBody.admin = option.value;
+          break;
+        case USER_LOCALES.USER_MFA:
+          getUserRequestBody.mfa_enabled = option.value;
+          break;
+        case USER_LOCALES.USER_EMAIL_VERIFIED:
+          getUserRequestBody.email_verified = option.value;
+          break;
+        case USER_LOCALES.USER_NEWSLETTER:
+          getUserRequestBody.newsletter = option.value;
+          break;
         }
       });
       userSearch();
@@ -276,57 +276,57 @@ export default {
 
     async function onSelectedOption(option: USERSORT) {
       switch (option) {
-        case USERSORT.NONE:
-          getUserRequestBody.clearFilters();
-          getUserRequestBody.clearSearch();
-          userSearch();
-          break;
-        case USERSORT.ENABLED:
-          getUserRequestBody.clearFilters();
-          getUserRequestBody.enabled = true;
-          getUserRequestBody.admin = false;
-          userSearch();
-          break;
-        case USERSORT.DISABLED:
-          getUserRequestBody.clearFilters();
-          getUserRequestBody.enabled = false;
-          userSearch();
-          break;
-        case USERSORT.ADMIN:
-          getUserRequestBody.clearFilters();
-          getUserRequestBody.admin = true;
-          userSearch();
-          break;
-        case USERSORT.MFA:
-          getUserRequestBody.clearFilters();
-          getUserRequestBody.mfa_enabled = true;
-          userSearch();
-          break;
-        case USERSORT.NOMFA:
-          getUserRequestBody.clearFilters();
-          getUserRequestBody.mfa_enabled = false;
-          userSearch();
-          break;
-        case USERSORT.EMAILVERIFIED:
-          getUserRequestBody.clearFilters();
-          getUserRequestBody.email_verified = true;
-          userSearch();
-          break;
-        case USERSORT.NOTEMAILVERIFIED:
-          getUserRequestBody.clearFilters();
-          getUserRequestBody.email_verified = false;
-          userSearch();
-          break;
-        case USERSORT.NEWSLETTER:
-          getUserRequestBody.clearFilters();
-          getUserRequestBody.newsletter = true;
-          userSearch();
-          break;
-        case USERSORT.NOTNEWSLETTER:
-          getUserRequestBody.clearFilters();
-          getUserRequestBody.newsletter = false;
-          userSearch();
-          break;
+      case USERSORT.NONE:
+        getUserRequestBody.clearFilters();
+        getUserRequestBody.clearSearch();
+        userSearch();
+        break;
+      case USERSORT.ENABLED:
+        getUserRequestBody.clearFilters();
+        getUserRequestBody.enabled = true;
+        getUserRequestBody.admin = false;
+        userSearch();
+        break;
+      case USERSORT.DISABLED:
+        getUserRequestBody.clearFilters();
+        getUserRequestBody.enabled = false;
+        userSearch();
+        break;
+      case USERSORT.ADMIN:
+        getUserRequestBody.clearFilters();
+        getUserRequestBody.admin = true;
+        userSearch();
+        break;
+      case USERSORT.MFA:
+        getUserRequestBody.clearFilters();
+        getUserRequestBody.mfa_enabled = true;
+        userSearch();
+        break;
+      case USERSORT.NOMFA:
+        getUserRequestBody.clearFilters();
+        getUserRequestBody.mfa_enabled = false;
+        userSearch();
+        break;
+      case USERSORT.EMAILVERIFIED:
+        getUserRequestBody.clearFilters();
+        getUserRequestBody.email_verified = true;
+        userSearch();
+        break;
+      case USERSORT.NOTEMAILVERIFIED:
+        getUserRequestBody.clearFilters();
+        getUserRequestBody.email_verified = false;
+        userSearch();
+        break;
+      case USERSORT.NEWSLETTER:
+        getUserRequestBody.clearFilters();
+        getUserRequestBody.newsletter = true;
+        userSearch();
+        break;
+      case USERSORT.NOTNEWSLETTER:
+        getUserRequestBody.clearFilters();
+        getUserRequestBody.newsletter = false;
+        userSearch();
+        break;
       }
     }
 

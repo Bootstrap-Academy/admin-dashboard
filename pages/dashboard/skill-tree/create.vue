@@ -33,15 +33,15 @@
 
 <script lang="ts">
 definePageMeta({
-	middleware: ['auth'],
+  middleware: ['auth'],
 });
 
 export default {
-	head: {
-		title: 'Create Sub Tree',
-	},
-	setup() {
-		return {};
-	},
+  head: {
+    title: 'Create Sub Tree',
+  },
+  setup() {
+    return {};
+  },
 };
 </script>

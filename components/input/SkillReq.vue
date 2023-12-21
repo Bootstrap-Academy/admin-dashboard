@@ -49,75 +49,75 @@ import type { Ref } from 'vue';
 import { PlusCircleIcon, XMarkIcon } from '@heroicons/vue/24/solid/index.js';
 
 export default defineComponent({
-	props: {
-		label: { type: String, default: '' },
-		rules: { type: Array, default: [] },
-		modelValue: { default: {} },
-	},
-	emits: ['update:modelValue', 'valid'],
-	components: { PlusCircleIcon, XMarkIcon },
-	setup(props, { emit }) {
-		const skill = reactive({
-			valid: false,
-			value: '',
-			rules: [
-				(v: string) => {
-					if (!v && Boolean(addToList.value)) {
-						return 'Cannot add empty string to list';
-					} else return true;
-				},
-				(v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
-				...props.rules,
-			],
-		});
+  props: {
+    label: { type: String, default: '' },
+    rules: { type: Array, default: [] },
+    modelValue: { default: {} },
+  },
+  emits: ['update:modelValue', 'valid'],
+  components: { PlusCircleIcon, XMarkIcon },
+  setup(props, { emit }) {
+    const skill = reactive({
+      valid: false,
+      value: '',
+      rules: [
+        (v: string) => {
+          if (!v && Boolean(addToList.value)) {
+            return 'Cannot add empty string to list';
+          } else return true;
+        },
+        (v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
+        ...props.rules,
+      ],
+    });
 
-		const requirement = reactive({
-			valid: false,
-			value: 1,
-			rules: [(v: number) => v > 0 || 'Error.InputMinLength_0', ...props.rules],
-		});
+    const requirement = reactive({
+      valid: false,
+      value: 1,
+      rules: [(v: number) => v > 0 || 'Error.InputMinLength_0', ...props.rules],
+    });
 
-		const addToList = ref(false);
+    const addToList = ref(false);
 
-		function onclickAddToList() {
-			addToList.value = true;
-			if (!skill.value) return;
+    function onclickAddToList() {
+      addToList.value = true;
+      if (!skill.value) return;
 
-			const keys = Object.keys(props.modelValue);
+      const keys = Object.keys(props.modelValue);
 
-			let isSame = (keys ?? []).find(
-				(key: string) =>
-					key.toLocaleLowerCase() == skill.value.toLocaleLowerCase()
-			);
+      let isSame = (keys ?? []).find(
+        (key: string) =>
+          key.toLocaleLowerCase() == skill.value.toLocaleLowerCase()
+      );
 
-			if (!isSame) {
-				let obj: any = {};
-				obj[skill.value.toString()] = requirement.value;
-				emit('update:modelValue', { ...props.modelValue, ...obj });
-			}
+      if (!isSame) {
+        let obj: any = {};
+        obj[skill.value.toString()] = requirement.value;
+        emit('update:modelValue', { ...props.modelValue, ...obj });
+      }
 
-			skill.value = '';
-			requirement.value = 1;
+      skill.value = '';
+      requirement.value = 1;
 
-			setTimeout(() => {
-				addToList.value = false;
-			}, 0);
-		}
+      setTimeout(() => {
+        addToList.value = false;
+      }, 0);
+    }
 
-		function onclickRmFromList(key: string) {
-			let copyOfObj: any = { ...props.modelValue };
+    function onclickRmFromList(key: string) {
+      let copyOfObj: any = { ...props.modelValue };
 
-			delete copyOfObj[key];
+      delete copyOfObj[key];
 
-			emit('update:modelValue', { ...copyOfObj });
-		}
+      emit('update:modelValue', { ...copyOfObj });
+    }
 
-		function onvalid(status: boolean) {
-			emit('valid', status);
-		}
+    function onvalid(status: boolean) {
+      emit('valid', status);
+    }
 
-		return { skill, requirement, onvalid, onclickAddToList, onclickRmFromList };
-	},
+    return { skill, requirement, onvalid, onclickAddToList, onclickRmFromList };
+  },
 });
 </script>
 
