@@ -65,81 +65,81 @@ import type { Ref } from 'vue';
 import { PlusIcon } from '@heroicons/vue/24/outline/index.js';
 
 definePageMeta({
-	middleware: ['auth'],
-	layout: 'dashboard',
+  middleware: ['auth'],
+  layout: 'dashboard',
 });
 
 export default {
-	head: {
-		title: 'Companies',
-	},
-	components: { PlusIcon },
-	setup() {
-		const scrollRef = ref<HTMLElement | null>(null);
+  head: {
+    title: 'Companies',
+  },
+  components: { PlusIcon },
+  setup() {
+    const scrollRef = ref<HTMLElement | null>(null);
 
-		const companies: Ref<any[]> = useCompanies();
+    const companies: Ref<any[]> = useCompanies();
 
-		const loading = ref(!(companies.value && companies.value.length > 0));
+    const loading = ref(!(companies.value && companies.value.length > 0));
 
-		const cookie_filters = <any>useCookie('company_filter');
-		const filters = reactive(
-			cookie_filters.value ?? {
-				search_term: '',
-			}
-		);
+    const cookie_filters = <any>useCookie('company_filter');
+    const filters = reactive(
+      cookie_filters.value ?? {
+        search_term: '',
+      }
+    );
 
-		async function setFilters(paramFilters: any) {
-			Object.assign(filters, {
-				...filters,
-				...paramFilters,
-			});
+    async function setFilters(paramFilters: any) {
+      Object.assign(filters, {
+        ...filters,
+        ...paramFilters,
+      });
 
-			cookie_filters.value = JSON.stringify(filters);
+      cookie_filters.value = JSON.stringify(filters);
 
-			loading.value = true;
-			await getCompanies(filters);
-			loading.value = false;
-		}
+      loading.value = true;
+      await getCompanies(filters);
+      loading.value = false;
+    }
 
-		onMounted(async () => {
-			await setFilters(filters);
-		});
+    onMounted(async () => {
+      await setFilters(filters);
+    });
 
-		const sortOptions = [
-			{
-				label: 'Latest',
-				value: 'latest',
-			},
-			{
-				label: 'Oldest',
-				value: 'oldest',
-			},
-		];
+    const sortOptions = [
+      {
+        label: 'Latest',
+        value: 'latest',
+      },
+      {
+        label: 'Oldest',
+        value: 'oldest',
+      },
+    ];
 
-		function onselectSortCompaniesBy(option: string) {
-			if (Boolean(!companies.value) || companies.value.length <= 0) return;
+    function onselectSortCompaniesBy(option: string) {
+      if (Boolean(!companies.value) || companies.value.length <= 0) return;
 
-			if (option == 'latest') {
-				companies.value.sort(function (x, y) {
-					return x.last_update - y.last_update;
-				});
-			} else if (option == 'oldest') {
-				companies.value.sort(function (x, y) {
-					return y.last_update - x.last_update;
-				});
-			}
-		}
+      if (option == 'latest') {
+        companies.value.sort(function (x, y) {
+          return x.last_update - y.last_update;
+        });
+      } else if (option == 'oldest') {
+        companies.value.sort(function (x, y) {
+          return y.last_update - x.last_update;
+        });
+      }
+    }
 
-		return {
-			PlusIcon,
-			loading,
-			companies,
-			setFilters,
-			filters,
-			sortOptions,
-			scrollRef,
-			onselectSortCompaniesBy,
-		};
-	},
+    return {
+      PlusIcon,
+      loading,
+      companies,
+      setFilters,
+      filters,
+      sortOptions,
+      scrollRef,
+      onselectSortCompaniesBy,
+    };
+  },
 };
 </script>

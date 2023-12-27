@@ -43,57 +43,57 @@ import { defineComponent } from 'vue';
 import type { PropType } from 'vue';
 
 export default defineComponent({
-	props: { data: { type: Object as PropType<any>, default: null } },
-	setup(props) {
-		const last_name_change = computed(() => {
-			let { date, month, year } = convertTimestampToDate(
-				props.data?.last_name_change ?? ''
-			);
-			return {
-				label: 'Last Name Change',
-				value: `${date} ${month?.string ?? ''}, ${year}`,
-			};
-		});
+  props: { data: { type: Object as PropType<any>, default: null } },
+  setup(props) {
+    const last_name_change = computed(() => {
+      let { date, month, year } = convertTimestampToDate(
+        props.data?.last_name_change ?? ''
+      );
+      return {
+        label: 'Last Name Change',
+        value: `${date} ${month?.string ?? ''}, ${year}`,
+      };
+    });
 
-		const description = computed(() => {
-			return {
-				label: 'Description',
-				value: props.data?.description ?? '',
-			};
-		});
+    const description = computed(() => {
+      return {
+        label: 'Description',
+        value: props.data?.description ?? '',
+      };
+    });
 
-		const tags = computed(() => {
-			return {
-				label: 'Tags',
-				value: props.data?.tags ?? [],
-			};
-		});
+    const tags = computed(() => {
+      return {
+        label: 'Tags',
+        value: props.data?.tags ?? [],
+      };
+    });
 
-		const list = computed(() => {
-			return [
-				{
-					label: 'ID',
-					value: props.data?.id ?? '',
-				},
-				{
-					label: 'Name',
-					value: props.data?.name ?? '',
-					src: props.data?.avatar_url ?? '',
-				},
-				{
-					label: 'Display Name',
-					value: props.data?.display_name ?? '',
-				},
-				{
-					label: 'Email',
-					value: props.data?.email ?? '',
-				},
-				last_name_change.value,
-			];
-		});
+    const list = computed(() => {
+      return [
+        {
+          label: 'ID',
+          value: props.data?.id ?? '',
+        },
+        {
+          label: 'Name',
+          value: props.data?.name ?? '',
+          src: props.data?.avatar_url ?? '',
+        },
+        {
+          label: 'Display Name',
+          value: props.data?.display_name ?? '',
+        },
+        {
+          label: 'Email',
+          value: props.data?.email ?? '',
+        },
+        last_name_change.value,
+      ];
+    });
 
-		return { list, description, tags };
-	},
+    return { list, description, tags };
+  },
 });
 </script>
 

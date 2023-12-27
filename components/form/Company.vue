@@ -86,143 +86,143 @@ import { useI18n } from 'vue-i18n';
 import type { IForm } from '~/types/form';
 
 export default defineComponent({
-	props: { data: { type: Object as PropType<any>, default: null } },
-	setup(props) {
-		const { t } = useI18n();
+  props: { data: { type: Object as PropType<any>, default: null } },
+  setup(props) {
+    const { t } = useI18n();
 
-		// ============================================================= refs
-		const refForm = ref<HTMLFormElement | null>(null);
+    // ============================================================= refs
+    const refForm = ref<HTMLFormElement | null>(null);
 
-		// ============================================================= reactive
-		const form = reactive<IForm>({
-			name: {
-				valid: false,
-				value: '',
-				rules: [
-					(v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.CompanyName',
-					(v: string) => !v || v.length >= 3 || 'Error.InputMinLength_3',
-					(v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
-				],
-			},
-			description: {
-				valid: true,
-				value: '',
-				rules: [(v: string) => v.length <= 255 || 'Error.InputMaxLength_255'],
-			},
-			website: {
-				valid: true,
-				value: '',
-				rules: [
-					(v: string) => !v || v.length >= 3 || 'Error.InputMinLength_3',
-					(v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
-				],
-			},
-			youtube_video: {
-				valid: true,
-				value: '',
-				rules: [
-					(v: string) => !v || v.length >= 3 || 'Error.InputMinLength_3',
-					(v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
-				],
-			},
-			twitter_handle: {
-				valid: true,
-				value: '',
-				rules: [
-					(v: string) => !v || v.length >= 3 || 'Error.InputMinLength_3',
-					(v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
-				],
-			},
-			instagram_handle: {
-				valid: true,
-				value: '',
-				rules: [
-					(v: string) => !v || v.length >= 3 || 'Error.InputMinLength_3',
-					(v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
-				],
-			},
-			logo_url: {
-				valid: true,
-				value: '',
-				rules: [
-					(v: string) => !v || v.length >= 3 || 'Error.InputMinLength_3',
-					(v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
-				],
-			},
-			submitting: false,
-			validate: () => {
-				let isValid = true;
+    // ============================================================= reactive
+    const form = reactive<IForm>({
+      name: {
+        valid: false,
+        value: '',
+        rules: [
+          (v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.CompanyName',
+          (v: string) => !v || v.length >= 3 || 'Error.InputMinLength_3',
+          (v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
+        ],
+      },
+      description: {
+        valid: true,
+        value: '',
+        rules: [(v: string) => v.length <= 255 || 'Error.InputMaxLength_255'],
+      },
+      website: {
+        valid: true,
+        value: '',
+        rules: [
+          (v: string) => !v || v.length >= 3 || 'Error.InputMinLength_3',
+          (v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
+        ],
+      },
+      youtube_video: {
+        valid: true,
+        value: '',
+        rules: [
+          (v: string) => !v || v.length >= 3 || 'Error.InputMinLength_3',
+          (v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
+        ],
+      },
+      twitter_handle: {
+        valid: true,
+        value: '',
+        rules: [
+          (v: string) => !v || v.length >= 3 || 'Error.InputMinLength_3',
+          (v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
+        ],
+      },
+      instagram_handle: {
+        valid: true,
+        value: '',
+        rules: [
+          (v: string) => !v || v.length >= 3 || 'Error.InputMinLength_3',
+          (v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
+        ],
+      },
+      logo_url: {
+        valid: true,
+        value: '',
+        rules: [
+          (v: string) => !v || v.length >= 3 || 'Error.InputMinLength_3',
+          (v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
+        ],
+      },
+      submitting: false,
+      validate: () => {
+        let isValid = true;
 
-				for (const key in form) {
-					if (
-						key != 'validate' &&
+        for (const key in form) {
+          if (
+            key != 'validate' &&
 						key != 'body' &&
 						key != 'submitting' &&
 						!form[key].valid
-					) {
-						isValid = false;
-					}
-				}
+          ) {
+            isValid = false;
+          }
+        }
 
-				if (refForm.value) refForm.value.reportValidity();
-				return isValid;
-			},
-			body: () => {
-				let obj: any = {};
-				for (const key in form) {
-					if (key != 'validate' && key != 'body' && key != 'submitting')
-						obj[key] = form[key].value;
-				}
-				return obj;
-			},
-		});
+        if (refForm.value) refForm.value.reportValidity();
+        return isValid;
+      },
+      body: () => {
+        let obj: any = {};
+        for (const key in form) {
+          if (key != 'validate' && key != 'body' && key != 'submitting')
+            obj[key] = form[key].value;
+        }
+        return obj;
+      },
+    });
 
-		// ============================================================= Pre-set Input fields
-		watch(
-			() => props.data,
-			(newValue, oldValue) => {
-				if (!newValue) return;
-				form.name.value = newValue?.name ?? '';
-				form.description.value = newValue?.description ?? '';
-				form.website.value = newValue?.website ?? '';
-				form.youtube_video.value = newValue?.youtube_video ?? '';
-				form.twitter_handle.value = newValue?.twitter_handle ?? '';
-				form.instagram_handle.value = newValue?.instagram_handle ?? '';
-				form.logo_url.value = newValue?.logo_url ?? '';
-			},
-			{ immediate: true, deep: true }
-		);
-		// ============================================================= functions
-		async function onclickSubmitForm() {
-			if (form.validate()) {
-				form.submitting = true;
-				const [success, error] = (props.data)
-					? await editCompany(props.data.id, form.body())
-					: await createCompany(form.body());
-				form.submitting = false;
+    // ============================================================= Pre-set Input fields
+    watch(
+      () => props.data,
+      (newValue, oldValue) => {
+        if (!newValue) return;
+        form.name.value = newValue?.name ?? '';
+        form.description.value = newValue?.description ?? '';
+        form.website.value = newValue?.website ?? '';
+        form.youtube_video.value = newValue?.youtube_video ?? '';
+        form.twitter_handle.value = newValue?.twitter_handle ?? '';
+        form.instagram_handle.value = newValue?.instagram_handle ?? '';
+        form.logo_url.value = newValue?.logo_url ?? '';
+      },
+      { immediate: true, deep: true }
+    );
+    // ============================================================= functions
+    async function onclickSubmitForm() {
+      if (form.validate()) {
+        form.submitting = true;
+        const [success, error] = (props.data)
+          ? await editCompany(props.data.id, form.body())
+          : await createCompany(form.body());
+        form.submitting = false;
 
-				success ? successHandler(success) : errorHandler(error);
-			} else {
-				openSnackbar('error', 'Error.InvalidForm');
-			}
-		}
+        success ? successHandler(success) : errorHandler(error);
+      } else {
+        openSnackbar('error', 'Error.InvalidForm');
+      }
+    }
 
-		const router = useRouter();
-		function successHandler(res: any) {
-			router.push("/dashboard/companies");
-		}
+    const router = useRouter();
+    function successHandler(res: any) {
+      router.push("/dashboard/companies");
+    }
 
-		function errorHandler(res: any) {
-			openSnackbar('error', res?.detail ?? '');
-		}
+    function errorHandler(res: any) {
+      openSnackbar('error', res?.detail ?? '');
+    }
 
-		return {
-			form,
-			onclickSubmitForm,
-			refForm,
-			t,
-		};
-	},
+    return {
+      form,
+      onclickSubmitForm,
+      refForm,
+      t,
+    };
+  },
 });
 </script>
 

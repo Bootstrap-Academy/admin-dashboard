@@ -13,31 +13,31 @@
 
 <script>
 export default {
-	setup() {
-		const dialog = useDialog();
+  setup() {
+    const dialog = useDialog();
 
-		function handleDialogOnBackdrop() {
-			return dialog.value?.triggerPrimaryActionOnBackdropClick;
-		}
+    function handleDialogOnBackdrop() {
+      return dialog.value?.triggerPrimaryActionOnBackdropClick;
+    }
 
-		const user = useUser();
-		const cookie_user = useCookie('user');
-		user.value = cookie_user.value ?? null;
+    const user = useUser();
+    const cookie_user = useCookie('user');
+    user.value = cookie_user.value ?? null;
 
-		const session = useSession();
-		const cookie_session = useCookie('session');
-		session.value = cookie_session.value ?? null;
+    const session = useSession();
+    const cookie_session = useCookie('session');
+    session.value = cookie_session.value ?? null;
 
-		const accessToken = useAccessToken();
-		const cookie_accessToken = useCookie('accessToken');
-		accessToken.value = cookie_accessToken.value ?? '';
+    const accessToken = useAccessToken();
+    const cookie_accessToken = useCookie('accessToken');
+    accessToken.value = cookie_accessToken.value ?? '';
 
-		const refreshToken = useRefreshToken();
-		const cookie_refreshToken = useCookie('refreshToken');
-		refreshToken.value = cookie_refreshToken.value ?? '';
+    const refreshToken = useRefreshToken();
+    const cookie_refreshToken = useCookie('refreshToken');
+    refreshToken.value = cookie_refreshToken.value ?? '';
 
-		return { dialog, handleDialogOnBackdrop };
-	},
+    return { dialog, handleDialogOnBackdrop };
+  },
 };
 </script>
 

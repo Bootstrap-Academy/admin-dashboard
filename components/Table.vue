@@ -44,46 +44,46 @@ import type { PropType } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
-	props: {
-		loading: { type: Boolean, default: true },
-		data: { type: Array as PropType<any[]>, default: [] },
-		headers: { type: Array as PropType<any[]>, default: [] },
-	},
-	emits: ['isMobile'],
-	setup(props, { emit }) {
-		const { t } = useI18n();
+  props: {
+    loading: { type: Boolean, default: true },
+    data: { type: Array as PropType<any[]>, default: [] },
+    headers: { type: Array as PropType<any[]>, default: [] },
+  },
+  emits: ['isMobile'],
+  setup(props, { emit }) {
+    const { t } = useI18n();
 
-		const slots = useSlots();
+    const slots = useSlots();
 
-		const windowWidth = ref(0);
-		const isMobile = ref(false);
+    const windowWidth = ref(0);
+    const isMobile = ref(false);
 
-		onMounted(() => {
-			window.addEventListener('resize', handleWindowResize);
-			handleWindowResize();
-		});
+    onMounted(() => {
+      window.addEventListener('resize', handleWindowResize);
+      handleWindowResize();
+    });
 
-		onUnmounted(() => {
-			window.removeEventListener('resize', handleWindowResize);
-		});
+    onUnmounted(() => {
+      window.removeEventListener('resize', handleWindowResize);
+    });
 
-		function handleWindowResize() {
-			windowWidth.value = window?.innerWidth ?? 0;
-			if (
-				Boolean(windowWidth.value) &&
+    function handleWindowResize() {
+      windowWidth.value = window?.innerWidth ?? 0;
+      if (
+        Boolean(windowWidth.value) &&
 				windowWidth.value > 0 &&
 				windowWidth.value <= 767
-			) {
-				isMobile.value = true;
-			} else {
-				isMobile.value = false;
-			}
+      ) {
+        isMobile.value = true;
+      } else {
+        isMobile.value = false;
+      }
 
-			emit('isMobile', isMobile.value);
-		}
+      emit('isMobile', isMobile.value);
+    }
 
-		return { t, slots, isMobile };
-	},
+    return { t, slots, isMobile };
+  },
 });
 </script>
 

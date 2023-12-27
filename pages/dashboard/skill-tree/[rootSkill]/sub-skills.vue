@@ -56,113 +56,113 @@ import type { Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 definePageMeta({
-	middleware: ['auth'],
-	layout: 'dashboard',
+  middleware: ['auth'],
+  layout: 'dashboard',
 });
 
 export default {
-	head: {
-		title: 'Sub Skills of ',
-	},
-	setup() {
-		const { t } = useI18n();
+  head: {
+    title: 'Sub Skills of ',
+  },
+  setup() {
+    const { t } = useI18n();
 
-		const scrollRef = ref<HTMLElement | null>(null);
+    const scrollRef = ref<HTMLElement | null>(null);
 
-		const route = useRoute();
+    const route = useRoute();
 
-		const rootSkillID = computed(() => {
-			return <string>(route?.params?.rootSkill ?? '');
-		});
+    const rootSkillID = computed(() => {
+      return <string>(route?.params?.rootSkill ?? '');
+    });
 
-		const rootSkillName = computed(() => {
-			return rootSkillID.value.replace(/_/g, ' ');
-		});
+    const rootSkillName = computed(() => {
+      return rootSkillID.value.replace(/_/g, ' ');
+    });
 
-		const subSkills: Ref<any> = useSubSkills();
+    const subSkills: Ref<any> = useSubSkills();
 
-		const loading = ref(Boolean(!subSkills.value));
+    const loading = ref(Boolean(!subSkills.value));
 
-		const cookie_filters = <any>useCookie('subSkills_filter');
-		const filters = reactive(
-			cookie_filters.value ?? {
-				email: '',
-				enabled: false,
-				admin: false,
-				mfa_enabled: false,
-				email_verified: false,
-				newsletter: false,
-			}
-		);
+    const cookie_filters = <any>useCookie('subSkills_filter');
+    const filters = reactive(
+      cookie_filters.value ?? {
+        email: '',
+        enabled: false,
+        admin: false,
+        mfa_enabled: false,
+        email_verified: false,
+        newsletter: false,
+      }
+    );
 
-		// onMounted(async () => {
-		// 	await getRootSkills();
-		// 	loading.value = false;
-		// });
+    // onMounted(async () => {
+    // 	await getRootSkills();
+    // 	loading.value = false;
+    // });
 
-		async function setFilters(paramFilters: any) {
-			Object.assign(filters, {
-				...filters,
-				...paramFilters,
-			});
+    async function setFilters(paramFilters: any) {
+      Object.assign(filters, {
+        ...filters,
+        ...paramFilters,
+      });
 
-			cookie_filters.value = JSON.stringify(filters);
+      cookie_filters.value = JSON.stringify(filters);
 
-			loading.value = true;
-			await getSubSkills(rootSkillID.value);
-			loading.value = false;
-		}
+      loading.value = true;
+      await getSubSkills(rootSkillID.value);
+      loading.value = false;
+    }
 
-		const options = [
-			{
-				label: 'Headings.None',
-				value: 'none',
-			},
-			{
-				label: 'Headings.Enabled',
-				value: 'enabled',
-			},
-			{
-				label: 'Headings.Admin',
-				value: 'admin',
-			},
-			{
-				label: 'Headings.MFA',
-				value: 'mfa_enabled',
-			},
-			{
-				label: 'Headings.Verified',
-				value: 'email_verified',
-			},
-			{
-				label: 'Headings.Newsletter',
-				value: 'newsletter',
-			},
-		];
+    const options = [
+      {
+        label: 'Headings.None',
+        value: 'none',
+      },
+      {
+        label: 'Headings.Enabled',
+        value: 'enabled',
+      },
+      {
+        label: 'Headings.Admin',
+        value: 'admin',
+      },
+      {
+        label: 'Headings.MFA',
+        value: 'mfa_enabled',
+      },
+      {
+        label: 'Headings.Verified',
+        value: 'email_verified',
+      },
+      {
+        label: 'Headings.Newsletter',
+        value: 'newsletter',
+      },
+    ];
 
-		function onSelectedOption(option: string) {
-			setFilters({
-				enabled: option == 'enabled',
-				admin: option == 'admin',
-				mfa_enabled: option == 'mfa_enabled',
-				email_verified: option == 'email_verified',
-				newsletter: option == 'newsletter',
-			});
-		}
+    function onSelectedOption(option: string) {
+      setFilters({
+        enabled: option == 'enabled',
+        admin: option == 'admin',
+        mfa_enabled: option == 'mfa_enabled',
+        email_verified: option == 'email_verified',
+        newsletter: option == 'newsletter',
+      });
+    }
 
-		return {
-			t,
-			loading,
-			subSkills,
-			scrollRef,
-			setFilters,
-			options,
-			filters,
-			onSelectedOption,
-			rootSkillID,
-			rootSkillName,
-		};
-	},
+    return {
+      t,
+      loading,
+      subSkills,
+      scrollRef,
+      setFilters,
+      options,
+      filters,
+      onSelectedOption,
+      rootSkillID,
+      rootSkillName,
+    };
+  },
 };
 </script>
 

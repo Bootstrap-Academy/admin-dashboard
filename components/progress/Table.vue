@@ -107,65 +107,65 @@ import { useI18n } from 'vue-i18n';
 import { defineComponent } from 'vue';
 import type {  PropType } from 'vue';
 import {
-	EyeIcon,
-	UserGroupIcon,
-	PencilSquareIcon,
+  EyeIcon,
+  UserGroupIcon,
+  PencilSquareIcon,
 } from '@heroicons/vue/24/outline/index.js';
 import IconCoaching from '~/components/icon/Coaching.vue';
 
 export default defineComponent({
-	components: { EyeIcon, IconCoaching, UserGroupIcon, PencilSquareIcon },
-	props: {
-		data: { type: Array as PropType<any[]>, default: [] },
-		rootSkillId: { type: String, default: '' },
-	},
-	setup(props) {
-		const { t } = useI18n();
+  components: { EyeIcon, IconCoaching, UserGroupIcon, PencilSquareIcon },
+  props: {
+    data: { type: Array as PropType<any[]>, default: [] },
+    rootSkillId: { type: String, default: '' },
+  },
+  setup(props) {
+    const { t } = useI18n();
 
-		const router = useRouter();
+    const router = useRouter();
 
-		const subSkill = ref('');
-		const subSkillXP = ref(0);
-		const xpDialog = ref(false);
+    const subSkill = ref('');
+    const subSkillXP = ref(0);
+    const xpDialog = ref(false);
 
-		function onclickViewThisSubSkillPath(subSkillID: string) {
-			router.push(`/skill-tree/${props.rootSkillId}/${subSkillID}`);
-		}
-		function onclickManageXPForThisSubSkill(subSkillID: string, xp: any) {
-			subSkill.value = subSkillID;
-			subSkillXP.value = xp;
-			xpDialog.value = true;
-		}
+    function onclickViewThisSubSkillPath(subSkillID: string) {
+      router.push(`/skill-tree/${props.rootSkillId}/${subSkillID}`);
+    }
+    function onclickManageXPForThisSubSkill(subSkillID: string, xp: any) {
+      subSkill.value = subSkillID;
+      subSkillXP.value = xp;
+      xpDialog.value = true;
+    }
 
-		function updateSubSkill(subSkill: any) {
-			let indexOfSubSkill = skills.findIndex(
-				(skill: any) => skill.skill == subSkill.skill
-			);
+    function updateSubSkill(subSkill: any) {
+      let indexOfSubSkill = skills.findIndex(
+        (skill: any) => skill.skill == subSkill.skill
+      );
 
-			if (indexOfSubSkill >= 0) {
-				skills.splice(indexOfSubSkill, 1, {
-					...subSkill,
-				});
-			}
-		}
+      if (indexOfSubSkill >= 0) {
+        skills.splice(indexOfSubSkill, 1, {
+          ...subSkill,
+        });
+      }
+    }
 
-		const skills: any[] = reactive(props.data ?? []);
+    const skills: any[] = reactive(props.data ?? []);
 
-		return {
-			t,
-			onclickViewThisSubSkillPath,
-			onclickManageXPForThisSubSkill,
-			EyeIcon,
-			IconCoaching,
-			UserGroupIcon,
-			skills,
-			PencilSquareIcon,
-			xpDialog,
-			subSkill,
-			subSkillXP,
-			updateSubSkill,
-		};
-	},
+    return {
+      t,
+      onclickViewThisSubSkillPath,
+      onclickManageXPForThisSubSkill,
+      EyeIcon,
+      IconCoaching,
+      UserGroupIcon,
+      skills,
+      PencilSquareIcon,
+      xpDialog,
+      subSkill,
+      subSkillXP,
+      updateSubSkill,
+    };
+  },
 });
 </script>
 

@@ -41,28 +41,28 @@ import { StarIcon } from '@heroicons/vue/24/solid/index.js';
 import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
-	props: {
-		rating: { type: Number, default: 0 },
-		sm: { type: Boolean, default: false },
-		stars: { type: Boolean, default: false },
-	},
-	components: { StarIcon },
+  props: {
+    rating: { type: Number, default: 0 },
+    sm: { type: Boolean, default: false },
+    stars: { type: Boolean, default: false },
+  },
+  components: { StarIcon },
 
-	setup(props) {
-		const { t } = useI18n();
+  setup(props) {
+    const { t } = useI18n();
 
-		const type = computed(() => {
-			if (props.rating > 4) return 'success';
-			else if (props.rating > 2 && props.rating <= 4) return 'info';
-			else return 'error';
-		});
+    const type = computed(() => {
+      if (props.rating > 4) return 'success';
+      else if (props.rating > 2 && props.rating <= 4) return 'info';
+      else return 'error';
+    });
 
-		const theme = computed(() => {
-			return getTheme(type.value);
-		});
+    const theme = computed(() => {
+      return getTheme(type.value);
+    });
 
-		return { theme, t };
-	},
+    return { theme, t };
+  },
 });
 </script>
 

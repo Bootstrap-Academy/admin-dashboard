@@ -5,20 +5,24 @@
 		"dev": "nuxt dev",
 		"generate": "nuxt generate",
 		"preview": "nuxt preview",
-		"postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "lint": "eslint --ext .js,.vue,.ts ."
 	},
 	"devDependencies": {
 		"autoprefixer": "^10.4.16",
-		"nuxt": "3.8.1",
+    "eslint": "^8.55.0",
+    "eslint-plugin-vue": "^9.19.2",
+		"nuxt": "3.8.2",
 		"postcss": "^8.4.31",
-		"tailwindcss": "^3.3.5",
-		"vue-i18n": "^9.7.0"
+		"tailwindcss": "^3.4.0",
+		"vue-i18n": "^9.8.0"
 	},
 	"dependencies": {
-		"@heroicons/vue": "^2.0.18",
+		"@heroicons/vue": "^2.1.1",
+		"@typescript-eslint/parser": "^6.13.2",
 		"async-mutex": "^0.4.0",
 		"dompurify": "^3.0.6",
-		"gleap": "^12.8.1",
+		"gleap": "^13.1.1",
 		"jwt-decode": "^4.0.0",
 		"markdown-it": "^13.0.2",
 		"vue-recaptcha-v3": "^2.0.1"

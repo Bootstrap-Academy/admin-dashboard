@@ -50,142 +50,142 @@ import type { PropType } from 'vue';
 import type { IForm } from '~/types/form';
 
 export default defineComponent({
-	props: {
-		coins: { type: Number, default: 0 },
-		id: { type: String, default: '' },
-		name: { type: String, default: '' },
-	},
-	emits: ['isSuccess', 'coins'],
-	setup(props, { emit }) {
-		// ============================================================= refs
-		const refForm = ref<HTMLFormElement | null>(null);
+  props: {
+    coins: { type: Number, default: 0 },
+    id: { type: String, default: '' },
+    name: { type: String, default: '' },
+  },
+  emits: ['isSuccess', 'coins'],
+  setup(props, { emit }) {
+    // ============================================================= refs
+    const refForm = ref<HTMLFormElement | null>(null);
 
-		// ============================================================= reactive
-		const form = reactive<IForm>({
-			coins: {
-				valid: false,
-				value: 0,
-				rules: [
-					(v: number) => Boolean(v) || 'Coins cannot be empty',
-					(v: number) => v >= 0 || 'Coins cannot be less than 0',
-				],
-			},
-			description: {
-				valid: false,
-				value: '',
-				rules: [(v: number) => Boolean(v) || 'Description cannot be empty'],
-			},
-			credit_note: {
-				valid: true,
-				value: false,
-				rules: [],
-			},
-			submitting: false,
-			validate: () => {
-				let isValid = true;
+    // ============================================================= reactive
+    const form = reactive<IForm>({
+      coins: {
+        valid: false,
+        value: 0,
+        rules: [
+          (v: number) => Boolean(v) || 'Coins cannot be empty',
+          (v: number) => v >= 0 || 'Coins cannot be less than 0',
+        ],
+      },
+      description: {
+        valid: false,
+        value: '',
+        rules: [(v: number) => Boolean(v) || 'Description cannot be empty'],
+      },
+      credit_note: {
+        valid: true,
+        value: false,
+        rules: [],
+      },
+      submitting: false,
+      validate: () => {
+        let isValid = true;
 
-				for (const key in form) {
-					if (
-						key != 'validate' &&
+        for (const key in form) {
+          if (
+            key != 'validate' &&
 						key != 'body' &&
 						key != 'submitting' &&
 						!form[key].valid
-					) {
-						isValid = false;
-					}
-				}
+          ) {
+            isValid = false;
+          }
+        }
 
-				if (refForm.value) refForm.value.reportValidity();
-				return isValid;
-			},
-			body: () => {
-				let obj: any = {};
-				for (const key in form) {
-					if (key != 'validate' && key != 'body' && key != 'submitting')
-						obj[key] = form[key].value;
-				}
-				return obj;
-			},
-		});
+        if (refForm.value) refForm.value.reportValidity();
+        return isValid;
+      },
+      body: () => {
+        let obj: any = {};
+        for (const key in form) {
+          if (key != 'validate' && key != 'body' && key != 'submitting')
+            obj[key] = form[key].value;
+        }
+        return obj;
+      },
+    });
 
-		const dialog = <any>reactive({
-			type: 'info',
-			heading: 'Manage Balance',
-			body: `Set balance for user: ${props.name}. Their current balance is ${props.coins}`,
-			primaryBtn: {
-				label: 'Set Balance',
-				onclick: onclickSubmitForm,
-			},
-			secondaryBtn: {
-				label: 'Cancel',
-				onclick: () => {
-					emit('isSuccess', false);
-				},
-			},
-		});
+    const dialog = <any>reactive({
+      type: 'info',
+      heading: 'Manage Balance',
+      body: `Set balance for user: ${props.name}. Their current balance is ${props.coins}`,
+      primaryBtn: {
+        label: 'Set Balance',
+        onclick: onclickSubmitForm,
+      },
+      secondaryBtn: {
+        label: 'Cancel',
+        onclick: () => {
+          emit('isSuccess', false);
+        },
+      },
+    });
 
-		// ============================================================= functions
-		async function onclickSubmitForm() {
-			if (form.validate()) {
-				setLoading(true);
-				form.submitting = true;
+    // ============================================================= functions
+    async function onclickSubmitForm() {
+      if (form.validate()) {
+        setLoading(true);
+        form.submitting = true;
 
-				let body = form.body();
-				const [success, error] = await setBalanceOfThisUser(props.id, {
-					...body,
-					coins: calcType.value == '-' ? body.coins * -1 : body.coins,
-				});
+        let body = form.body();
+        const [success, error] = await setBalanceOfThisUser(props.id, {
+          ...body,
+          coins: calcType.value == '-' ? body.coins * -1 : body.coins,
+        });
 
-				form.submitting = false;
-				setLoading(false);
+        form.submitting = false;
+        setLoading(false);
 
-				console.log('success', success);
-				console.log('error', error);
+        console.log('success', success);
+        console.log('error', error);
 
-				success ? successHandler(success) : errorHandler(error);
-			} else {
-				openSnackbar('error', 'Error.InvalidForm');
-			}
-		}
+        success ? successHandler(success) : errorHandler(error);
+      } else {
+        openSnackbar('error', 'Error.InvalidForm');
+      }
+    }
 
-		function successHandler(res: any) {
-			emit('isSuccess', true);
-			emit('coins', totalCoins.value);
-		}
+    function successHandler(res: any) {
+      emit('isSuccess', true);
+      emit('coins', totalCoins.value);
+    }
 
-		function errorHandler(res: any) {
-			openSnackbar('error', res?.detail ?? '');
-			emit('isSuccess', false);
-		}
+    function errorHandler(res: any) {
+      openSnackbar('error', res?.detail ?? '');
+      emit('isSuccess', false);
+    }
 
-		const totalCoins = computed(() => {
-			return calcType.value == '+'
-				? props.coins + form.coins.value
-				: props.coins - form.coins.value;
-		});
+    const totalCoins = computed(() => {
+      return calcType.value == '+'
+        ? props.coins + form.coins.value
+        : props.coins - form.coins.value;
+    });
 
-		const calcTypeOptions = [
-			{
-				label: 'Add',
-				value: '+',
-			},
-			{
-				label: 'Minus',
-				value: '-',
-			},
-		];
-		const calcType = ref('+');
+    const calcTypeOptions = [
+      {
+        label: 'Add',
+        value: '+',
+      },
+      {
+        label: 'Minus',
+        value: '-',
+      },
+    ];
+    const calcType = ref('+');
 
-		return {
-			form,
-			onclickSubmitForm,
-			refForm,
-			dialog,
-			totalCoins,
-			calcTypeOptions,
-			calcType,
-		};
-	},
+    return {
+      form,
+      onclickSubmitForm,
+      refForm,
+      dialog,
+      totalCoins,
+      calcTypeOptions,
+      calcType,
+    };
+  },
 });
 </script>
 

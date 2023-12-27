@@ -42,50 +42,50 @@ import { ChevronDownIcon } from '@heroicons/vue/24/solid/index.js';
 import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
-	props: {
-		label: { type: String, default: '' },
-		id: { type: String, default: 'select' },
-		sm: { type: Boolean, default: false },
-		btnType: { type: Boolean, default: false },
-		options: {
-			default: [
-				{
-					label: 'Headings.BestMatch',
-					value: 'bestMatch',
-				},
-				{
-					label: 'Headings.Latest',
-					value: 'latest',
-				},
-			],
-		},
-		modelValue: { type: String, default: '' },
-	},
-	emits: ['update:modelValue', 'valid'],
-	components: { ChevronDownIcon },
-	setup(props, { emit }) {
-		const { t } = useI18n();
+  props: {
+    label: { type: String, default: '' },
+    id: { type: String, default: 'select' },
+    sm: { type: Boolean, default: false },
+    btnType: { type: Boolean, default: false },
+    options: {
+      default: [
+        {
+          label: 'Headings.BestMatch',
+          value: 'bestMatch',
+        },
+        {
+          label: 'Headings.Latest',
+          value: 'latest',
+        },
+      ],
+    },
+    modelValue: { type: String, default: '' },
+  },
+  emits: ['update:modelValue', 'valid'],
+  components: { ChevronDownIcon },
+  setup(props, { emit }) {
+    const { t } = useI18n();
 
-		const input = computed({
-			get() {
-				return props.modelValue;
-			},
-			set(value: string) {
-				if (!value) return;
-				emit('update:modelValue', value);
-			},
-		});
+    const input = computed({
+      get() {
+        return props.modelValue;
+      },
+      set(value: string) {
+        if (!value) return;
+        emit('update:modelValue', value);
+      },
+    });
 
-		input.value = (input.value) ? input.value : props.options[0]?.value ?? '';
+    input.value = (input.value) ? input.value : props.options[0]?.value ?? '';
 
-		const selectedOptionLabel = computed(() => {
-			return (
-				props.options.find((option) => option.value == input.value)?.label ?? ''
-			).toString();
-		});
+    const selectedOptionLabel = computed(() => {
+      return (
+        props.options.find((option) => option.value == input.value)?.label ?? ''
+      ).toString();
+    });
 
-		return { input, t, selectedOptionLabel };
-	},
+    return { input, t, selectedOptionLabel };
+  },
 });
 </script>
 
