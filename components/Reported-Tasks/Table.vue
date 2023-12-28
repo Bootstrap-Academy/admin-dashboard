@@ -52,83 +52,83 @@
 </template>
 
 <script lang="ts">
-	import { EyeIcon } from "@heroicons/vue/24/outline/index.js";
-	import { computed } from "vue";
-	import type { PropType } from "vue";
+import { EyeIcon } from "@heroicons/vue/24/outline/index.js";
+import { computed } from "vue";
+import type { PropType } from "vue";
 import { useI18n } from "vue-i18n";
-	import type { ReportBase } from "~/types/reportedTaskTypes";
-	import {
-		useReportReason,
-		useReportSubtaskType,
-	} from "~~/composables/reportedSubtasks";
-	export default {
-		props: {
-			data: { type: Array as PropType<any[]>, default: [] },
-			loading: { type: Boolean, default: true },
-		},
+import type { ReportBase } from "~/types/reportedTaskTypes";
+import {
+  useReportReason,
+  useReportSubtaskType,
+} from "~~/composables/reportedSubtasks";
+export default {
+  props: {
+    data: { type: Array as PropType<any[]>, default: [] },
+    loading: { type: Boolean, default: true },
+  },
 
-		components: {
-			EyeIcon,
-		},
-		setup(props) {
-			const isLoading = computed(() => {
-				return props.loading ;
-			});
+  components: {
+    EyeIcon,
+  },
+  setup(props) {
+    const isLoading = computed(() => {
+      return props.loading ;
+    });
 
-			const { t } = useI18n()
+    const { t } = useI18n()
 
-			const headers = computed(() => {
-				let arrHeaders = [
-					{
-						label: "Headings.ReportedBy",
-						key: "userName",
-					},
-					{
-						label: "Headings.TaskOwner",
-						key: "creatorName",
-					},
-					{
-						label: "Headings.Reason",
-						key: "reason",
-					},
-					{
-						label: "Headings.Comment",
-						key: "comment",
-					},
-					{
-						label: "Headings.ReportedAt",
-						key: "timestamp",
-					},
-					{
-						label: "Headings.Actions",
-						key: "actions",
-						class: "text-center",
-					},
-				];
+    const headers = computed(() => {
+      let arrHeaders = [
+        {
+          label: "Headings.ReportedBy",
+          key: "userName",
+        },
+        {
+          label: "Headings.TaskOwner",
+          key: "creatorName",
+        },
+        {
+          label: "Headings.Reason",
+          key: "reason",
+        },
+        {
+          label: "Headings.Comment",
+          key: "comment",
+        },
+        {
+          label: "Headings.ReportedAt",
+          key: "timestamp",
+        },
+        {
+          label: "Headings.Actions",
+          key: "actions",
+          class: "text-center",
+        },
+      ];
 
-				return arrHeaders;
-			});
+      return arrHeaders;
+    });
 
-			const router = useRouter();
-			const reportedTask = useReportedSubtask()
+    const router = useRouter();
+    const reportedTask = useReportedSubtask()
 
-			function onclickEditItem(item: ReportBase) {
-				reportedTask.value = item;
-				if (Boolean(!item) || Boolean(!item.id)) return;
-				router.push(
-					`/dashboard/reported-tasks/${item.id}?taskId=${item.task_id}&subtaskId=${item.subtask_id}`
-				);
-			}
+    function onclickEditItem(item: ReportBase) {
+      reportedTask.value = item;
+      if (Boolean(!item) || Boolean(!item.id)) return;
+      router.push(
+        `/dashboard/reported-tasks/${item.id}?taskId=${item.task_id}&subtaskId=${item.subtask_id}`
+      );
+    }
 
-			return {
-				headers,
-				onclickEditItem,
-				isLoading,
-				EyeIcon,
-				t,
-			};
-		},
-	};
+    return {
+      headers,
+      onclickEditItem,
+      isLoading,
+      EyeIcon,
+      t,
+    };
+  },
+};
 </script>
 
 <style scoped></style>

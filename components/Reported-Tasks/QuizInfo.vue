@@ -27,14 +27,14 @@
 </template>
 
 <script lang="ts" setup>
-	import type { IconXMark } from "#build/components";
-	import { ExclamationCircleIcon } from "@heroicons/vue/24/outline";
-	import { useI18n } from "vue-i18n";
+import type { IconXMark } from "#build/components";
+import { ExclamationCircleIcon } from "@heroicons/vue/24/outline";
+import { useI18n } from "vue-i18n";
 
-	defineProps<{
+defineProps<{
 		mcq: any;
 	}>();
-	const { t } = useI18n();
+const { t } = useI18n();
 </script>
 
 <style scoped></style>

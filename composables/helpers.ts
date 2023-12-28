@@ -182,5 +182,5 @@ export function getTheme(type: string) {
 }
 
 export function capitalizeFirstLetter(string: string) {
-	return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+  return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 }

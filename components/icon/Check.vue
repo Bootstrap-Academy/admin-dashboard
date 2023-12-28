@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-	defineProps<{
+defineProps<{
 		color?: string;
 		size?: string;
 	}>();
