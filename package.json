@@ -11,7 +11,7 @@
 	"devDependencies": {
 		"autoprefixer": "^10.4.17",
     "eslint": "^8.55.0",
-    "eslint-plugin-vue": "^9.21.0",
+    "eslint-plugin-vue": "^9.21.1",
 		"nuxt": "3.10.0",
 		"postcss": "^8.4.31",
 		"tailwindcss": "^3.4.1",
@@ -22,7 +22,7 @@
 		"@typescript-eslint/parser": "^6.20.0",
 		"async-mutex": "^0.4.1",
 		"dompurify": "^3.0.8",
-		"gleap": "^13.1.4",
+		"gleap": "^13.2.1",
 		"jwt-decode": "^4.0.0",
 		"markdown-it": "^14.0.0",
 		"vue-recaptcha-v3": "^2.0.1"
