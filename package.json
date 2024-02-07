@@ -22,7 +22,7 @@
 		"@typescript-eslint/parser": "^6.21.0",
 		"async-mutex": "^0.4.1",
 		"dompurify": "^3.0.8",
-		"gleap": "^13.2.4",
+		"gleap": "^13.2.5",
 		"jwt-decode": "^4.0.0",
 		"markdown-it": "^14.0.0",
 		"vue-recaptcha-v3": "^2.0.1"
