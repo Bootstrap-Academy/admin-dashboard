@@ -1,47 +1,113 @@
 <template>
-  <div class="mb-20">
-    <PageTitle class="mb-8" />
+	<div class="flex flex-col gap-5">
+		<PageTitle class="mb-2" />
+		<section
+			class="bg-[#3fdfa933] p-2 flex items-center capitalize gap-2 rounded-md"
+		>
+			<div class="h-10 w-10 mt-0.5">
+				<ExclamationCircleIcon class="text-info min-w-[20px] min-h-[20px]" />
+			</div>
+			<p class="text-white max-w-fit flex gap-5">
+				<span class="font-bold text-xl"> {{ t("Headings.Reason") }} </span>
+				{{ t(`Body.${reportedTask.reason}`) }}
+			</p>
+		</section>
+		<div class="flex flex-wrap xl:flex-nowrap justify-center">
+			<div class="w-1/3 p-3 min-w-[400px] flex-grow xl:flex-grow-0">
+				<p class="text-xl text-white">{{ t("Body.reportInformation") }}</p>
+				<p class="text-md text-white">
+					{{ t("Body.taskType") }}:
+					<span class="text-accent">{{
+						t(`Body.${reportedTask.subtask_type}`)
+					}}</span>
+				</p>
+				<p class="text-md text-white">
+					{{ t("Body.reportedBy") }}:
+					<span class="text-accent">{{ reportedTask.userName }}</span>
+				</p>
+				<p class="text-md text-white">
+					{{ t("Body.reason") }}:
+					<span class="text-accent">{{
+						reportedTask.reason.toLowerCase()
+					}}</span>
+				</p>
+				<p class="text-md text-white">
+					{{ t("Body.comment") }}:
+					<span class="text-accent">{{ reportedTask.comment }}</span>
+				</p>
+				<p class="text-md text-white">
+					{{ t("Body.reportedAt") }}:
+					<span class="text-accent">{{
+						`${reportedAt.date} ${reportedAt.month.string}, ${reportedAt.year}`
+					}}</span>
+				</p>
+				<p class="text-md text-white">
+					{{ t("Body.taskCreator") }}:
+					<span class="text-accent">{{ reportedTask.creatorName }}</span>
+				</p>
+			</div>
+			<div class="w-2/3 p-3 flex-grow xl:flex-grow-0">
+				<Reported-TasksQuizInfo
+					:mcq="mcq"
+					v-if="
+						reportedTask.subtask_type === TASK_TYPE.MULTIPLE_CHOICE_QUESTION
+					"
+				/>
+				<Reported-TasksCodingChallengeInfo
+					v-if="reportedTask.subtask_type === TASK_TYPE.CODING_CHALLENGE"
+					:codingChallenge="CodingChallenge"
+					:codingChallengeSolution="codingChallengeSolution"
+				/>
 
-    <section class="bg-[#3fdfa933] p-4 flex capitalize gap-2 rounded-md">
-      <div class="h-10 w-10 mt-0.5">
-        <ExclamationCircleIcon class="text-info min-w-[32px] min-h-[32px]" />
-      </div>
-      <p class="text-white">
-        <span class="font-bold text-3xl"> {{ t("Headings.Reason") }} </span>
-        {{ reportReason }}
-      </p>
-    </section>
+				<Reported-TasksMatching
+					v-if="reportedTask.subtask_type === TASK_TYPE.MATCHING"
+				/>
 
-    <section v-if="reportSubtaskType?.includes('MULTIPLE_CHOICE_QUESTION')">
-      <Reported-TasksQuizInfo :mcq="mcq" />
-    </section>
-    <Reported-TasksCodingChallengeInfo
-      v-else
-      :codingChallenge="CodingChallenge"
-      :codingChallengeSolution="codingChallengeSolution"
-    />
-    <section class="flex justify-end gap-4 mt-10">
-      <InputBtn
-        :loading="loadingInCorrect"
-        :icon="XMarkIcon"
-        secondary
-        @click="fnResolveReport('BLOCK_REPORTER'), (loadingInCorrect = true)"
-      >
-        {{ t("Buttons.Incorrect") }}</InputBtn
-      >
-      <InputBtn
-        :loading="loadingCorrect"
-        :icon="CheckIcon"
-        @click="fnResolveReport('BLOCK_CREATOR'), (loadingCorrect = true)"
-        >{{ t("Buttons.Correct") }}</InputBtn
-      >
-    </section>
-  </div>
+				<Reported-TasksQuestion
+					v-if="reportedTask.subtask_type === TASK_TYPE.QUESTION"
+				/>
+			</div>
+		</div>
+		<section class="flex justify-center gap-4 mt-2 flex-wrap xl:flex-nowrap">
+			<InputBtn
+				sm
+				:loading="loadingCorrect"
+				@click="fnResolveReport(RESOLVE.REVISE), (loadingCorrect = true)"
+			>
+				{{ t("Buttons.adjustTask") }}
+			</InputBtn>
+
+			<InputBtn
+				sm
+				:loading="loadingCorrect"
+				@click="deleteTask(), (loadingCorrect = true)"
+			>
+				{{ t("Buttons.deleteTask") }}
+			</InputBtn>
+
+			<InputBtn
+				sm
+				:loading="loadingCorrect"
+				@click="
+					fnResolveReport(RESOLVE.BLOCK_REPORTER), (loadingCorrect = true)
+				"
+			>
+				{{ t("Buttons.blockReporter") }}
+			</InputBtn>
+
+			<InputBtn
+				sm
+				:loading="loadingCorrect"
+				@click="fnResolveReport(RESOLVE.BLOCK_CREATOR), (loadingCorrect = true)"
+			>
+				{{ t("Buttons.blockCreator") }}
+			</InputBtn>
+		</section>
+	</div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import {
-  useReportReason,
   resolveReport,
   useReportSubtaskType,
   getCodingChallenge,
@@ -50,102 +116,104 @@ import {
   useMcq,
   useCodingChallengeSolution,
 } from "~~/composables/reportedSubtasks";
-import {
-  ExclamationCircleIcon,
-  CheckIcon,
-  XMarkIcon,
-} from "@heroicons/vue/24/outline";
+import { ExclamationCircleIcon, CheckIcon } from "@heroicons/vue/24/outline";
 import { useI18n } from "vue-i18n";
+import { RESOLVE, TASK_TYPE } from "~/types/reportedTaskTypes";
+
 definePageMeta({
   middleware: ["auth"],
   layout: "dashboard",
 });
-export default {
-  components: { ExclamationCircleIcon, CheckIcon, XMarkIcon },
-  setup() {
-    const { t } = useI18n();
-    const route = useRoute();
-    const router = useRouter();
-    const reportReason = useReportReason();
-    const reportSubtaskType: any = useReportSubtaskType();
-    const codingChallengeSolution: any = useCodingChallengeSolution();
-    const answers = ["haha", "hahaha", "hahahaha", "hahahahaha"];
-    const reportId = computed(() => {
-      return route.params?.id ?? "";
-    });
 
-    const task_id = computed(() => {
-      return route.query?.taskId ?? "";
-    });
-    const subtask_id = computed(() => {
-      return route.query?.subtaskId ?? "";
-    });
+const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
+const codingChallengeSolution: any = useCodingChallengeSolution();
+const reportId = computed(() => {
+  return route.params?.id ?? "";
+});
 
-    const loadingCorrect = ref(false);
-    const loadingInCorrect = ref(false);
-    const CodingChallenge: any = useCodingChallenge();
-    const solution: any = useCodingChallengeSolution();
-    const mcq: any = useMcq();
+const task_id = computed(() => {
+  return route.query?.taskId ?? "";
+});
+const subtask_id = computed(() => {
+  return route.query?.subtaskId ?? "";
+});
 
-    async function fnResolveReport(action: String) {
-      const [success, error] = await resolveReport(reportId.value, {
-        action: action,
-      });
-      loadingCorrect.value = false;
-      loadingInCorrect.value = false;
-      if (success) sucessHandler(success);
-      else errorHandler(error);
-    }
+const reportedTask = useReportedSubtask();
+const reportedAt = computed(() => {
+  return convertTimestampToDate(
+    convertDateToTimestamp(reportedTask.value.timestamp)
+  );
+});
 
-    function sucessHandler(success: any) {
-      openSnackbar("success", "Success.ResolveReport");
+const loadingCorrect = ref(false);
+const loadingInCorrect = ref(false);
+const CodingChallenge: any = useCodingChallenge();
+const solution: any = useCodingChallengeSolution();
+const mcq: any = useMcq();
+
+async function fnResolveReport(action: RESOLVE) {
+  const [success, error] = await resolveReport(reportId.value, {
+    action: action,
+  });
+  loadingCorrect.value = false;
+  loadingInCorrect.value = false;
+  if (success) sucessHandler(success);
+  else errorHandler(error);
+}
+
+const deleteTask = async () => {
+  const [success, error] = await deleteReportedTask(
+    reportedTask.value.task_id,
+    reportedTask.value.subtask_id
+  );
+  loadingCorrect.value = false;
+  loadingInCorrect.value = false;
+  if (success) sucessHandler(success);
+  else errorHandler(error);
+};
+
+function sucessHandler(success: any) {
+  openSnackbar("success", "Success.ResolveReport");
+  router.push("/dashboard/reported-tasks");
+}
+
+function errorHandler(error: any) {
+  openSnackbar("error", error);
+}
+
+onMounted(async () => {
+  if (
+    reportedTask.value.subtask_type === TASK_TYPE.MULTIPLE_CHOICE_QUESTION
+  ) {
+    const [success, error] = await getMcq(task_id.value, subtask_id.value);
+    if (error) {
+      openSnackbar("error", error ?? "");
       router.push("/dashboard/reported-tasks");
     }
-
-    function errorHandler(error: any) {
-      openSnackbar("error", error);
+  } else if (reportedTask.value.subtask_type === TASK_TYPE.MATCHING) {
+    const [success, error] = await getMatching(
+      reportedTask.value.task_id,
+      reportedTask.value.subtask_id
+    );
+    if (error) {
+      openSnackbar("error", t("Error.errorLoadingMatchingTask"));
+      router.push("/dashboard/reported-tasks");
     }
-
-    onMounted(async () => {
-      setLoading(true);
-      if (reportSubtaskType.value.includes("MULTIPLE_CHOICE_QUESTION")) {
-        const [success, error] = await getMcq(task_id.value, subtask_id.value);
-        if (error) {
-          openSnackbar("error", error ?? "");
-          router.push("/dashboard/reported-tasks");
-        }
-      } else {
-        const [success, error] = await getCodingChallenge(
-          task_id.value,
-          subtask_id.value
-        );
-        if (error) {
-          openSnackbar("error", error ?? "");
-          router.push("/dashboard/reported-tasks");
-        }
-      }
-      setLoading(false);
-    });
-
-    return {
-      reportReason,
-      ExclamationCircleIcon,
-      answers,
-      XMarkIcon,
-      CheckIcon,
-      fnResolveReport,
-      reportId,
-      loadingCorrect,
-      reportSubtaskType,
-      loadingInCorrect,
-      t,
-      CodingChallenge,
-      solution,
-      mcq,
-      codingChallengeSolution,
-    };
-  },
-};
+  } else if (reportedTask.value.subtask_type === TASK_TYPE.CODING_CHALLENGE) {
+    const [success, error] = await getCodingChallenge(
+      task_id.value,
+      subtask_id.value
+    );
+    if (error) {
+      openSnackbar("error", error ?? "");
+      router.push("/dashboard/reported-tasks");
+    }
+  } else if (reportedTask.value.subtask_type === TASK_TYPE.QUESTION) {
+    console.log("question");
+  }
+});
 </script>
 
 <style scoped></style>

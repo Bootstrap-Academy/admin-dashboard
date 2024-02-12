@@ -1,6 +1,6 @@
 export class User {
   id: string = '';
-  username: string = '';
+  name: string = '';
   display_name: string = '';
   email: string = '';
   email_verified: boolean = false;
