@@ -19,7 +19,7 @@
 	},
 	"dependencies": {
 		"@heroicons/vue": "^2.1.1",
-		"@typescript-eslint/parser": "^6.21.0",
+		"@typescript-eslint/parser": "^7.0.1",
 		"async-mutex": "^0.4.1",
 		"dompurify": "^3.0.8",
 		"gleap": "^13.2.6",
