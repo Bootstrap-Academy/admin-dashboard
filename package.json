@@ -12,14 +12,14 @@
 		"autoprefixer": "^10.4.17",
     "eslint": "^8.55.0",
     "eslint-plugin-vue": "^9.21.1",
-		"nuxt": "3.10.1",
+		"nuxt": "3.10.2",
 		"postcss": "^8.4.35",
 		"tailwindcss": "^3.4.1",
 		"vue-i18n": "^9.9.1"
 	},
 	"dependencies": {
 		"@heroicons/vue": "^2.1.1",
-		"@typescript-eslint/parser": "^7.0.1",
+		"@typescript-eslint/parser": "^7.0.2",
 		"async-mutex": "^0.4.1",
 		"dompurify": "^3.0.8",
 		"gleap": "^13.2.6",
