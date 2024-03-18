@@ -9,20 +9,20 @@
     "lint": "eslint --ext .js,.vue,.ts ."
 	},
 	"devDependencies": {
-		"autoprefixer": "^10.4.17",
-    "eslint": "^8.55.0",
-    "eslint-plugin-vue": "^9.21.1",
-		"nuxt": "3.10.1",
-		"postcss": "^8.4.35",
+		"autoprefixer": "^10.4.18",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.23.0",
+		"nuxt": "3.11.0",
+		"postcss": "^8.4.36",
 		"tailwindcss": "^3.4.1",
-		"vue-i18n": "^9.9.1"
+		"vue-i18n": "^9.10.2"
 	},
 	"dependencies": {
 		"@heroicons/vue": "^2.1.1",
-		"@typescript-eslint/parser": "^7.0.1",
-		"async-mutex": "^0.4.1",
-		"dompurify": "^3.0.8",
-		"gleap": "^13.2.6",
+		"@typescript-eslint/parser": "^7.2.0",
+		"async-mutex": "^0.5.0",
+		"dompurify": "^3.0.9",
+		"gleap": "^13.5.4",
 		"jwt-decode": "^4.0.0",
 		"markdown-it": "^14.0.0",
 		"vue-recaptcha-v3": "^2.0.1"
