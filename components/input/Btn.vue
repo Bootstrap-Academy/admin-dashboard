@@ -24,7 +24,7 @@
         />
       </svg>
 
-      <div v-else class="flex gap-2">
+      <div v-else class="flex gap-2 items-center">
         <component v-if="icon" :is="icon" class="icon"></component>
         <slot></slot>
       </div>
