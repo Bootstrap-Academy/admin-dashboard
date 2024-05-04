@@ -36,33 +36,33 @@ import { useI18n } from 'vue-i18n';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
-	setup() {
-		const { t } = useI18n();
+  setup() {
+    const { t } = useI18n();
 
-		const snackbar = useSnackbar();
+    const snackbar = useSnackbar();
 
-		const show = computed(() => {
-			return snackbar.value?.show ?? false;
-		});
+    const show = computed(() => {
+      return snackbar.value?.show ?? false;
+    });
 
-		const type = computed(() => {
-			return snackbar.value?.type ?? 'info';
-		});
+    const type = computed(() => {
+      return snackbar.value?.type ?? 'info';
+    });
 
-		const theme = computed(() => {
-			return getTheme(type.value);
-		});
+    const theme = computed(() => {
+      return getTheme(type.value);
+    });
 
-		const heading = computed(() => {
-			return snackbar.value?.heading ?? '';
-		});
+    const heading = computed(() => {
+      return snackbar.value?.heading ?? '';
+    });
 
-		const body = computed(() => {
-			return snackbar.value?.body ?? '';
-		});
+    const body = computed(() => {
+      return snackbar.value?.body ?? '';
+    });
 
-		return { t, theme, heading, body, show };
-	},
+    return { t, theme, heading, body, show };
+  },
 });
 </script>
 

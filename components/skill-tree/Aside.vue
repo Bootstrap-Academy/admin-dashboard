@@ -68,33 +68,33 @@ import { defineComponent } from 'vue';
 import type { PropType } from 'vue';
 
 export default defineComponent({
-	props: {
-		isRoot: { type: Boolean, default: false },
-		skillTree: { type: Object as PropType<any>, default: null },
-		selectedSkill: { type: Object as PropType<any>, default: null },
-		selectedCol: { type: Number, default: 0 },
-		selectedRow: { type: Number, default: 0 },
-		rootSkillID: { type: String, default: '' },
-		subSkillID: { type: String, default: '' },
-		showControls: { type: Boolean, default: true },
-	},
-	emits: ['showGrid'],
-	setup(props, { emit }) {
-		const cookie_showGrid = useCookie<boolean>('showGrid');
-		const showGrid = computed({
-			get() {
-				return cookie_showGrid.value || false;
-			},
-			set(data: boolean) {
-				cookie_showGrid.value = data;
-				emit('showGrid', data);
-			},
-		});
+  props: {
+    isRoot: { type: Boolean, default: false },
+    skillTree: { type: Object as PropType<any>, default: null },
+    selectedSkill: { type: Object as PropType<any>, default: null },
+    selectedCol: { type: Number, default: 0 },
+    selectedRow: { type: Number, default: 0 },
+    rootSkillID: { type: String, default: '' },
+    subSkillID: { type: String, default: '' },
+    showControls: { type: Boolean, default: true },
+  },
+  emits: ['showGrid'],
+  setup(props, { emit }) {
+    const cookie_showGrid = useCookie<boolean>('showGrid');
+    const showGrid = computed({
+      get() {
+        return cookie_showGrid.value || false;
+      },
+      set(data: boolean) {
+        cookie_showGrid.value = data;
+        emit('showGrid', data);
+      },
+    });
 
-		return {
-			showGrid,
-		};
-	},
+    return {
+      showGrid,
+    };
+  },
 });
 </script>
 

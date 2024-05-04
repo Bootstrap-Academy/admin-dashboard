@@ -43,41 +43,41 @@
 <script lang="ts">
 import type { Ref } from 'vue';
 definePageMeta({
-	middleware: ['auth'],
+  middleware: ['auth'],
 });
 
 export default {
-	head: {
-		title: 'Edit Job',
-	},
-	setup() {
-		const route = useRoute();
+  head: {
+    title: 'Edit Job',
+  },
+  setup() {
+    const route = useRoute();
 
-		const id = computed(() => {
-			return <string>(route?.params?.id ?? '');
-		});
+    const id = computed(() => {
+      return <string>(route?.params?.id ?? '');
+    });
 
-		const loading = ref(true);
-		const job: Ref<any> = useJob();
+    const loading = ref(true);
+    const job: Ref<any> = useJob();
 
-		const companies: Ref<any[]> = useCompanies();
+    const companies: Ref<any[]> = useCompanies();
 
-		onMounted(async () => {
-			loading.value = true;
-			await Promise.all([getJob(id.value), getCompanies([])]);
-			loading.value = false;
-		});
+    onMounted(async () => {
+      loading.value = true;
+      await Promise.all([getJob(id.value), getCompanies([])]);
+      loading.value = false;
+    });
 
-		const companiesList = computed(() => {
-			return companies.value.map((company) => {
-				return {
-					value: company.id,
-					label: company.name,
-				};
-			});
-		});
+    const companiesList = computed(() => {
+      return companies.value.map((company) => {
+        return {
+          value: company.id,
+          label: company.name,
+        };
+      });
+    });
 
-		return { id, loading, job, companiesList };
-	},
+    return { id, loading, job, companiesList };
+  },
 };
 </script>

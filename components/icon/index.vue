@@ -14,16 +14,16 @@
 import { defineComponent } from 'vue';
 
 export default defineComponent({
-	props: {
-		icon: { default: null },
-		sm: { type: Boolean, default: false },
-		rounded: { type: Boolean, default: false },
-		bgColor: { type: String, default: 'bg-tertiary' },
-		iconColor: { type: String, default: 'text-accent' },
-	},
-	setup() {
-		return {};
-	},
+  props: {
+    icon: { default: null },
+    sm: { type: Boolean, default: false },
+    rounded: { type: Boolean, default: false },
+    bgColor: { type: String, default: 'bg-tertiary' },
+    iconColor: { type: String, default: 'text-accent' },
+  },
+  setup() {
+    return {};
+  },
 });
 </script>
 

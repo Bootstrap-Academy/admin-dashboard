@@ -23,25 +23,25 @@ import { defineComponent } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
-	props: {
-		modelValue: { type: Boolean, default: false },
-		label: { type: String, default: '' },
-		id: { type: String, default: '' },
-	},
-	emits: ['update:modelValue'],
-	setup(props, { emit }) {
-		const { t } = useI18n();
+  props: {
+    modelValue: { type: Boolean, default: false },
+    label: { type: String, default: '' },
+    id: { type: String, default: '' },
+  },
+  emits: ['update:modelValue'],
+  setup(props, { emit }) {
+    const { t } = useI18n();
 
-		const input = computed({
-			get() {
-				return props.modelValue;
-			},
-			set(value) {
-				emit('update:modelValue', value);
-			},
-		});
-		return { t, input };
-	},
+    const input = computed({
+      get() {
+        return props.modelValue;
+      },
+      set(value) {
+        emit('update:modelValue', value);
+      },
+    });
+    return { t, input };
+  },
 });
 </script>
 

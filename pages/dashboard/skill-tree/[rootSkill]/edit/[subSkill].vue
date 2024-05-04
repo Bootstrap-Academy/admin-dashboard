@@ -38,29 +38,29 @@
 
 <script lang="ts">
 definePageMeta({
-	middleware: ['auth'],
+  middleware: ['auth'],
 });
 
 export default {
-	head: {
-		title: 'Edit Sub Skill - ',
-	},
-	setup() {
-		const route = useRoute();
+  head: {
+    title: 'Edit Sub Skill - ',
+  },
+  setup() {
+    const route = useRoute();
 
-		const rootSkillID = computed(() => {
-			return <string>(route?.params?.rootSkill ?? '');
-		});
+    const rootSkillID = computed(() => {
+      return <string>(route?.params?.rootSkill ?? '');
+    });
 
-		const subSkillID = computed(() => {
-			return <string>(route?.params?.subSkill ?? '');
-		});
+    const subSkillID = computed(() => {
+      return <string>(route?.params?.subSkill ?? '');
+    });
 
-		const skillName = computed(() => {
-			return subSkillID.value.replace(/_/g, ' ');
-		});
+    const skillName = computed(() => {
+      return subSkillID.value.replace(/_/g, ' ');
+    });
 
-		return { skillName, rootSkillID };
-	},
+    return { skillName, rootSkillID };
+  },
 };
 </script>

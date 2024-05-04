@@ -39,33 +39,33 @@
 <script lang="ts">
 import type { Ref } from 'vue';
 definePageMeta({
-	middleware: ['auth'],
+  middleware: ['auth'],
 });
 
 export default {
-	head: {
-		title: 'Create Job',
-	},
-	setup() {
-		const loading = ref(true);
-		const companies: Ref<any[]> = useCompanies();
+  head: {
+    title: 'Create Job',
+  },
+  setup() {
+    const loading = ref(true);
+    const companies: Ref<any[]> = useCompanies();
 
-		onMounted(async () => {
-			loading.value = true;
-			await getCompanies([]);
-			loading.value = false;
-		});
+    onMounted(async () => {
+      loading.value = true;
+      await getCompanies([]);
+      loading.value = false;
+    });
 
-		const companiesList = computed(() => {
-			return companies.value.map((company) => {
-				return {
-					value: company.id,
-					label: company.name,
-				};
-			});
-		});
+    const companiesList = computed(() => {
+      return companies.value.map((company) => {
+        return {
+          value: company.id,
+          label: company.name,
+        };
+      });
+    });
 
-		return { loading, companiesList };
-	},
+    return { loading, companiesList };
+  },
 };
 </script>

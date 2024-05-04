@@ -7,10 +7,10 @@ import { defineComponent } from 'vue';
 import { ArrowPathIcon } from '@heroicons/vue/24/outline/index.js';
 
 export default defineComponent({
-	components: { ArrowPathIcon },
-	setup() {
-		return;
-	},
+  components: { ArrowPathIcon },
+  setup() {
+    return;
+  },
 });
 </script>
 <style scoped></style>

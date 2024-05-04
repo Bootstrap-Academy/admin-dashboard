@@ -65,175 +65,175 @@ import type { PropType } from 'vue';
 import { EyeIcon, ChevronDownIcon } from '@heroicons/vue/24/outline/index.js';
 
 export default defineComponent({
-	components: {
-		EyeIcon,
-		ChevronDownIcon,
-	},
-	props: {
-		data: { type: Object as PropType<any>, default: null },
-		totalNodes: { type: Number, default: 50 },
-		completedNodes: { type: Number, default: 25 },
-	},
-	setup(props) {
-		const { t } = useI18n();
+  components: {
+    EyeIcon,
+    ChevronDownIcon,
+  },
+  props: {
+    data: { type: Object as PropType<any>, default: null },
+    totalNodes: { type: Number, default: 50 },
+    completedNodes: { type: Number, default: 25 },
+  },
+  setup(props) {
+    const { t } = useI18n();
 
-		const id = computed(() => {
-			return props.data?.skill ?? '';
-		});
+    const id = computed(() => {
+      return props.data?.skill ?? '';
+    });
 
-		const name = computed(() => {
-			return (props.data?.skill ?? '').replace(/_/g, ' ');
-		});
+    const name = computed(() => {
+      return (props.data?.skill ?? '').replace(/_/g, ' ');
+    });
 
-		const image = computed(() => {
-			return props.data?.image ?? `/svgs/${id.value}.svg`;
-		});
+    const image = computed(() => {
+      return props.data?.image ?? `/svgs/${id.value}.svg`;
+    });
 
-		const xp = computed(() => {
-			return abbreviateNumber(props.data?.xp ?? 0);
-		});
+    const xp = computed(() => {
+      return abbreviateNumber(props.data?.xp ?? 0);
+    });
 
-		const router = useRouter();
+    const router = useRouter();
 
-		const route = useRoute();
+    const route = useRoute();
 
-		const show = computed({
-			get(): boolean {
-				let rootSkillID = route?.query?.details ?? '';
-				return rootSkillID == id.value;
-			},
-			set(rootSkillID: any) {
-				if (!rootSkillID) {
-					router.replace({
-						path: route.path,
-					});
-				} else {
-					router.replace({
-						path: route.path,
-						query: { details: rootSkillID },
-					});
-				}
-			},
-		});
+    const show = computed({
+      get(): boolean {
+        let rootSkillID = route?.query?.details ?? '';
+        return rootSkillID == id.value;
+      },
+      set(rootSkillID: any) {
+        if (!rootSkillID) {
+          router.replace({
+            path: route.path,
+          });
+        } else {
+          router.replace({
+            path: route.path,
+            query: { details: rootSkillID },
+          });
+        }
+      },
+    });
 
-		function onclickViewSkillPath() {
-			router.push(`/skill-tree/${id.value}`);
-		}
-		function onclickViewSkillProgressDetails() {
-			show.value = show.value ? '' : id.value;
-		}
+    function onclickViewSkillPath() {
+      router.push(`/skill-tree/${id.value}`);
+    }
+    function onclickViewSkillProgressDetails() {
+      show.value = show.value ? '' : id.value;
+    }
 
-		const level = computed((): any => {
-			const number = props.data?.level ?? 1;
-			if (number > 0 && number <= 5) {
-				return {
-					text: 'Headings.Novice',
-					color: 'chip-color-1',
-					number: number,
-				};
-			} else if (number > 5 && number <= 10) {
-				return {
-					text: 'Headings.Beginner',
-					color: 'chip-color-2',
-					number: number,
-				};
-			} else if (number > 10 && number <= 15) {
-				return {
-					text: 'Headings.Talented',
-					color: 'chip-color-3',
-					number: number,
-				};
-			} else if (number > 15 && number <= 20) {
-				return {
-					text: 'Headings.Skilled',
-					color: 'chip-color-4',
-					number: number,
-				};
-			} else if (number > 20 && number <= 25) {
-				return {
-					text: 'Headings.Intermediate',
-					color: 'chip-color-5',
-					number: number,
-				};
-			} else if (number > 25 && number <= 30) {
-				return {
-					text: 'Headings.Seasoned',
-					color: 'chip-color-6',
-					number: number,
-				};
-			} else if (number > 30 && number <= 35) {
-				return {
-					text: 'Headings.Experienced',
-					color: 'chip-color-7',
-					number: number,
-				};
-			} else if (number > 35 && number <= 40) {
-				return {
-					text: 'Headings.Senior',
-					color: 'chip-color-8',
-					number: number,
-				};
-			} else if (number > 40 && number <= 45) {
-				return {
-					text: 'Headings.Expert',
-					color: 'chip-color-9',
-					number: number,
-				};
-			} else if (number > 45 && number <= 50) {
-				return {
-					text: 'Headings.GodTier',
-					color: 'chip-color-10',
-					number: number,
-				};
-			} else {
-				return {
-					text: 'Headings.Newbie',
-					color: 'chip-color-11',
-					number: number,
-				};
-			}
-		});
+    const level = computed((): any => {
+      const number = props.data?.level ?? 1;
+      if (number > 0 && number <= 5) {
+        return {
+          text: 'Headings.Novice',
+          color: 'chip-color-1',
+          number: number,
+        };
+      } else if (number > 5 && number <= 10) {
+        return {
+          text: 'Headings.Beginner',
+          color: 'chip-color-2',
+          number: number,
+        };
+      } else if (number > 10 && number <= 15) {
+        return {
+          text: 'Headings.Talented',
+          color: 'chip-color-3',
+          number: number,
+        };
+      } else if (number > 15 && number <= 20) {
+        return {
+          text: 'Headings.Skilled',
+          color: 'chip-color-4',
+          number: number,
+        };
+      } else if (number > 20 && number <= 25) {
+        return {
+          text: 'Headings.Intermediate',
+          color: 'chip-color-5',
+          number: number,
+        };
+      } else if (number > 25 && number <= 30) {
+        return {
+          text: 'Headings.Seasoned',
+          color: 'chip-color-6',
+          number: number,
+        };
+      } else if (number > 30 && number <= 35) {
+        return {
+          text: 'Headings.Experienced',
+          color: 'chip-color-7',
+          number: number,
+        };
+      } else if (number > 35 && number <= 40) {
+        return {
+          text: 'Headings.Senior',
+          color: 'chip-color-8',
+          number: number,
+        };
+      } else if (number > 40 && number <= 45) {
+        return {
+          text: 'Headings.Expert',
+          color: 'chip-color-9',
+          number: number,
+        };
+      } else if (number > 45 && number <= 50) {
+        return {
+          text: 'Headings.GodTier',
+          color: 'chip-color-10',
+          number: number,
+        };
+      } else {
+        return {
+          text: 'Headings.Newbie',
+          color: 'chip-color-11',
+          number: number,
+        };
+      }
+    });
 
-		const skills = computed((): any[] => {
-			return props.data?.skills ?? [];
-		});
+    const skills = computed((): any[] => {
+      return props.data?.skills ?? [];
+    });
 
-		const total = computed(() => {
-			return skills.value.length ?? 0;
-		});
+    const total = computed(() => {
+      return skills.value.length ?? 0;
+    });
 
-		const completed = computed(() => {
-			return skills.value.filter(
-				(skill: any) => skill.level >= 50 || skill.completed == true
-			).length;
-		});
+    const completed = computed(() => {
+      return skills.value.filter(
+        (skill: any) => skill.level >= 50 || skill.completed == true
+      ).length;
+    });
 
-		const progress = computed(() => {
-			return (props?.data?.progress ?? 0) * 100;
-		});
+    const progress = computed(() => {
+      return (props?.data?.progress ?? 0) * 100;
+    });
 
-		const progressBar = computed(() => {
-			return `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${progress.value}%, var(--color-tertiary) ${progress.value}%,  var(--color-tertiary) 100%)`;
-		});
+    const progressBar = computed(() => {
+      return `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${progress.value}%, var(--color-tertiary) ${progress.value}%,  var(--color-tertiary) 100%)`;
+    });
 
-		return {
-			image,
-			name,
-			total,
-			completed,
-			progressBar,
-			level,
-			t,
-			onclickViewSkillPath,
-			onclickViewSkillProgressDetails,
-			xp,
-			skills,
-			show,
-			EyeIcon,
-			ChevronDownIcon,
-			id,
-		};
-	},
+    return {
+      image,
+      name,
+      total,
+      completed,
+      progressBar,
+      level,
+      t,
+      onclickViewSkillPath,
+      onclickViewSkillProgressDetails,
+      xp,
+      skills,
+      show,
+      EyeIcon,
+      ChevronDownIcon,
+      id,
+    };
+  },
 });
 </script>
 

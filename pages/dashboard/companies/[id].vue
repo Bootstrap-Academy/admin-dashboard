@@ -45,31 +45,31 @@ import type { Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 definePageMeta({
-	middleware: ['auth'],
+  middleware: ['auth'],
 });
 
 export default {
-	head: {
-		title: 'Company Details - ',
-	},
-	setup() {
-		const { t } = useI18n();
+  head: {
+    title: 'Company Details - ',
+  },
+  setup() {
+    const { t } = useI18n();
 
-		const route = useRoute();
+    const route = useRoute();
 
-		const id = computed(() => {
-			return <string>(route?.params?.id ?? '');
-		});
+    const id = computed(() => {
+      return <string>(route?.params?.id ?? '');
+    });
 
-		const loading = ref(true);
-		const company: Ref<any> = useCompany();
+    const loading = ref(true);
+    const company: Ref<any> = useCompany();
 
-		onMounted(async () => {
-			await getCompany(id.value);
-			loading.value = false;
-		});
+    onMounted(async () => {
+      await getCompany(id.value);
+      loading.value = false;
+    });
 
-		return { t, id, loading, company };
-	},
+    return { t, id, loading, company };
+  },
 };
 </script>

@@ -45,34 +45,34 @@
 <script lang="ts">
 import type { Ref } from 'vue';
 definePageMeta({
-	middleware: ['auth'],
+  middleware: ['auth'],
 });
 
 export default {
-	head: {
-		title: 'Edit Root Skill - ',
-	},
-	setup() {
-		const route = useRoute();
+  head: {
+    title: 'Edit Root Skill - ',
+  },
+  setup() {
+    const route = useRoute();
 
-		const rootSkillID = computed(() => {
-			return <string>(route?.params?.id ?? '');
-		});
+    const rootSkillID = computed(() => {
+      return <string>(route?.params?.id ?? '');
+    });
 
-		const rootSkillName = computed(() => {
-			return rootSkillID.value.replace(/_/g, ' ');
-		});
+    const rootSkillName = computed(() => {
+      return rootSkillID.value.replace(/_/g, ' ');
+    });
 
-		const loading = ref(true);
-		const rootSkill: Ref<any> = useRootSkill();
+    const loading = ref(true);
+    const rootSkill: Ref<any> = useRootSkill();
 
-		onMounted(async () => {
-			loading.value = true;
-			await getRootSkill(rootSkillID.value);
-			loading.value = false;
-		});
+    onMounted(async () => {
+      loading.value = true;
+      await getRootSkill(rootSkillID.value);
+      loading.value = false;
+    });
 
-		return { rootSkillID, rootSkillName, loading, rootSkill };
-	},
+    return { rootSkillID, rootSkillName, loading, rootSkill };
+  },
 };
 </script>

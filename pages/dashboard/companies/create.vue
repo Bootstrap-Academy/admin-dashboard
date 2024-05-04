@@ -38,15 +38,15 @@
 
 <script lang="ts">
 definePageMeta({
-	middleware: ['auth'],
+  middleware: ['auth'],
 });
 
 export default {
-	head: {
-		title: 'Create Company',
-	},
-	setup() {
-		return {};
-	},
+  head: {
+    title: 'Create Company',
+  },
+  setup() {
+    return {};
+  },
 };
 </script>

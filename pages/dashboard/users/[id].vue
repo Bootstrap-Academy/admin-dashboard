@@ -51,71 +51,71 @@ import { useI18n } from 'vue-i18n';
 import type { Ref } from 'vue';
 
 definePageMeta({
-	middleware: ['auth'],
-	layout: 'dashboard',
+  middleware: ['auth'],
+  layout: 'dashboard',
 });
 
 export default {
-	head: {
-		title: 'Manage User - ',
-	},
-	setup() {
-		const { t } = useI18n();
+  head: {
+    title: 'Manage User - ',
+  },
+  setup() {
+    const { t } = useI18n();
 
-		const route = useRoute();
+    const route = useRoute();
 
-		const userID = computed(() => {
-			return <string>(route?.params?.id ?? '');
-		});
+    const userID = computed(() => {
+      return <string>(route?.params?.id ?? '');
+    });
 
-		const loading = ref(true);
-		const appUser: Ref<any> = useAppUser();
+    const loading = ref(true);
+    const appUser: Ref<any> = useAppUser();
 
-		const userName = computed(() => {
-			return appUser.value?.name ?? 'User';
-		});
+    const userName = computed(() => {
+      return appUser.value?.name ?? 'User';
+    });
 
-		onMounted(async () => {
-			loading.value = true;
-			await getAppUser(userID.value);
-			loading.value = false;
-		});
+    onMounted(async () => {
+      loading.value = true;
+      await getAppUser(userID.value);
+      loading.value = false;
+    });
 
-		const router = useRouter();
-		async function onclickDeleteUser() {
-			openDialog(
-				'warning',
-				'Headings.DeleteUser',
-				'Body.DeleteUser',
-				false,
-				{
-					label: 'Buttons.DeleteUser',
-					onclick: async () => {
-						setLoading(true);
-						const [success, error] = await deleteAppUser(userID.value);
-						setLoading(false);
+    const router = useRouter();
+    async function onclickDeleteUser() {
+      openDialog(
+        'warning',
+        'Headings.DeleteUser',
+        'Body.DeleteUser',
+        false,
+        {
+          label: 'Buttons.DeleteUser',
+          onclick: async () => {
+            setLoading(true);
+            const [success, error] = await deleteAppUser(userID.value);
+            setLoading(false);
 
-						if (success) {
-							router.push('/dashboard/users');
-							setTimeout(() => {
-								openSnackbar(
-									'success',
-									t('Success.DeleteUser', { placeholder: userName.value })
-								);
-							}, 1000);
-						} else {
-							openSnackbar('error', error?.detail ?? '');
-						}
-					},
-				},
-				{
-					label: 'Buttons.Cancel',
-					onclick: () => {},
-				}
-			);
-		}
+            if (success) {
+              router.push('/dashboard/users');
+              setTimeout(() => {
+                openSnackbar(
+                  'success',
+                  t('Success.DeleteUser', { placeholder: userName.value })
+                );
+              }, 1000);
+            } else {
+              openSnackbar('error', error?.detail ?? '');
+            }
+          },
+        },
+        {
+          label: 'Buttons.Cancel',
+          onclick: () => {},
+        }
+      );
+    }
 
-		return { appUser, onclickDeleteUser };
-	},
+    return { appUser, onclickDeleteUser };
+  },
 };
 </script>

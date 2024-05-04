@@ -1,11 +1,10 @@
 <template>
   <div>
     <Head>
-      <Title>Manage User - {{ appUser?.name ?? "" }}</Title>
+      <Title>{{ t('Headings.reportedTasks') }}</Title>
     </Head>
     <PageTitle class="mb-8" />
     <div ref="scrollRef"></div>
-
     <Reported-TasksTable :data="reportedSubtasksList" :loading="loading" />
 
     <Btn
@@ -18,20 +17,18 @@
         <span class="mr-2">Loading</span>
         <LoadingCircular />
       </template>
-      <span v-else>Load More</span>
+      <span v-else-if="!loading">Load More</span>
     </Btn>
 
     <p v-else class="text-center mt-10">
       {{ t("Headings.NoMoreSubtasks") }}
     </p>
-
     <ScrollToBtn :scrollRef="scrollRef" />
   </div>
 </template>
 
 <script lang="ts">
 import { ref, onMounted } from "vue";
-import type { Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   getreportedSubtasksList,
@@ -57,23 +54,21 @@ export default {
     const noMoreSubtasks = useNoMoreSubtasks();
     const { t } = useI18n();
     const reportedSubtasksList = useReportedSubtasks();
-    const loading = ref(
-      !(reportedSubtasksList.value && reportedSubtasksList.value.length > 0)
-    );
+    const loading = useReportedTasksLoading()
 
     const scrollRef = ref<HTMLElement | null>(null);
     async function onclickLoadMore() {
+      loading.value = true
       offset.value = offset.value + limit.value;
-      loading.value = true;
       await getreportedSubtasksList(false);
-      loading.value = false;
     }
 
     onMounted(async () => {
+      console.log("mounted");
+      offset.value = 0;
+      limit.value = 10;
       reportedSubtasksList.value = [];
-      loading.value = true;
       await getreportedSubtasksList(true);
-      loading.value = false;
     });
 
     return {

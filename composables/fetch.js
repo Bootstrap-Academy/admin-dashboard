@@ -91,7 +91,7 @@ const onResponseError = async ({ request, options, response }) => {
     details.includes("invalid token") ||
     details.includes("invalid refresh token")
   ) {
-    router.push(`/`);
+    router.push("/");
   }
 
   if (details.includes("user already exists")) {
@@ -143,7 +143,7 @@ function isAccessTokenExpired() {
   const accessToken = getAccessToken();
 
   try {
-    if (!!!accessToken) {
+    if (!accessToken) {
       throw { data: "Invalid Access Token: " + accessToken };
     }
 
