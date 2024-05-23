@@ -96,7 +96,12 @@
 		"JobEnvironment": "Arbeitsumgebung",
 		"MatchingSolution": "Passende Lösung",
 		"TaskOwner": "Ersteller",
-		"reportedTasks": "Gemeldete Aufgaben"
+		"reportedTasks": "Gemeldete Aufgaben",
+		"Challenges": "Challenge-Kategorien",
+		"Title": "Titel",
+		"ChallengeCategoryInformation": "Informationen zur Challenge-Kategorie",
+		"CreateChallengeCategory": "Challenge-Kategorie erstellen",
+		"EditChallengeCategory": "Challenge-Kategorie bearbeiten"
 	},
 	"Body": {
 		"SearchByEmail": "Suche nach E-Mail",
@@ -204,13 +209,20 @@
 		"blockReporter": "Reporter blockieren",
 		"blockCreator": "Ersteller blockieren"
 	},
+	"Dialogs": {
+		"DeleteChallengeHeading": "Challenge-Kategorie löschen?",
+		"DeleteChallengeBody": "Sind Sie sicher, dass Sie diese Challenge-Kategorie löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+		"DeleteChallengeButton": "Ja, Challenge-Kategorie löschen",
+		"DeleteChallengeConfirmation": "Die Challenge-Kategorie wurde erfolgreich gelöscht."
+	},
 	"Links": {
 		"GoBack": "Zurück",
 		"Dashboard": "Dashboard",
 		"Users": "Benutzer",
 		"Jobs": "Jobs",
 		"SkillTree": "Skill-Baum",
-		"ReportedTasks": "Gemeldete Aufgaben"
+		"ReportedTasks": "Gemeldete Aufgaben",
+		"Challenges": "Challenge-Kategorien"
 	},
 	"Success": {
 		"ResolveReport": "Bericht erfolgreich gelöst",

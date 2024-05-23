@@ -47,6 +47,8 @@ export default defineComponent({
         return "Headings.ReportedTasks";
       case "dashboard-reported-tasks-id":
         return "Headings.ManageReport";
+      case "dashboard-challenges":
+        return "Headings.Challenges";
 
       default:
         return routeName;
