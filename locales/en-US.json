@@ -99,7 +99,12 @@
 		"JobEnvironment": "Job Environment",
 		"MatchingSolution": "Matching Solution",
 		"TaskOwner": "Task Owner",
-		"reportedTasks": "Reported Tasks"
+		"reportedTasks": "Reported Tasks",
+		"Challenges": "Challenge categories",
+		"Title": "Title",
+		"ChallengeCategoryInformation": "Information on the challenge category",
+		"CreateChallengeCategory": "Create challenge category",
+		"EditChallengeCategory": "Edit challenge category"
 	},
 	"Body": {
 		"SearchByEmail": "Search by email",
@@ -207,13 +212,20 @@
 		"blockReporter": "Block reporter",
 		"blockCreator": "Block creator"
 	},
+	"Dialogs": {
+		"DeleteChallengeHeading": "Delete challenge category?",
+		"DeleteChallengeBody": "Are you sure you want to delete this challenge category? This action cannot be undone.",
+		"DeleteChallengeButton": "Yes, Delete challenge category",
+		"DeleteChallengeConfirmation": "Challenge category has been deleted successfully."
+	},
 	"Links": {
 		"GoBack": "Go Back",
 		"Dashboard": "Dashboard",
 		"Users": "Users",
 		"Jobs": "Jobs",
 		"SkillTree": "Skill Tree",
-		"ReportedTasks": "Reported Tasks"
+		"ReportedTasks": "Reported Tasks",
+		"Challenges": "Challenge categories"
 	},
 	"Success": {
 		"ResolveReport": "Successfully Resolved Report",
