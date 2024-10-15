@@ -34,7 +34,7 @@ export async function getAppUsers(filters: UserFilter) {
         (value as string[]).forEach((item: string) => {
           newQuery = newQuery + `${key}=${item}&`;
         });
-      } else if (typeof value === 'boolean' && value === true) {
+      } else if (typeof value === 'boolean') {
         newQuery = newQuery + `${key}=${value}&`;
       } else if (
         typeof value === 'string' &&
