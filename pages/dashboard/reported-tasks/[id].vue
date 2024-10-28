@@ -72,14 +72,6 @@
 			<InputBtn
 				sm
 				:loading="loadingCorrect"
-				@click="fnResolveReport(RESOLVE.REVISE), (loadingCorrect = true)"
-			>
-				{{ t("Buttons.adjustTask") }}
-			</InputBtn>
-
-			<InputBtn
-				sm
-				:loading="loadingCorrect"
 				@click="deleteTask(), (loadingCorrect = true)"
 			>
 				{{ t("Buttons.deleteTask") }}
@@ -102,6 +94,30 @@
 			>
 				{{ t("Buttons.blockCreator") }}
 			</InputBtn>
+
+			<InputBtn
+				sm
+          @click="openDialogEditTask()"
+        >
+          {{ t("Buttons.adjustTask") }}
+        </InputBtn>
+
+			<InputBtn
+				sm
+				:loading="loadingCorrect"
+				@click="fnResolveReport(RESOLVE.REVISE), (loadingCorrect = true)"
+			>
+				{{ t("Buttons.markAsRevised") }}
+			</InputBtn>
+
+			<DialogSlot
+        v-if="dialogEditTask"
+        :label="'Headings.Quiz'"
+        :show="dialogEditTask"
+        @closeFunction="closeEditTaskDialog()"
+      >
+        <LazyFormQuiz :data="mcq" :taskId="task_id.toString()" /> 
+      </DialogSlot>
 		</section>
 	</div>
 </template>
@@ -109,16 +125,16 @@
 <script lang="ts" setup>
 import {
   resolveReport,
-  useReportSubtaskType,
   getCodingChallenge,
   getMcq,
   useCodingChallenge,
   useMcq,
   useCodingChallengeSolution,
 } from "~~/composables/reportedSubtasks";
-import { ExclamationCircleIcon, CheckIcon } from "@heroicons/vue/24/outline";
+import { ExclamationCircleIcon } from "@heroicons/vue/24/outline";
 import { useI18n } from "vue-i18n";
 import { RESOLVE, TASK_TYPE } from "~/types/reportedTaskTypes";
+import { useDialogSlot } from "~/composables/dialogSlot";
 
 definePageMeta({
   middleware: ["auth"],
@@ -128,30 +144,32 @@ definePageMeta({
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
+const dialogEditTask = useDialogSlot();
 const codingChallengeSolution: any = useCodingChallengeSolution();
 const reportId = computed(() => {
   return route.params?.id ?? "";
 });
 
-const task_id = computed(() => {
-  return route.query?.taskId ?? "";
-});
-const subtask_id = computed(() => {
-  return route.query?.subtaskId ?? "";
-});
+const task_id = computed(() => route.query?.taskId ?? "");
+const subtask_id = computed(() => route.query?.subtaskId ?? "");
 
 const reportedTask = useReportedSubtask();
-const reportedAt = computed(() => {
-  return convertTimestampToDate(
+const reportedAt = computed(() => convertTimestampToDate(
     convertDateToTimestamp(reportedTask.value.timestamp)
-  );
-});
+  ));
 
 const loadingCorrect = ref(false);
 const loadingInCorrect = ref(false);
 const CodingChallenge: any = useCodingChallenge();
-const solution: any = useCodingChallengeSolution();
 const mcq: any = useMcq();
+
+function openDialogEditTask() {
+  dialogEditTask.value = true;
+}
+
+async function closeEditTaskDialog() {
+  dialogEditTask.value = false;
+}
 
 async function fnResolveReport(action: RESOLVE) {
   const [success, error] = await resolveReport(reportId.value, {
@@ -215,5 +233,3 @@ onMounted(async () => {
   }
 });
 </script>
-
-<style scoped></style>

@@ -5,6 +5,8 @@
 		"LoginForm": "Please enter your credentials"
 	},
 	"Headings": {
+		"Option": "Option",
+		"Correct": "Correct",
 		"ManageReport": "Manage Report",
 		"userEnabled": "User aktiviert",
 		"userDisabled": "User deaktiviert",
@@ -185,6 +187,7 @@
 		"MFACode": "MFA 6 digit Code"
 	},
 	"Buttons": {
+		"UpdateQuiz": "Update Quiz",
 		"Incorrect": "Incorrect",
 		"Correct": "Correct",
 		"Safe": "Safe",
@@ -208,6 +211,7 @@
 		"EditCompany": "Edit Company",
 		"CreateCompany": "Create New Company",
 		"adjustTask": "Adjust Task",
+		"markAsRevised": "Mark task as revised",
 		"deleteTask": "Delete Task",
 		"blockReporter": "Block reporter",
 		"blockCreator": "Block creator"
