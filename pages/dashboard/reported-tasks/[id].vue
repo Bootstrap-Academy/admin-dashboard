@@ -155,8 +155,8 @@ const subtask_id = computed(() => route.query?.subtaskId ?? "");
 
 const reportedTask = useReportedSubtask();
 const reportedAt = computed(() => convertTimestampToDate(
-    convertDateToTimestamp(reportedTask.value.timestamp)
-  ));
+  convertDateToTimestamp(reportedTask.value.timestamp)
+));
 
 const loadingCorrect = ref(false);
 const loadingInCorrect = ref(false);

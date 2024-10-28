@@ -6,7 +6,8 @@
 		"generate": "nuxt generate",
 		"preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "lint": "eslint --ext .js,.vue,.ts ."
+    "lint": "eslint --ext .js,.vue,.ts .",
+		"lint:fix": "eslint --ext .js,.vue,.ts --fix ."
 	},
 	"devDependencies": {
 		"autoprefixer": "^10.4.19",
