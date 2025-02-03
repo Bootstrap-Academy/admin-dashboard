@@ -26,6 +26,7 @@
 					v-for="option of options"
 					:key="option?.value ?? ''"
 					:value="option?.value ?? ''"
+          			class="text-black bg-white"
 				>
 					{{ t(option?.label ?? '') }}
 				</option>
@@ -97,6 +98,9 @@ export default defineComponent({
 .input-type select {
 	@apply pl-4 pr-12 py-3 text-base font-body text-white transition ease-out duration-500 rounded-md focus:outline-none ring-2 ring-tertiary focus:ring-offset-2 focus:ring-offset-tertiary focus:ring-accent;
 }
+.input-type select option {
+	@apply text-black bg-white;
+}
 .input-type.sm select {
 	@apply text-xs pl-3.5 pr-10 py-3;
 }
@@ -113,6 +117,9 @@ export default defineComponent({
 }
 .btn-type select {
 	@apply text-base pl-4 pr-12 py-3 rounded border border-accent focus:ring-4 focus:ring-tertiary h-fit w-fit text-white font-medium font-body transition-basic outline-none;
+}
+.btn-type select option {
+	@apply text-black bg-white;
 }
 .btn-type.sm select {
 	@apply text-xs pl-3.5 pr-10 py-3;
