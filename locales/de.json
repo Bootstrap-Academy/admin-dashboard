@@ -101,7 +101,9 @@
 		"Title": "Titel",
 		"ChallengeCategoryInformation": "Informationen zur Challenge-Kategorie",
 		"CreateChallengeCategory": "Challenge-Kategorie erstellen",
-		"EditChallengeCategory": "Challenge-Kategorie bearbeiten"
+		"EditChallengeCategory": "Challenge-Kategorie bearbeiten",
+		"Report": "Bericht",
+		"Block": "Blockieren"
 	},
 	"Body": {
 		"SearchByEmail": "Suche nach E-Mail",
@@ -204,7 +206,7 @@
 		"EditJob": "Job bearbeiten",
 		"EditCompany": "Firma bearbeiten",
 		"CreateCompany": "Neue Firma erstellen",
-		"adjustTask": "Aufgabe anpassen",
+		"rejectReport": "Bericht zurückweisen",
 		"deleteTask": "Aufgabe löschen",
 		"blockReporter": "Reporter blockieren",
 		"blockCreator": "Ersteller blockieren"
