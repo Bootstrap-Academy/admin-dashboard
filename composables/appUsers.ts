@@ -1,6 +1,6 @@
 import { useState } from '#app';
 import type { Ref } from 'vue';
-import { GET, PATCH, DELETE, PUT } from './fetch';
+import { GET, PATCH, DELETE } from './fetch';
 import {
   UserFilter,
   UserSearchRequestBody,
@@ -11,9 +11,6 @@ import {
 export const useAppUsers = () => useState<User[]>('appUsers', () => []);
 export const useTotalAppUsers = () => useState('totalAppUsers', () => 0);
 export const useAppUser = () => useState('appUser', () => null);
-export const useOffset = () => useState('offset', () => 0);
-export const useLimit = () => useState('limit', () => 10);
-export const useQuery = () => useState('query', () => '');
 export const useBanUsers = () => useState('banUsers', () => []);
 
 export async function getUserTest(query: UserSearchRequestBody) {
@@ -37,7 +34,7 @@ export async function getAppUsers(filters: UserFilter) {
         (value as string[]).forEach((item: string) => {
           newQuery = newQuery + `${key}=${item}&`;
         });
-      } else if (typeof value === 'boolean' && value === true) {
+      } else if (typeof value === 'boolean') {
         newQuery = newQuery + `${key}=${value}&`;
       } else if (
         typeof value === 'string' &&
@@ -54,17 +51,7 @@ export async function getAppUsers(filters: UserFilter) {
       newQuery = newQuery.slice(0, -1);
     }
 
-    const query = useQuery();
-    const offset = useOffset();
-    const limit = useLimit();
-
-    if (newQuery != query.value) {
-      offset.value = 0;
-    }
-
-    const response = await GET(
-      `/auth/users?offset=${offset.value}&limit=${limit.value}&${newQuery}`
-    );
+    const response = await GET(`/auth/users?${newQuery}`);
 
     const appUsers: Ref<any[]> = useAppUsers();
     const totalAppUsers = useTotalAppUsers();
@@ -101,12 +88,6 @@ export async function getAppUsers(filters: UserFilter) {
     }
 
     totalAppUsers.value = response?.total ?? 0;
-    query.value = newQuery;
-
-    console.log('offset', offset.value);
-    console.log('current', appUsers.value.length);
-    console.log('total', totalAppUsers.value);
-    console.log('------------------------------------------------');
 
     return [response, null];
   } catch (error: any) {

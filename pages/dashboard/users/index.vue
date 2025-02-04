@@ -153,7 +153,6 @@ export default {
 
     const emailSearch = ref(true);
     const loading = ref(appUsers.value.length <= 0);
-    const offset = useOffset();
     const modalOpen = ref(false);
     const getUserRequestBody = reactive(new UserSearchRequestBody());
 
@@ -336,7 +335,6 @@ export default {
       onSelectedOption,
       options,
       scrollRef,
-      offset,
       totalAppUsers,
       emailSearch,
       getUserRequestBody,
