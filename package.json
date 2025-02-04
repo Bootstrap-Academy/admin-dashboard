@@ -12,7 +12,7 @@
 		"autoprefixer": "^10.4.19",
     "eslint": "^8.57.0",
     "eslint-plugin-vue": "^9.26.0",
-		"nuxt": "3.11.2",
+		"nuxt": "3.12.4",
 		"postcss": "^8.4.35",
 		"tailwindcss": "^3.4.3",
 		"vue-i18n": "^9.13.1"
