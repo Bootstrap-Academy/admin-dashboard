@@ -104,7 +104,9 @@
 		"Title": "Title",
 		"ChallengeCategoryInformation": "Information on the challenge category",
 		"CreateChallengeCategory": "Create challenge category",
-		"EditChallengeCategory": "Edit challenge category"
+		"EditChallengeCategory": "Edit challenge category",
+		"Report": "Report",
+		"Block": "Block"
 	},
 	"Body": {
 		"SearchByEmail": "Search by email",
@@ -207,7 +209,7 @@
 		"EditJob": "Edit Job",
 		"EditCompany": "Edit Company",
 		"CreateCompany": "Create New Company",
-		"adjustTask": "Adjust Task",
+		"rejectReport": "Reject Report",
 		"deleteTask": "Delete Task",
 		"blockReporter": "Block reporter",
 		"blockCreator": "Block creator"
