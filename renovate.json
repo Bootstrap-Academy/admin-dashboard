@@ -5,5 +5,9 @@
 
   "lockFileMaintenance": {
     "enabled": true
+  },
+
+  "nodenv": {
+    "enabled": false
   }
 }
