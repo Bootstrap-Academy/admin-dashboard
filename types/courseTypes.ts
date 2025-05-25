@@ -10,7 +10,7 @@ export class Quiz {
   single_choice: boolean = false;
   solved: boolean = false;
   task_id: string = "";
-  type: string = ""; // ? 'MULTIPLE_CHOICE_QUESTION
+  type: string = "";
   xp: number = 0;
   answers: string[] = [];
 }
