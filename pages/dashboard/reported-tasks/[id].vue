@@ -131,7 +131,12 @@ import {
   useMcq,
   useCodingChallengeSolution,
 } from "~~/composables/reportedSubtasks";
-import { ExclamationCircleIcon } from "@heroicons/vue/24/outline";
+import {
+  ExclamationCircleIcon,
+  MinusCircleIcon,
+  TrashIcon,
+  NoSymbolIcon,
+} from "@heroicons/vue/24/outline";
 import { useI18n } from "vue-i18n";
 import { RESOLVE, TASK_TYPE } from "~/types/reportedTaskTypes";
 import { useDialogSlot } from "~/composables/dialogSlot";
@@ -202,9 +207,7 @@ function errorHandler(error: any) {
 }
 
 onMounted(async () => {
-  if (
-    reportedTask.value.subtask_type === TASK_TYPE.MULTIPLE_CHOICE_QUESTION
-  ) {
+  if (reportedTask.value.subtask_type === TASK_TYPE.MULTIPLE_CHOICE_QUESTION) {
     const [success, error] = await getMcq(task_id.value, subtask_id.value);
     if (error) {
       openSnackbar("error", error ?? "");
