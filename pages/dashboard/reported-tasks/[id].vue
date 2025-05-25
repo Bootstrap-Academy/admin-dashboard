@@ -89,26 +89,26 @@
 
 <script lang="ts" setup>
 import {
-	resolveReport,
-	getCodingChallenge,
-	getMcq,
-	useCodingChallenge,
-	useMcq,
-	useCodingChallengeSolution,
+  resolveReport,
+  getCodingChallenge,
+  getMcq,
+  useCodingChallenge,
+  useMcq,
+  useCodingChallengeSolution,
 } from "~~/composables/reportedSubtasks";
 import {
-	ExclamationCircleIcon,
-	MinusCircleIcon,
-	TrashIcon,
-	NoSymbolIcon,
+  ExclamationCircleIcon,
+  MinusCircleIcon,
+  TrashIcon,
+  NoSymbolIcon,
 } from "@heroicons/vue/24/outline";
 import { useI18n } from "vue-i18n";
 import { RESOLVE, TASK_TYPE } from "~/types/reportedTaskTypes";
 import { useDialogSlot } from "~/composables/dialogSlot";
 
 definePageMeta({
-	middleware: ["auth"],
-	layout: "dashboard",
+  middleware: ["auth"],
+  layout: "dashboard",
 });
 
 const { t } = useI18n();
@@ -117,7 +117,7 @@ const router = useRouter();
 const dialogEditTask = useDialogSlot();
 const codingChallengeSolution: any = useCodingChallengeSolution();
 const reportId = computed(() => {
-	return route.params?.id ?? "";
+  return route.params?.id ?? "";
 });
 
 const task_id = computed(() => route.query?.taskId ?? "");
@@ -125,7 +125,7 @@ const subtask_id = computed(() => route.query?.subtaskId ?? "");
 
 const reportedTask = useReportedSubtask();
 const reportedAt = computed(() => convertTimestampToDate(
-	convertDateToTimestamp(reportedTask.value.timestamp)
+  convertDateToTimestamp(reportedTask.value.timestamp)
 ));
 
 const loadingCorrect = ref(false);
@@ -134,70 +134,70 @@ const CodingChallenge: any = useCodingChallenge();
 const mcq: any = useMcq();
 
 function openDialogEditTask() {
-	dialogEditTask.value = true;
+  dialogEditTask.value = true;
 }
 
 async function closeEditTaskDialog() {
-	dialogEditTask.value = false;
+  dialogEditTask.value = false;
 }
 
 async function fnResolveReport(action: RESOLVE) {
-	const [success, error] = await resolveReport(reportId.value, {
-		action: action,
-	});
-	loadingCorrect.value = false;
-	loadingInCorrect.value = false;
-	if (success) sucessHandler(success);
-	else errorHandler(error);
+  const [success, error] = await resolveReport(reportId.value, {
+    action: action,
+  });
+  loadingCorrect.value = false;
+  loadingInCorrect.value = false;
+  if (success) sucessHandler(success);
+  else errorHandler(error);
 }
 
 const deleteTask = async () => {
-	const [success, error] = await deleteReportedTask(
-		reportedTask.value.task_id,
-		reportedTask.value.subtask_id
-	);
-	loadingCorrect.value = false;
-	loadingInCorrect.value = false;
-	if (success) sucessHandler(success);
-	else errorHandler(error);
+  const [success, error] = await deleteReportedTask(
+    reportedTask.value.task_id,
+    reportedTask.value.subtask_id
+  );
+  loadingCorrect.value = false;
+  loadingInCorrect.value = false;
+  if (success) sucessHandler(success);
+  else errorHandler(error);
 };
 
 function sucessHandler(success: any) {
-	openSnackbar("success", "Success.ResolveReport");
-	router.push("/dashboard/reported-tasks");
+  openSnackbar("success", "Success.ResolveReport");
+  router.push("/dashboard/reported-tasks");
 }
 
 function errorHandler(error: any) {
-	openSnackbar("error", error);
+  openSnackbar("error", error);
 }
 
 onMounted(async () => {
-	if (reportedTask.value.subtask_type === TASK_TYPE.MULTIPLE_CHOICE_QUESTION) {
-		const [success, error] = await getMcq(task_id.value, subtask_id.value);
-		if (error) {
-			openSnackbar("error", error ?? "");
-			router.push("/dashboard/reported-tasks");
-		}
-	} else if (reportedTask.value.subtask_type === TASK_TYPE.MATCHING) {
-		const [success, error] = await getMatching(
-			reportedTask.value.task_id,
-			reportedTask.value.subtask_id
-		);
-		if (error) {
-			openSnackbar("error", t("Error.errorLoadingMatchingTask"));
-			router.push("/dashboard/reported-tasks");
-		}
-	} else if (reportedTask.value.subtask_type === TASK_TYPE.CODING_CHALLENGE) {
-		const [success, error] = await getCodingChallenge(
-			task_id.value,
-			subtask_id.value
-		);
-		if (error) {
-			openSnackbar("error", error ?? "");
-			router.push("/dashboard/reported-tasks");
-		}
-	} else if (reportedTask.value.subtask_type === TASK_TYPE.QUESTION) {
-		console.log("question");
-	}
+  if (reportedTask.value.subtask_type === TASK_TYPE.MULTIPLE_CHOICE_QUESTION) {
+    const [success, error] = await getMcq(task_id.value, subtask_id.value);
+    if (error) {
+      openSnackbar("error", error ?? "");
+      router.push("/dashboard/reported-tasks");
+    }
+  } else if (reportedTask.value.subtask_type === TASK_TYPE.MATCHING) {
+    const [success, error] = await getMatching(
+      reportedTask.value.task_id,
+      reportedTask.value.subtask_id
+    );
+    if (error) {
+      openSnackbar("error", t("Error.errorLoadingMatchingTask"));
+      router.push("/dashboard/reported-tasks");
+    }
+  } else if (reportedTask.value.subtask_type === TASK_TYPE.CODING_CHALLENGE) {
+    const [success, error] = await getCodingChallenge(
+      task_id.value,
+      subtask_id.value
+    );
+    if (error) {
+      openSnackbar("error", error ?? "");
+      router.push("/dashboard/reported-tasks");
+    }
+  } else if (reportedTask.value.subtask_type === TASK_TYPE.QUESTION) {
+    console.log("question");
+  }
 });
 </script>
