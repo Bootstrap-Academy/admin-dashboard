@@ -153,6 +153,9 @@
 		}
 	},
 	"Inputs": {
+		"Option": "Option",
+		"Correct": "Richtig",
+		"Question": "Frage",
 		"EmailOrUsername": "E-Mail-Adresse oder Spitzname",
 		"Password": "Passwort",
 		"CompanyId": "Firmen-ID",
@@ -184,6 +187,7 @@
 		"MFACode": "6-stelliger MFA-Code"
 	},
 	"Buttons": {
+		"UpdateQuiz": "Quiz aktualisieren",
 		"Incorrect": "Falsch",
 		"Correct": "Richtig",
 		"Safe": "Sicher",
@@ -206,6 +210,8 @@
 		"EditJob": "Job bearbeiten",
 		"EditCompany": "Firma bearbeiten",
 		"CreateCompany": "Neue Firma erstellen",
+		"adjustTask": "Aufgabe anpassen",
+		"markAsRevised": "Aufgabe als überarbeitet markieren",
 		"rejectReport": "Bericht zurückweisen",
 		"deleteTask": "Aufgabe löschen",
 		"blockReporter": "Reporter blockieren",
