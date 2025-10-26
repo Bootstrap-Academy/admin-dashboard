@@ -25,6 +25,8 @@
 		"gleap": "^15.0.0",
 		"jwt-decode": "^4.0.0",
 		"markdown-it": "^14.1.0",
-		"vue-recaptcha-v3": "^2.0.1"
+		"vue-recaptcha-v3": "^2.0.1",
+		"chart.js": "^4.4.6",
+		"vue-chartjs": "^5.3.1"
 	}
 }
