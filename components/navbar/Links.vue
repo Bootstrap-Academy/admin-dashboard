@@ -31,7 +31,6 @@ import {
   Squares2X2Icon,
   UsersIcon,
   BriefcaseIcon,
-  Bars3Icon,
   BookOpenIcon,
   TrophyIcon
 } from "@heroicons/vue/24/solid/index.js";
@@ -43,7 +42,8 @@ export default {
     UsersIcon,
     BriefcaseIcon,
     IconSkillTree,
-    Bars3Icon,
+    BookOpenIcon,
+    TrophyIcon,
   },
   emits: ["closeMenu"],
   setup(props, { emit }) {
