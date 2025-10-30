@@ -106,6 +106,8 @@
 		"Block": "Blockieren"
 	},
 	"Body": {
+		"DashboardPlaceholder": "Dieses Dashboard wurde archiviert. Analytics befinden sich jetzt in Grafana.",
+		"DashboardPlaceholderHint": "Bitte nutzen Sie Grafana, um aktuelle Metriken und Berichte anzusehen.",
 		"SearchByEmail": "Suche nach E-Mail",
 		"DeleteUser": "Sind Sie sicher, dass Sie diesen Benutzer löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
 		"NoMoreReports": "Keine weiteren Berichte gefunden.",

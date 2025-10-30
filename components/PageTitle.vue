@@ -17,7 +17,6 @@ export default defineComponent({
       switch (routeName) {
       case "dashboard":
         return "Headings.Dashboard";
-
       case "dashboard-users":
         return "Headings.Users";
       case "dashboard-users-id":
