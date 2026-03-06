@@ -10,7 +10,7 @@
 	},
 	"devDependencies": {
 		"autoprefixer": "^10.4.25",
-		"eslint": "^9.39.3",
+		"eslint": "^9.39.4",
 		"eslint-plugin-vue": "^10.8.0",
 		"nuxt": "4.3.1",
 		"postcss": "^8.5.8",
