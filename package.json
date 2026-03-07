@@ -15,7 +15,7 @@
 		"nuxt": "4.3.1",
 		"postcss": "^8.5.8",
 		"tailwindcss": "^3.4.19",
-		"vue-i18n": "^11.2.7"
+		"vue-i18n": "^11.3.0"
 	},
 	"dependencies": {
 		"@heroicons/vue": "^2.2.0",
