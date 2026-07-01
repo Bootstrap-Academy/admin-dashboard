@@ -9,7 +9,7 @@
 		"lint": "eslint --ext .js,.vue,.ts ."
 	},
 	"devDependencies": {
-		"autoprefixer": "^10.5.1",
+		"autoprefixer": "^10.5.2",
 		"eslint": "^9.39.4",
 		"eslint-plugin-vue": "^10.9.2",
 		"nuxt": "4.4.8",
