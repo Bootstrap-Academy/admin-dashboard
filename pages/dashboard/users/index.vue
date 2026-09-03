@@ -201,8 +201,7 @@ export default {
         new CheckOption(USER_LOCALES.USER_ENABLED),
         new CheckOption(USER_LOCALES.USER_ADMIN),
         new CheckOption(USER_LOCALES.USER_MFA),
-        new CheckOption(USER_LOCALES.USER_EMAIL_VERIFIED),
-        new CheckOption(USER_LOCALES.USER_NEWSLETTER)
+        new CheckOption(USER_LOCALES.USER_EMAIL_VERIFIED)
       );
     };
 
@@ -220,9 +219,6 @@ export default {
           break;
         case USER_LOCALES.USER_EMAIL_VERIFIED:
           getUserRequestBody.email_verified = option.value;
-          break;
-        case USER_LOCALES.USER_NEWSLETTER:
-          getUserRequestBody.newsletter = option.value;
           break;
         }
       });
@@ -262,14 +258,6 @@ export default {
       {
         label: 'Headings.NotVerified',
         value: USERSORT.NOTEMAILVERIFIED,
-      },
-      {
-        label: 'Headings.Newsletter',
-        value: USERSORT.NEWSLETTER,
-      },
-      {
-        label: 'Headings.NoNewsletter',
-        value: USERSORT.NOTNEWSLETTER,
       },
     ];
 
@@ -314,16 +302,6 @@ export default {
       case USERSORT.NOTEMAILVERIFIED:
         getUserRequestBody.clearFilters();
         getUserRequestBody.email_verified = false;
-        userSearch();
-        break;
-      case USERSORT.NEWSLETTER:
-        getUserRequestBody.clearFilters();
-        getUserRequestBody.newsletter = true;
-        userSearch();
-        break;
-      case USERSORT.NOTNEWSLETTER:
-        getUserRequestBody.clearFilters();
-        getUserRequestBody.newsletter = false;
         userSearch();
         break;
       }
