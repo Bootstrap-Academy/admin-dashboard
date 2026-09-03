@@ -7,13 +7,12 @@
 				<h3>{{ item.label }}</h3>
 
 				<div
-					v-if="item.src"
+					v-if="item.avatar !== undefined"
 					class="flex gap-2 md:gap-4 items-center max-w-[350px]"
 				>
-					<img
-						:src="item.src"
-						alt=""
-						class="h-5 w-5 md:h-10 md:w-10 object-contain rounded-full"
+					<Avatar
+						:name="item.avatar"
+						class="h-5 w-5 md:h-10 md:w-10 flex-shrink-0"
 					/>
 					<p class="clamp line-1 text-body-1 text-heading">
 						{{ item.value }}
@@ -78,7 +77,7 @@ export default defineComponent({
         {
           label: 'Name',
           value: props.data?.name ?? '',
-          src: props.data?.avatar_url ?? '',
+          avatar: props.data?.display_name ?? props.data?.name ?? '',
         },
         {
           label: 'Display Name',
