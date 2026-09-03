@@ -19,14 +19,6 @@
 		<hr />
 
 		<article>
-			<h3>{{ newsletter.label }}</h3>
-			<CheckCircleIcon v-if="newsletter.value" class="icon text-success" />
-			<XCircleIcon v-else class="icon text-error" />
-		</article>
-
-		<hr />
-
-		<article>
 			<h3>
 				{{ enabled.label }}
 				<PencilSquareIcon class="pencil-icon" @click="enabled.onclick()" />
@@ -174,13 +166,6 @@ export default defineComponent({
       };
     });
 
-    const newsletter = computed(() => {
-      return {
-        label: 'Newsletter',
-        value: props.data?.newsletter ?? false,
-      };
-    });
-
     const registration = computed(() => {
       let { date, month, year } = convertTimestampToDate(
         props.data?.registration ?? ''
@@ -207,7 +192,6 @@ export default defineComponent({
       isMFA,
       verified,
       role,
-      newsletter,
       registration,
       last_login,
       coinsDialog,

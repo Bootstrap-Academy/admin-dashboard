@@ -122,8 +122,6 @@ const onResponseError = async ({ request, options, response }) => {
     response._data.detail = "Error.InvalidVerificationCode";
   } else if (details.includes("email already verified")) {
     response._data.detail = "Error.EmailAlreadyVerified";
-  } else if (details.includes("newsletter already subscribed")) {
-    response._data.detail = "Error.NewsletterAlreadySubscribed";
   } else if (details.includes("mfa already enabled")) {
     response._data.detail = "Error.MFAAlreadyEnabled";
   } else if (details.includes("mfa not initialized")) {

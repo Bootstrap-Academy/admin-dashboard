@@ -49,11 +49,6 @@
       <XMarkIcon v-else class="icon text-error" />
     </template>
 
-    <template #newsletter="{ item }">
-      <CheckIcon v-if="item.newsletter" class="icon text-success" />
-      <XMarkIcon v-else class="icon text-error" />
-    </template>
-
     <template #enabled="{ item }">
       <CheckIcon v-if="item.enabled" class="icon text-success" />
       <XMarkIcon v-else class="icon text-error" />
@@ -184,10 +179,6 @@ export default {
         {
           label: "Headings.MFA",
           key: "mfa_enabled",
-        },
-        {
-          label: "Headings.Newsletter",
-          key: "newsletter",
         },
         {
           label: "Headings.Enabled",
