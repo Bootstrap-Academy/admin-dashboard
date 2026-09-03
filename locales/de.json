@@ -260,6 +260,7 @@
 		"RecaptchaFailed": "Ihr Recaptcha ist fehlgeschlagen.",
 		"AccountNotVerified": "Bitte verifizieren Sie Ihr Konto, um fortzufahren.",
 		"UserNotFound": "Benutzer wurde nicht gefunden",
+		"AdminMFARequired": "Administrationskonten benötigen eine Zwei-Faktor-Authentisierung. Richten Sie unter bootstrap.academy/account/mfa/initialize einen Authenticator ein und melden Sie sich anschließend mit Ihrem Code an.",
 		"PermissionDenied": "Sie haben keine Berechtigung für diese Aktion",
 		"InvalidVerificationCode": "Dieser Bestätigungscode ist ungültig. Bitte verwenden Sie einen gültigen.",
 		"EmailAlreadyVerified": "Diese E-Mail ist bereits verifiziert",

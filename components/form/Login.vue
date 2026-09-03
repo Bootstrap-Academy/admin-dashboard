@@ -119,6 +119,7 @@ export default defineComponent({
     // ============================================================= Checks
     const router = useRouter();
     const user: Ref<any> = useUser();
+    const session: Ref<any> = useSession();
     // ============================================================= functions
     async function onclickSubmitForm() {
       if (form.validate()) {
@@ -136,6 +137,14 @@ export default defineComponent({
         // checking is logged in user is admin or not
         if (Boolean(success) && user.value.admin == false) {
           errorHandler({ detail: 'Error.NotAuthorized' });
+          setStates(null);
+          return;
+        }
+
+        // the backend only grants administrative privileges to sessions that
+        // were authenticated with a second factor
+        if (Boolean(success) && session.value?.mfa_verified !== true) {
+          errorHandler({ detail: 'Error.AdminMFARequired' });
           setStates(null);
           return;
         }

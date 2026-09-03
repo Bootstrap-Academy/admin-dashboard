@@ -116,6 +116,8 @@ const onResponseError = async ({ request, options, response }) => {
     response._data.detail = "Error.MessageNotSubmitted";
   } else if (details.includes("user not found")) {
     response._data.detail = "Error.UserNotFound";
+  } else if (details.includes("admin mfa required")) {
+    response._data.detail = "Error.AdminMFARequired";
   } else if (details.includes("permission denied")) {
     response._data.detail = "Error.PermissionDenied";
   } else if (details.includes("invalid verification code")) {
