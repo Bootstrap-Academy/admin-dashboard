@@ -263,6 +263,7 @@
 		"RecaptchaFailed": "Your recaptcha has failed.",
 		"AccountNotVerified": "Please verify your account in order to move forward.",
 		"UserNotFound": "User was not found",
+		"AdminMFARequired": "Administrator accounts require two factor authentication. Set up an authenticator at bootstrap.academy/account/mfa/initialize and log in with your code afterwards.",
 		"PermissionDenied": "You do not have permission for this action",
 		"InvalidVerificationCode": "This verification code is invalid. Please use a valid one.",
 		"EmailAlreadyVerified": "This email is already verified",
