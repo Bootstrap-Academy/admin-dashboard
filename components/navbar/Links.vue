@@ -30,9 +30,9 @@ import { logout } from "~~/composables/auth";
 import {
   Squares2X2Icon,
   UsersIcon,
-  BriefcaseIcon,
   BookOpenIcon,
-  TrophyIcon
+  TrophyIcon,
+  DocumentTextIcon
 } from "@heroicons/vue/24/solid/index.js";
 import IconSkillTree from "~/components/icon/SkillTree.vue";
 
@@ -40,10 +40,10 @@ export default {
   components: {
     Squares2X2Icon,
     UsersIcon,
-    BriefcaseIcon,
     IconSkillTree,
     BookOpenIcon,
     TrophyIcon,
+    DocumentTextIcon,
   },
   emits: ["closeMenu"],
   setup(props, { emit }) {
@@ -63,18 +63,6 @@ export default {
         pathname: "/dashboard/users",
       },
       {
-        name: "dashboard-jobs",
-        icon: BriefcaseIcon,
-        label: "Links.Jobs",
-        pathname: "/dashboard/jobs",
-      },
-      {
-        name: "dashboard-companies",
-        icon: BriefcaseIcon,
-        label: "Companies",
-        pathname: "/dashboard/companies",
-      },
-      {
         name: "dashboard-skill-tree",
         icon: IconSkillTree,
         label: "Links.SkillTree",
@@ -91,6 +79,12 @@ export default {
         icon: TrophyIcon,
         label: "Links.Challenges",
         pathname: "/dashboard/challenges",
+      },
+      {
+        name: "dashboard-declarations",
+        icon: DocumentTextIcon,
+        label: "Links.Declarations",
+        pathname: "/dashboard/declarations",
       },
     ]);
 

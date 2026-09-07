@@ -16,7 +16,6 @@
 ❌ Display data
 ❌ Handle empty state
 
-❌ Recaptcha
 ❌ Preset Form
 ❌ Api implemented
 ❌ Form Client Side Error Handling

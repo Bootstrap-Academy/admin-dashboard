@@ -28,9 +28,6 @@
 		"Dashboard": "Dashboard",
 		"Users": "Benutzer",
 		"ManageUser": "Benutzer verwalten",
-		"Jobs": "Jobs",
-		"ManageJob": "Job verwalten",
-		"CreateJob": "Neuen Job erstellen",
 		"SkillTree": "Skill-Baum",
 		"ManageSkillTree": "Skill-Baum verwalten",
 		"CreateSubTree": "Unterbaum erstellen",
@@ -66,32 +63,16 @@
 		"GodTier": "Gott-Tier",
 		"Completed": "Abgeschlossen",
 		"Description": "Beschreibung",
-		"Responsibilities": "Verantwortlichkeiten",
-		"SkillRequirements": "Fähigkeitsanforderungen",
-		"JobDetails": "Jobdetails",
-		"JobOverview": "Jobübersicht",
-		"Experience": "Erfahrung",
 		"Minimum": "Minimum",
-		"Year": "Jahr",
 		"Years": "Jahre",
-		"OfferSalary": "Angebotenes Gehalt",
-		"Location": "Standort",
 		"Remote": "Remote",
 		"Office": "Büro",
-		"Contact": "Kontakt",
-		"LastUpdated": "Zuletzt aktualisiert",
 		"Latest": "Neueste",
 		"JobType": "Jobtyp",
 		"SalaryUnit": "Gehaltseinheit",
 		"RemoteOnly": "Nur Remote",
 		"Task": "Aufgabe",
-		"Hour": "Stunde",
-		"Day": "Tag",
-		"Month": "Monat",
-		"EmploymentType": "Beschäftigungsart",
 		"Salary": "Gehalt",
-		"ProfessionalLevel": "Berufliche Ebene",
-		"JobEnvironment": "Arbeitsumgebung",
 		"MatchingSolution": "Passende Lösung",
 		"TaskOwner": "Ersteller",
 		"reportedTasks": "Gemeldete Aufgaben",
@@ -101,7 +82,26 @@
 		"CreateChallengeCategory": "Challenge-Kategorie erstellen",
 		"EditChallengeCategory": "Challenge-Kategorie bearbeiten",
 		"Report": "Bericht",
-		"Block": "Blockieren"
+		"Block": "Blockieren",
+		"Declarations": "Kündigungen und Widerrufe",
+		"DeclarationReceivedAt": "Eingang",
+		"DeclarationKind": "Art der Erklärung",
+		"DeclarationKindAll": "Alle Erklärungen",
+		"DeclarationCancellation": "Kündigung",
+		"DeclarationWithdrawal": "Widerruf",
+		"OrdinaryCancellation": "Ordentliche Kündigung",
+		"ExtraordinaryCancellation": "Außerordentliche Kündigung",
+		"DeclarationDeclarant": "Erklärende Person",
+		"DeclarationContract": "Vertrag",
+		"ContractPremium": "Premium-Mitgliedschaft",
+		"ContractCoins": "MorphCoin-Kauf",
+		"ContractOther": "Sonstiger Vertrag",
+		"DeclarationEffectiveEnd": "Beendigungszeitpunkt",
+		"DeclarationEndOpen": "offen",
+		"DeclarationProcessed": "Bearbeitet",
+		"DeclarationOpen": "nicht bearbeitet",
+		"DeclarationNote": "Notiz zur Bearbeitung",
+		"MarkDeclarationProcessed": "Erklärung als bearbeitet markieren"
 	},
 	"Body": {
 		"DashboardPlaceholder": "Dieses Dashboard wurde archiviert. Analytics befinden sich jetzt in Grafana.",
@@ -127,55 +127,15 @@
 		"DISLIKE": "Abneigung",
 		"OTHER": "Andere",
 		"UNRELATED_SKILL": "Unrelated Skill",
-		"WRONG": "Falsch"
-	},
-	"List": {
-		"Filter": {
-			"FullTime": "Vollzeit",
-			"Freelance": "Freiberuflich",
-			"Internship": "Praktikum",
-			"PartTime": "Teilzeit",
-			"Temporary": "Temporär",
-			"Remote": "Remote",
-			"Office": "Büro",
-			"Entry": "Einsteiger",
-			"Junior": "Junior",
-			"Senior": "Senior",
-			"Manager": "Manager",
-			"Morphcoins": "Morphcoins",
-			"Euros": "Euro",
-			"Dollars": "Dollar",
-			"MiniJob": "Mini-Job",
-			"Any": "Beliebig",
-			"All": "Alle",
-			"Booked": "Gebucht",
-			"Mine": "Mein"
-		}
+		"WRONG": "Falsch",
+		"DeclarationsIntro": "Kündigungen und Widerrufe, die über die öffentlichen Formulare der Website eingegangen sind. Eine außerordentliche Kündigung erhält bewusst keinen automatisch ermittelten Beendigungszeitpunkt – dieser wird geprüft und der erklärenden Person gesondert in Textform bestätigt. Hier wird festgehalten, was bestätigt wurde.",
+		"MarkDeclarationProcessedHint": "Der Zeitpunkt der Bearbeitung wird vom Server gesetzt. Leere Felder bleiben unverändert; ein bereits gespeicherter Beendigungszeitpunkt wird also nicht gelöscht.",
+		"DeclarationEffectiveEndHint": "der Person bestätigter Beendigungszeitpunkt"
 	},
 	"Inputs": {
 		"EmailOrUsername": "E-Mail-Adresse oder Spitzname",
 		"Password": "Passwort",
-		"CompanyId": "Firmen-ID",
-		"JobTitle": "Jobtitel",
-		"Contact": "Kontakt",
-		"Description": "Beschreibung",
-		"JobLocation": "Arbeitsort",
-		"Remote": "Remote",
-		"JobType": "Jobtyp",
-		"ProfessionalLevel": "Berufliche Ebene",
-		"Responsibilities": "Verantwortlichkeiten",
-		"SkillRequirements": "Fähigkeitsanforderungen",
 		"ThisField": "Dieses Feld",
-		"SalaryMin": "Mindestgehalt",
-		"SalaryMax": "Höchstgehalt",
-		"SalaryUnit": "Gehaltseinheit",
-		"SalaryPer": "Gehalt pro",
-		"CompanyName": "Firmenname",
-		"CompanyWebsite": "Firmenwebsite",
-		"YoutubeVideoURL": "Youtube-Video-URL",
-		"TwitterHandle": "Twitter-Handle",
-		"InstagramHandle": "Instagram-Handle",
-		"LogoURL": "Logo-URL",
 		"SkillID": "ID",
 		"SkillName": "Name",
 		"SkillIcon": "Icon",
@@ -188,7 +148,6 @@
 		"Correct": "Richtig",
 		"Safe": "Sicher",
 		"Login": "Anmelden",
-		"Okay": "Okay",
 		"GetStarted": "Loslegen",
 		"ViewAll": "Alle anzeigen",
 		"Back": "Zurück",
@@ -202,14 +161,11 @@
 		"CancelEvent": "Veranstaltung abbrechen",
 		"YesCancelEvent": "Ja, Veranstaltung abbrechen",
 		"DeleteUser": "Ja, Benutzer löschen",
-		"CreateJob": "Neuen Job erstellen",
-		"EditJob": "Job bearbeiten",
-		"EditCompany": "Firma bearbeiten",
-		"CreateCompany": "Neue Firma erstellen",
 		"rejectReport": "Bericht zurückweisen",
 		"deleteTask": "Aufgabe löschen",
 		"blockReporter": "Reporter blockieren",
-		"blockCreator": "Ersteller blockieren"
+		"blockCreator": "Ersteller blockieren",
+		"MarkDeclarationProcessed": "Als bearbeitet markieren"
 	},
 	"Dialogs": {
 		"DeleteChallengeHeading": "Challenge-Kategorie löschen?",
@@ -221,10 +177,10 @@
 		"GoBack": "Zurück",
 		"Dashboard": "Dashboard",
 		"Users": "Benutzer",
-		"Jobs": "Jobs",
 		"SkillTree": "Skill-Baum",
 		"ReportedTasks": "Gemeldete Aufgaben",
-		"Challenges": "Challenge-Kategorien"
+		"Challenges": "Challenge-Kategorien",
+		"Declarations": "Kündigungen"
 	},
 	"Success": {
 		"ResolveReport": "Bericht erfolgreich gelöst",
@@ -234,7 +190,8 @@
 		"BanDeleteForCreateSubtask": "Benutzer vom Erstellen von Teilaufgaben wurde aufgehoben",
 		"CreateBanForCreateSubtask": "Benutzer dürfen keine Teilaufgaben erstellen",
 		"BanDeleteForReportSubtask": "Benutzer vom Melden von Teilaufgaben ausgeschlossen",
-		"CreateBanForReportSubtask": "Benutzer vom Melden von Teilaufgaben ausgeschlossen"
+		"CreateBanForReportSubtask": "Benutzer vom Melden von Teilaufgaben ausgeschlossen",
+		"DeclarationProcessed": "Die Erklärung wurde als bearbeitet markiert."
 	},
 	"Error": {
 		"SubtaskNotFound": "Teilaufgabe nicht gefunden",
@@ -257,7 +214,6 @@
 		"NoLoginMethod": "Keine Anmeldemethode",
 		"InvalidCredentials": "Ungültige Anmeldeinformationen",
 		"UserDisabled": "Ihr Konto ist derzeit deaktiviert. Kontaktieren Sie uns für weitere Informationen.",
-		"RecaptchaFailed": "Ihr Recaptcha ist fehlgeschlagen.",
 		"AccountNotVerified": "Bitte verifizieren Sie Ihr Konto, um fortzufahren.",
 		"UserNotFound": "Benutzer wurde nicht gefunden",
 		"AdminMFARequired": "Administrationskonten benötigen eine Zwei-Faktor-Authentisierung. Richten Sie unter bootstrap.academy/account/mfa/initialize einen Authenticator ein und melden Sie sich anschließend mit Ihrem Code an.",
@@ -266,7 +222,8 @@
 		"EmailAlreadyVerified": "Diese E-Mail ist bereits verifiziert",
 		"PasswordResetFailed": "Das Zurücksetzen des Passworts war nicht möglich. Bitte versuchen Sie es später erneut.",
 		"InvalidCode": "Dieser Code ist ungültig. Bitte verwenden Sie einen gültigen.",
-		"errorLoadingMatchingTask": "Fehler beim Laden der Matching-Aufgabe"
+		"errorLoadingMatchingTask": "Fehler beim Laden der Matching-Aufgabe",
+		"SomethingWrong": "Da ist etwas schiefgelaufen. Bitte versuchen Sie es erneut."
 	},
 	"Months": {
 		"January": "Januar",
@@ -299,14 +256,6 @@
 		"User": {
 			"Heading": "Benutzer nicht gefunden",
 			"Body": "Dieser Benutzer existiert möglicherweise nicht oder wurde gelöscht."
-		},
-		"Jobs": {
-			"Heading": "Keine Jobs gefunden",
-			"Body": ""
-		},
-		"Job": {
-			"Heading": "Job nicht gefunden",
-			"Body": "Dieser Job existiert möglicherweise nicht oder wurde entfernt."
 		}
 	}
 }

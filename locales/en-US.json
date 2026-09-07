@@ -31,9 +31,6 @@
 		"Dashboard": "Dashboard",
 		"Users": "Users",
 		"ManageUser": "Manage User",
-		"Jobs": "Jobs",
-		"ManageJob": "Manage Job",
-		"CreateJob": "Create Job",
 		"SkillTree": "Skill Tree",
 		"ManageSkillTree": "Manage Skill Tree",
 		"CreateSubTree": "Create Sub Tree",
@@ -68,33 +65,16 @@
 		"GodTier": "God Tier",
 		"Completed": "Completed",
 		"Description": "Description",
-
-		"Responsibilities": "Responsibilities",
-		"SkillRequirements": "Skill Requirements",
-		"JobDetails": "Job Details",
-		"JobOverview": "Job Overview",
-		"Experience": "Experience",
 		"Minimum": "Minimum",
-		"Year": "Year",
 		"Years": "Years",
-		"OfferSalary": "Offer Salary",
-		"Location": "Location",
 		"Remote": "Remote",
 		"Office": "Office",
-		"Contact": "Contact",
-		"LastUpdated": "Last Updated",
 		"Latest": "Latest",
 		"JobType": "Job Type",
 		"SalaryUnit": "Salary Unit",
 		"RemoteOnly": "Remote Only",
 		"Task": "Task",
-		"Hour": "Hour",
-		"Day": "Day",
-		"Month": "Month",
-		"EmploymentType": "Employment Type",
 		"Salary": "Salary",
-		"ProfessionalLevel": "Professional Level",
-		"JobEnvironment": "Job Environment",
 		"MatchingSolution": "Matching Solution",
 		"TaskOwner": "Task Owner",
 		"reportedTasks": "Reported Tasks",
@@ -104,7 +84,26 @@
 		"CreateChallengeCategory": "Create challenge category",
 		"EditChallengeCategory": "Edit challenge category",
 		"Report": "Report",
-		"Block": "Block"
+		"Block": "Block",
+		"Declarations": "Cancellations and withdrawals",
+		"DeclarationReceivedAt": "Received",
+		"DeclarationKind": "Kind of declaration",
+		"DeclarationKindAll": "All declarations",
+		"DeclarationCancellation": "Cancellation",
+		"DeclarationWithdrawal": "Withdrawal",
+		"OrdinaryCancellation": "Ordinary cancellation",
+		"ExtraordinaryCancellation": "Extraordinary cancellation",
+		"DeclarationDeclarant": "Declarant",
+		"DeclarationContract": "Contract",
+		"ContractPremium": "Premium membership",
+		"ContractCoins": "MorphCoin purchase",
+		"ContractOther": "Other contract",
+		"DeclarationEffectiveEnd": "End of the contract",
+		"DeclarationEndOpen": "open",
+		"DeclarationProcessed": "Processed",
+		"DeclarationOpen": "not processed",
+		"DeclarationNote": "Processing note",
+		"MarkDeclarationProcessed": "Mark declaration as processed"
 	},
 	"Body": {
 		"DashboardPlaceholder": "This dashboard is retired. Analytics now live in Grafana.",
@@ -130,55 +129,15 @@
 		"DISLIKE": "Dislike",
 		"OTHER": "Other",
 		"UNRELATED_SKILL": "Unrelated Skill",
-		"WRONG": "Wrong"
-	},
-	"List": {
-		"Filter": {
-			"FullTime": "Full Time",
-			"Freelance": "Freelance",
-			"Internship": "Internship",
-			"PartTime": "Part Time",
-			"Temporary": "Temporary",
-			"Remote": "Remote",
-			"Office": "Office",
-			"Entry": "Entry",
-			"Junior": "Junior",
-			"Senior": "Senior",
-			"Manager": "Manager",
-			"Morphcoins": "Morphcoins",
-			"Euros": "Euros",
-			"Dollars": "Dollars",
-			"MiniJob": "Mini Job",
-			"Any": "Any",
-			"All": "All",
-			"Booked": "Booked",
-			"Mine": "Mine"
-		}
+		"WRONG": "Wrong",
+		"DeclarationsIntro": "Cancellations and withdrawals handed in through the public forms of the website. An extraordinary cancellation deliberately gets no end date determined automatically: it is examined and the end date is confirmed to the declarant separately in text form. This is where what was confirmed is recorded.",
+		"MarkDeclarationProcessedHint": "The time of processing is set by the server. Fields left empty stay as they are stored, so an end date that was already determined is not thrown away.",
+		"DeclarationEffectiveEndHint": "end date confirmed to the declarant"
 	},
 	"Inputs": {
 		"EmailOrUsername": "E-mail Address or Nickname",
 		"Password": "Password",
-		"CompanyId": "Company Id",
-		"JobTitle": "Job Title",
-		"Contact": "Contact",
-		"Description": "Description",
-		"JobLocation": "Job Location",
-		"Remote": "Remote",
-		"JobType": "Job Type",
-		"ProfessionalLevel": "Professional Level",
-		"Responsibilities": "Responsibilities",
-		"SkillRequirements": "Skill Requirements",
 		"ThisField": "This field",
-		"SalaryMin": "Salary Min",
-		"SalaryMax": "Salary Max",
-		"SalaryUnit": "Salary Unit",
-		"SalaryPer": "Salary Per",
-		"CompanyName": "Company Name",
-		"CompanyWebsite": "Company Website",
-		"YoutubeVideoURL": "Youtube Video URL",
-		"TwitterHandle": "Twitter Handle",
-		"InstagramHandle": "Instagram Handle",
-		"LogoURL": "Logo URL",
 		"SkillID": "ID",
 		"SkillName": "Name",
 		"SkillIcon": "Icon",
@@ -191,7 +150,6 @@
 		"Correct": "Correct",
 		"Safe": "Safe",
 		"Login": "Login",
-		"Okay": "Okay",
 		"GetStarted": "Get Started",
 		"ViewAll": "View All",
 		"Back": "Back",
@@ -205,14 +163,11 @@
 		"CancelEvent": "Cancel Event",
 		"YesCancelEvent": "Yes, Cancel Event",
 		"DeleteUser": "Yes, Delete User",
-		"CreateJob": "Create New Job",
-		"EditJob": "Edit Job",
-		"EditCompany": "Edit Company",
-		"CreateCompany": "Create New Company",
 		"rejectReport": "Reject Report",
 		"deleteTask": "Delete Task",
 		"blockReporter": "Block reporter",
-		"blockCreator": "Block creator"
+		"blockCreator": "Block creator",
+		"MarkDeclarationProcessed": "Mark as processed"
 	},
 	"Dialogs": {
 		"DeleteChallengeHeading": "Delete challenge category?",
@@ -224,10 +179,10 @@
 		"GoBack": "Go Back",
 		"Dashboard": "Dashboard",
 		"Users": "Users",
-		"Jobs": "Jobs",
 		"SkillTree": "Skill Tree",
 		"ReportedTasks": "Reported Tasks",
-		"Challenges": "Challenge categories"
+		"Challenges": "Challenge categories",
+		"Declarations": "Cancellations"
 	},
 	"Success": {
 		"ResolveReport": "Successfully Resolved Report",
@@ -237,7 +192,8 @@
 		"BanDeleteForCreateSubtask": "User unbanned from creating tasks",
 		"CreateBanForCreateSubtask": "User banned from creating tasks",
 		"BanDeleteForReportSubtask": "User unbanned from reporting tasks",
-		"CreateBanForReportSubtask": "User banned from reporting tasks"
+		"CreateBanForReportSubtask": "User banned from reporting tasks",
+		"DeclarationProcessed": "The declaration has been marked as processed."
 	},
 	"Error": {
 		"SubtaskNotFound": "Subtask Not Found",
@@ -260,7 +216,6 @@
 		"NoLoginMethod": "No login method",
 		"InvalidCredentials": "Invalid credentials",
 		"UserDisabled": "Your account is currently disabled. Contact us for more details.",
-		"RecaptchaFailed": "Your recaptcha has failed.",
 		"AccountNotVerified": "Please verify your account in order to move forward.",
 		"UserNotFound": "User was not found",
 		"AdminMFARequired": "Administrator accounts require two factor authentication. Set up an authenticator at bootstrap.academy/account/mfa/initialize and log in with your code afterwards.",
@@ -269,7 +224,8 @@
 		"EmailAlreadyVerified": "This email is already verified",
 		"PasswordResetFailed": "Unable to reset password. Please try again later.",
 		"InvalidCode": "This code is invalid. Please use a valid one",
-		"errorLoadingMatchingTask": "Error loading the matching task"
+		"errorLoadingMatchingTask": "Error loading the matching task",
+		"SomethingWrong": "Something went wrong. Please try again."
 	},
 	"Months": {
 		"January": "January",
@@ -294,7 +250,6 @@
 		"Saturday": "Saturday",
 		"Sunday": "Sunday"
 	},
-
 	"EmptyStates": {
 		"Users": {
 			"Heading": "No Users Found",
@@ -303,14 +258,6 @@
 		"User": {
 			"Heading": "User Not Found",
 			"Body": "This user may not exist or is deleted."
-		},
-		"Jobs": {
-			"Heading": "No Jobs Found",
-			"Body": ""
-		},
-		"Job": {
-			"Heading": "Job Not Found",
-			"Body": "This job may not exist or is removed."
 		}
 	}
 }

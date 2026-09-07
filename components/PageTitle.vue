@@ -22,20 +22,6 @@ export default defineComponent({
       case "dashboard-users-id":
         return "Headings.ManageUser";
 
-      case "dashboard-jobs":
-        return "Headings.Jobs";
-      case "dashboard-jobs-id":
-        return "Headings.ManageJob";
-      case "dashboard-jobs-create":
-        return "Headings.CreateJob";
-
-      case "dashboard-companies":
-        return "Companies";
-      case "dashboard-companies-id":
-        return "Manage Company";
-      case "dashboard-companies-create":
-        return "Create Company";
-
       case "dashboard-skill-tree":
         return "Root Skills";
       case "dashboard-skill-tree-rootskill-sub-skills":
@@ -48,6 +34,8 @@ export default defineComponent({
         return "Headings.ManageReport";
       case "dashboard-challenges":
         return "Headings.Challenges";
+      case "dashboard-declarations":
+        return "Headings.Declarations";
 
       default:
         return routeName;
