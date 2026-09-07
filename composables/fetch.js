@@ -110,8 +110,6 @@ const onResponseError = async ({ request, options, response }) => {
     response._data.detail = "Error.InvalidCredentials";
   } else if (details.includes("user disabled")) {
     response._data.detail = "Error.UserDisabled";
-  } else if (details.includes("recaptcha failed")) {
-    response._data.detail = "Error.RecaptchaFailed";
   } else if (details.includes("could not send message")) {
     response._data.detail = "Error.MessageNotSubmitted";
   } else if (details.includes("user not found")) {

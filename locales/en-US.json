@@ -260,7 +260,6 @@
 		"NoLoginMethod": "No login method",
 		"InvalidCredentials": "Invalid credentials",
 		"UserDisabled": "Your account is currently disabled. Contact us for more details.",
-		"RecaptchaFailed": "Your recaptcha has failed.",
 		"AccountNotVerified": "Please verify your account in order to move forward.",
 		"UserNotFound": "User was not found",
 		"AdminMFARequired": "Administrator accounts require two factor authentication. Set up an authenticator at bootstrap.academy/account/mfa/initialize and log in with your code afterwards.",
