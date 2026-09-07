@@ -11,6 +11,7 @@
 		<template #declarant="{ item }">
 			<div class="max-w-[280px]">
 				<p class="text-body-2">{{ item?.name ?? '' }}</p>
+				<p class="text-body-2 break-all">{{ item?.id }}</p>
 				<p class="text-body-2 text-subheading">{{ item?.email ?? '' }}</p>
 			</div>
 		</template>
@@ -18,12 +19,42 @@
 		<template #contract="{ item }">
 			<div class="max-w-[280px]">
 				<p class="text-body-2">{{ t(contractLabel(item)) }}</p>
-				<p v-if="item?.contract_designation" class="text-body-2 text-subheading">
+				<p
+					v-if="item?.contract_designation"
+					class="text-body-2 text-subheading"
+				>
 					{{ item.contract_designation }}
 				</p>
 			</div>
 		</template>
 
+		<template #requested_end="{ item }">
+			<p>
+				{{
+					date(item?.requested_end) ||
+					(item?.kind === 'CANCELLATION' ? t('Body.EarliestEnd') : '—')
+				}}
+			</p>
+			<p v-if="!item?.processed_at" class="text-error">
+				{{ t('Body.ImmediateReview') }}
+			</p>
+		</template>
+		<template #details="{ item }"
+			><p class="whitespace-pre-wrap break-words max-w-[320px]">
+				{{ item?.details || '—' }}
+			</p></template
+		>
+		<template #delivery="{ item }"
+			><p v-for="delivery in item?.delivery" :key="delivery.kind">
+				{{ delivery.kind }}:
+				{{
+					delivery.accepted_at
+						? dateTime(delivery.accepted_at)
+						: t('Body.DeliveryPending')
+				}}
+				({{ delivery.attempts }})
+			</p></template
+		>
 		<template #effective_end="{ item }">
 			<p class="text-body-2">
 				{{ date(item?.effective_end) || t('Headings.DeclarationEndOpen') }}
@@ -91,6 +122,9 @@ export default defineComponent({
       { label: 'Headings.DeclarationKind', key: 'kind' },
       { label: 'Headings.DeclarationDeclarant', key: 'declarant' },
       { label: 'Headings.DeclarationContract', key: 'contract' },
+      { label: 'Headings.DeclarationRequestedEnd', key: 'requested_end' },
+      { label: 'Headings.DeclarationDetails', key: 'details' },
+      { label: 'Headings.DeclarationDelivery', key: 'delivery' },
       { label: 'Headings.DeclarationEffectiveEnd', key: 'effective_end' },
       { label: 'Headings.DeclarationProcessed', key: 'processed_at' },
       { label: 'Headings.Actions', key: 'actions', class: 'text-center' },

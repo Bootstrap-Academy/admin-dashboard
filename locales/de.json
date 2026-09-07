@@ -101,7 +101,18 @@
 		"DeclarationProcessed": "Bearbeitet",
 		"DeclarationOpen": "nicht bearbeitet",
 		"DeclarationNote": "Notiz zur Bearbeitung",
-		"MarkDeclarationProcessed": "Erklärung als bearbeitet markieren"
+		"MarkDeclarationProcessed": "Erklärung als bearbeitet markieren",
+		"DeclarationRequestedEnd": "Gewünschter Zeitpunkt",
+		"DeclarationDetails": "Vollständige Angaben / Begründung",
+		"DeclarationDelivery": "Versand / Versuche",
+		"DeclarationReference": "Vorgangsnummer",
+		"DeclarationCandidate": "Unverifizierter Kontotreffer",
+		"DeclarationAction": "Dokumentierte Maßnahme",
+		"DeclarationVerifiedUser": "Verifiziertes Konto (UUID)",
+		"DeclarationAgreement": "Ursprüngliche Vereinbarung (UUID)",
+		"DeclarationEvidence": "Beobachtungen, Terminplanung und gespeicherte Nachrichten",
+		"RecordExternalResolution": "Extern erledigte Bearbeitung dokumentieren",
+		"SchedulePremiumCancellation": "Ordentliche Premium-Kündigung terminieren"
 	},
 	"Body": {
 		"DashboardPlaceholder": "Dieses Dashboard wurde archiviert. Analytics befinden sich jetzt in Grafana.",
@@ -128,9 +139,14 @@
 		"OTHER": "Andere",
 		"UNRELATED_SKILL": "Unrelated Skill",
 		"WRONG": "Falsch",
-		"DeclarationsIntro": "Kündigungen und Widerrufe, die über die öffentlichen Formulare der Website eingegangen sind. Eine außerordentliche Kündigung erhält bewusst keinen automatisch ermittelten Beendigungszeitpunkt – dieser wird geprüft und der erklärenden Person gesondert in Textform bestätigt. Hier wird festgehalten, was bestätigt wurde.",
-		"MarkDeclarationProcessedHint": "Der Zeitpunkt der Bearbeitung wird vom Server gesetzt. Leere Felder bleiben unverändert; ein bereits gespeicherter Beendigungszeitpunkt wird also nicht gelöscht.",
-		"DeclarationEffectiveEndHint": "der Person bestätigter Beendigungszeitpunkt"
+		"DeclarationsIntro": "Erklärungen gelten nach ihrem Inhalt und Zugang; die Bearbeitung ist keine Wirksamkeitsvoraussetzung. Unverifizierte Fälle unverzüglich zuordnen. Ausstehende Bestätigungen und Termine überwachen.",
+		"MarkDeclarationProcessedHint": "Vollständige Erklärung und ursprüngliche Vertragsbelege prüfen. Kontotreffer allein beweisen keine Identität. Das Bearbeitungsdatum ändert den Eingang nicht.",
+		"DeclarationEffectiveEndHint": "der Person bestätigter Beendigungszeitpunkt",
+		"EarliestEnd": "Frühestmöglicher Zeitpunkt",
+		"ImmediateReview": "Unverzüglich prüfen: ursprünglicher Eingang und gewünschter Termin bleiben maßgeblich. Spätere Abbuchungen und bereits bezahlten Zugang gesondert abgleichen.",
+		"DeliveryPending": "Versand ausstehend",
+		"DeclarationActionHint": "Terminieren wirkt nur auf die ursprüngliche, noch aktuelle Verlängerungsvereinbarung und berücksichtigt den erklärten Termin nach den Periodenregeln. Es entstehen keine neue Zustimmung oder rückwirkende Abbuchung. Externe Bearbeitung dokumentiert bereits umgesetzte Rechtsfolgen und eine versandte Antwort; sie schaltet technisch nichts um. Bei Abweichungen, spätem Eingang der Bearbeitung oder Erstattungsfragen deren Klärung und Übermittlung belegen.",
+		"DeclarationVerified": "Identität und Vertrag ausreichend geprüft; ursprünglichen Eingang, Rechtsfolge und verifizierten Kommunikationsweg in der Notiz belegt."
 	},
 	"Inputs": {
 		"EmailOrUsername": "E-Mail-Adresse oder Spitzname",
@@ -223,7 +239,8 @@
 		"PasswordResetFailed": "Das Zurücksetzen des Passworts war nicht möglich. Bitte versuchen Sie es später erneut.",
 		"InvalidCode": "Dieser Code ist ungültig. Bitte verwenden Sie einen gültigen.",
 		"errorLoadingMatchingTask": "Fehler beim Laden der Matching-Aufgabe",
-		"SomethingWrong": "Da ist etwas schiefgelaufen. Bitte versuchen Sie es erneut."
+		"SomethingWrong": "Da ist etwas schiefgelaufen. Bitte versuchen Sie es erneut.",
+		"DeclarationVerificationRequired": "Verifizierung und vollständige Bearbeitungsnotiz erforderlich."
 	},
 	"Months": {
 		"January": "Januar",

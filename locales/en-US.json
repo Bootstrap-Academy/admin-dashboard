@@ -103,7 +103,18 @@
 		"DeclarationProcessed": "Processed",
 		"DeclarationOpen": "not processed",
 		"DeclarationNote": "Processing note",
-		"MarkDeclarationProcessed": "Mark declaration as processed"
+		"MarkDeclarationProcessed": "Mark declaration as processed",
+		"DeclarationRequestedEnd": "Requested date",
+		"DeclarationDetails": "Full details / reason",
+		"DeclarationDelivery": "Delivery / attempts",
+		"DeclarationReference": "Reference",
+		"DeclarationCandidate": "Unverified account match",
+		"DeclarationAction": "Recorded action",
+		"DeclarationVerifiedUser": "Verified account (UUID)",
+		"DeclarationAgreement": "Original agreement (UUID)",
+		"DeclarationEvidence": "Observations, schedule and saved messages",
+		"RecordExternalResolution": "Record completed external handling",
+		"SchedulePremiumCancellation": "Schedule ordinary Premium cancellation"
 	},
 	"Body": {
 		"DashboardPlaceholder": "This dashboard is retired. Analytics now live in Grafana.",
@@ -130,9 +141,14 @@
 		"OTHER": "Other",
 		"UNRELATED_SKILL": "Unrelated Skill",
 		"WRONG": "Wrong",
-		"DeclarationsIntro": "Cancellations and withdrawals handed in through the public forms of the website. An extraordinary cancellation deliberately gets no end date determined automatically: it is examined and the end date is confirmed to the declarant separately in text form. This is where what was confirmed is recorded.",
-		"MarkDeclarationProcessedHint": "The time of processing is set by the server. Fields left empty stay as they are stored, so an end date that was already determined is not thrown away.",
-		"DeclarationEffectiveEndHint": "end date confirmed to the declarant"
+		"DeclarationsIntro": "Declarations take effect according to their content and receipt; processing is not a legal precondition. Resolve unverified cases promptly and monitor pending confirmations and dates.",
+		"MarkDeclarationProcessedHint": "Review the full declaration and original agreement evidence. An email match alone does not prove identity. Processing never changes receipt time.",
+		"DeclarationEffectiveEndHint": "end date confirmed to the declarant",
+		"EarliestEnd": "Earliest permissible date",
+		"ImmediateReview": "Review immediately: original receipt and requested date govern. Reconcile later debits and preserve paid access.",
+		"DeliveryPending": "Delivery pending",
+		"DeclarationActionHint": "Scheduling targets the original current renewal agreement under its period rules, with no new consent or retrospective debit. External handling records actions already taken and a sent response; it makes no automatic account change. Document deviations, late processing, restitution review and communication.",
+		"DeclarationVerified": "Identity and contract sufficiently verified; original receipt, effect and verified communication evidence recorded in the note."
 	},
 	"Inputs": {
 		"EmailOrUsername": "E-mail Address or Nickname",
@@ -225,7 +241,8 @@
 		"PasswordResetFailed": "Unable to reset password. Please try again later.",
 		"InvalidCode": "This code is invalid. Please use a valid one",
 		"errorLoadingMatchingTask": "Error loading the matching task",
-		"SomethingWrong": "Something went wrong. Please try again."
+		"SomethingWrong": "Something went wrong. Please try again.",
+		"DeclarationVerificationRequired": "Verification and a complete processing note are required."
 	},
 	"Months": {
 		"January": "January",
