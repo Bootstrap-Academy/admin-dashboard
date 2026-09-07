@@ -31,7 +31,8 @@ import {
   Squares2X2Icon,
   UsersIcon,
   BookOpenIcon,
-  TrophyIcon
+  TrophyIcon,
+  DocumentTextIcon
 } from "@heroicons/vue/24/solid/index.js";
 import IconSkillTree from "~/components/icon/SkillTree.vue";
 
@@ -42,6 +43,7 @@ export default {
     IconSkillTree,
     BookOpenIcon,
     TrophyIcon,
+    DocumentTextIcon,
   },
   emits: ["closeMenu"],
   setup(props, { emit }) {
@@ -77,6 +79,12 @@ export default {
         icon: TrophyIcon,
         label: "Links.Challenges",
         pathname: "/dashboard/challenges",
+      },
+      {
+        name: "dashboard-declarations",
+        icon: DocumentTextIcon,
+        label: "Links.Declarations",
+        pathname: "/dashboard/declarations",
       },
     ]);
 

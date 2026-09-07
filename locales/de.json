@@ -82,7 +82,26 @@
 		"CreateChallengeCategory": "Challenge-Kategorie erstellen",
 		"EditChallengeCategory": "Challenge-Kategorie bearbeiten",
 		"Report": "Bericht",
-		"Block": "Blockieren"
+		"Block": "Blockieren",
+		"Declarations": "Kündigungen und Widerrufe",
+		"DeclarationReceivedAt": "Eingang",
+		"DeclarationKind": "Art der Erklärung",
+		"DeclarationKindAll": "Alle Erklärungen",
+		"DeclarationCancellation": "Kündigung",
+		"DeclarationWithdrawal": "Widerruf",
+		"OrdinaryCancellation": "Ordentliche Kündigung",
+		"ExtraordinaryCancellation": "Außerordentliche Kündigung",
+		"DeclarationDeclarant": "Erklärende Person",
+		"DeclarationContract": "Vertrag",
+		"ContractPremium": "Premium-Mitgliedschaft",
+		"ContractCoins": "MorphCoin-Kauf",
+		"ContractOther": "Sonstiger Vertrag",
+		"DeclarationEffectiveEnd": "Beendigungszeitpunkt",
+		"DeclarationEndOpen": "offen",
+		"DeclarationProcessed": "Bearbeitet",
+		"DeclarationOpen": "nicht bearbeitet",
+		"DeclarationNote": "Notiz zur Bearbeitung",
+		"MarkDeclarationProcessed": "Erklärung als bearbeitet markieren"
 	},
 	"Body": {
 		"DashboardPlaceholder": "Dieses Dashboard wurde archiviert. Analytics befinden sich jetzt in Grafana.",
@@ -108,7 +127,10 @@
 		"DISLIKE": "Abneigung",
 		"OTHER": "Andere",
 		"UNRELATED_SKILL": "Unrelated Skill",
-		"WRONG": "Falsch"
+		"WRONG": "Falsch",
+		"DeclarationsIntro": "Kündigungen und Widerrufe, die über die öffentlichen Formulare der Website eingegangen sind. Eine außerordentliche Kündigung erhält bewusst keinen automatisch ermittelten Beendigungszeitpunkt – dieser wird geprüft und der erklärenden Person gesondert in Textform bestätigt. Hier wird festgehalten, was bestätigt wurde.",
+		"MarkDeclarationProcessedHint": "Der Zeitpunkt der Bearbeitung wird vom Server gesetzt. Leere Felder bleiben unverändert; ein bereits gespeicherter Beendigungszeitpunkt wird also nicht gelöscht.",
+		"DeclarationEffectiveEndHint": "der Person bestätigter Beendigungszeitpunkt"
 	},
 	"Inputs": {
 		"EmailOrUsername": "E-Mail-Adresse oder Spitzname",
@@ -142,7 +164,8 @@
 		"rejectReport": "Bericht zurückweisen",
 		"deleteTask": "Aufgabe löschen",
 		"blockReporter": "Reporter blockieren",
-		"blockCreator": "Ersteller blockieren"
+		"blockCreator": "Ersteller blockieren",
+		"MarkDeclarationProcessed": "Als bearbeitet markieren"
 	},
 	"Dialogs": {
 		"DeleteChallengeHeading": "Challenge-Kategorie löschen?",
@@ -156,7 +179,8 @@
 		"Users": "Benutzer",
 		"SkillTree": "Skill-Baum",
 		"ReportedTasks": "Gemeldete Aufgaben",
-		"Challenges": "Challenge-Kategorien"
+		"Challenges": "Challenge-Kategorien",
+		"Declarations": "Kündigungen"
 	},
 	"Success": {
 		"ResolveReport": "Bericht erfolgreich gelöst",
@@ -166,7 +190,8 @@
 		"BanDeleteForCreateSubtask": "Benutzer vom Erstellen von Teilaufgaben wurde aufgehoben",
 		"CreateBanForCreateSubtask": "Benutzer dürfen keine Teilaufgaben erstellen",
 		"BanDeleteForReportSubtask": "Benutzer vom Melden von Teilaufgaben ausgeschlossen",
-		"CreateBanForReportSubtask": "Benutzer vom Melden von Teilaufgaben ausgeschlossen"
+		"CreateBanForReportSubtask": "Benutzer vom Melden von Teilaufgaben ausgeschlossen",
+		"DeclarationProcessed": "Die Erklärung wurde als bearbeitet markiert."
 	},
 	"Error": {
 		"SubtaskNotFound": "Teilaufgabe nicht gefunden",
@@ -197,7 +222,8 @@
 		"EmailAlreadyVerified": "Diese E-Mail ist bereits verifiziert",
 		"PasswordResetFailed": "Das Zurücksetzen des Passworts war nicht möglich. Bitte versuchen Sie es später erneut.",
 		"InvalidCode": "Dieser Code ist ungültig. Bitte verwenden Sie einen gültigen.",
-		"errorLoadingMatchingTask": "Fehler beim Laden der Matching-Aufgabe"
+		"errorLoadingMatchingTask": "Fehler beim Laden der Matching-Aufgabe",
+		"SomethingWrong": "Da ist etwas schiefgelaufen. Bitte versuchen Sie es erneut."
 	},
 	"Months": {
 		"January": "Januar",

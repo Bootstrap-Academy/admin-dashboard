@@ -84,7 +84,26 @@
 		"CreateChallengeCategory": "Create challenge category",
 		"EditChallengeCategory": "Edit challenge category",
 		"Report": "Report",
-		"Block": "Block"
+		"Block": "Block",
+		"Declarations": "Cancellations and withdrawals",
+		"DeclarationReceivedAt": "Received",
+		"DeclarationKind": "Kind of declaration",
+		"DeclarationKindAll": "All declarations",
+		"DeclarationCancellation": "Cancellation",
+		"DeclarationWithdrawal": "Withdrawal",
+		"OrdinaryCancellation": "Ordinary cancellation",
+		"ExtraordinaryCancellation": "Extraordinary cancellation",
+		"DeclarationDeclarant": "Declarant",
+		"DeclarationContract": "Contract",
+		"ContractPremium": "Premium membership",
+		"ContractCoins": "MorphCoin purchase",
+		"ContractOther": "Other contract",
+		"DeclarationEffectiveEnd": "End of the contract",
+		"DeclarationEndOpen": "open",
+		"DeclarationProcessed": "Processed",
+		"DeclarationOpen": "not processed",
+		"DeclarationNote": "Processing note",
+		"MarkDeclarationProcessed": "Mark declaration as processed"
 	},
 	"Body": {
 		"DashboardPlaceholder": "This dashboard is retired. Analytics now live in Grafana.",
@@ -110,7 +129,10 @@
 		"DISLIKE": "Dislike",
 		"OTHER": "Other",
 		"UNRELATED_SKILL": "Unrelated Skill",
-		"WRONG": "Wrong"
+		"WRONG": "Wrong",
+		"DeclarationsIntro": "Cancellations and withdrawals handed in through the public forms of the website. An extraordinary cancellation deliberately gets no end date determined automatically: it is examined and the end date is confirmed to the declarant separately in text form. This is where what was confirmed is recorded.",
+		"MarkDeclarationProcessedHint": "The time of processing is set by the server. Fields left empty stay as they are stored, so an end date that was already determined is not thrown away.",
+		"DeclarationEffectiveEndHint": "end date confirmed to the declarant"
 	},
 	"Inputs": {
 		"EmailOrUsername": "E-mail Address or Nickname",
@@ -144,7 +166,8 @@
 		"rejectReport": "Reject Report",
 		"deleteTask": "Delete Task",
 		"blockReporter": "Block reporter",
-		"blockCreator": "Block creator"
+		"blockCreator": "Block creator",
+		"MarkDeclarationProcessed": "Mark as processed"
 	},
 	"Dialogs": {
 		"DeleteChallengeHeading": "Delete challenge category?",
@@ -158,7 +181,8 @@
 		"Users": "Users",
 		"SkillTree": "Skill Tree",
 		"ReportedTasks": "Reported Tasks",
-		"Challenges": "Challenge categories"
+		"Challenges": "Challenge categories",
+		"Declarations": "Cancellations"
 	},
 	"Success": {
 		"ResolveReport": "Successfully Resolved Report",
@@ -168,7 +192,8 @@
 		"BanDeleteForCreateSubtask": "User unbanned from creating tasks",
 		"CreateBanForCreateSubtask": "User banned from creating tasks",
 		"BanDeleteForReportSubtask": "User unbanned from reporting tasks",
-		"CreateBanForReportSubtask": "User banned from reporting tasks"
+		"CreateBanForReportSubtask": "User banned from reporting tasks",
+		"DeclarationProcessed": "The declaration has been marked as processed."
 	},
 	"Error": {
 		"SubtaskNotFound": "Subtask Not Found",
@@ -199,7 +224,8 @@
 		"EmailAlreadyVerified": "This email is already verified",
 		"PasswordResetFailed": "Unable to reset password. Please try again later.",
 		"InvalidCode": "This code is invalid. Please use a valid one",
-		"errorLoadingMatchingTask": "Error loading the matching task"
+		"errorLoadingMatchingTask": "Error loading the matching task",
+		"SomethingWrong": "Something went wrong. Please try again."
 	},
 	"Months": {
 		"January": "January",

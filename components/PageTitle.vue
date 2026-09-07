@@ -34,6 +34,8 @@ export default defineComponent({
         return "Headings.ManageReport";
       case "dashboard-challenges":
         return "Headings.Challenges";
+      case "dashboard-declarations":
+        return "Headings.Declarations";
 
       default:
         return routeName;
