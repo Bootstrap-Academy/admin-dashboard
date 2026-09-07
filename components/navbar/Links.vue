@@ -30,7 +30,6 @@ import { logout } from "~~/composables/auth";
 import {
   Squares2X2Icon,
   UsersIcon,
-  BriefcaseIcon,
   BookOpenIcon,
   TrophyIcon
 } from "@heroicons/vue/24/solid/index.js";
@@ -40,7 +39,6 @@ export default {
   components: {
     Squares2X2Icon,
     UsersIcon,
-    BriefcaseIcon,
     IconSkillTree,
     BookOpenIcon,
     TrophyIcon,
@@ -61,18 +59,6 @@ export default {
         icon: UsersIcon,
         label: "Links.Users",
         pathname: "/dashboard/users",
-      },
-      {
-        name: "dashboard-jobs",
-        icon: BriefcaseIcon,
-        label: "Links.Jobs",
-        pathname: "/dashboard/jobs",
-      },
-      {
-        name: "dashboard-companies",
-        icon: BriefcaseIcon,
-        label: "Companies",
-        pathname: "/dashboard/companies",
       },
       {
         name: "dashboard-skill-tree",
