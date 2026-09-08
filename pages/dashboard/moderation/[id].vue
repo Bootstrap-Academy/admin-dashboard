@@ -75,12 +75,16 @@ const retention = reactive({
   legal_or_claim_basis: "",
   review_at: "",
   retention_id: "",
+  contact_necessity_assessment: "",
+  remaining_remedy_access: "",
+  unnotified_rights_preserved: false,
   confirmed: false,
   open_complaints_considered: false,
 });
 const handling = reactive({ id: "", status: "", facts: "" });
 const contacts = ref<any[]>([]),
   correction = reactive({ message: "", contact: "", evidence: "" });
+const contactResult = ref("");
 const scope = computed(() => scopes[record.value?.target_kind]);
 const outcomes = computed(() =>
   record.value?.source === "authority_order"
@@ -147,16 +151,20 @@ async function load() {
   record.value = loaded.value = null;
   preview.value = false;
   contacts.value = [];
+  contactResult.value = "";
   correction.message = correction.contact = correction.evidence = "";
   retention.id =
     retention.reason =
     retention.legal_or_claim_basis =
     retention.review_at =
     retention.retention_id =
+    retention.contact_necessity_assessment =
+    retention.remaining_remedy_access =
       "";
   retention.action = "minimize";
   retention.fields = "comment";
   retention.confirmed = retention.open_complaints_considered = false;
+  retention.unnotified_rights_preserved = false;
   handling.id = handling.status = handling.facts = "";
   form.rationale =
     form.notifier_rationale =
@@ -291,6 +299,9 @@ async function lifecycle(operation: "retention" | "handling") {
         retention_id: retention.retention_id || null,
         claims_and_retention_checked: retention.confirmed,
         open_complaints_considered: retention.open_complaints_considered,
+        contact_necessity_assessment: retention.contact_necessity_assessment,
+        remaining_remedy_access: retention.remaining_remedy_access,
+        unnotified_rights_preserved: retention.unnotified_rights_preserved,
       }
       : {
         id,
@@ -352,8 +363,11 @@ async function correctContact() {
   };
   busy.value = true;
   try {
-    await moderationAdmin("backend", "delivery_contact", body);
-    if (identity.generation === generation) await loadContacts();
+    const result = await moderationAdmin("backend", "delivery_contact", body);
+    if (identity.generation === generation) {
+      contactResult.value = `Kontaktkorrektur gespeichert. Bereits zugelassene, noch ungeklärte Versandversuche: ${result.in_progress_attempts ?? 0}. Eine Zulassung belegt keinen Versand; bereits übermittelte Nachrichten können damit nicht zurückgerufen werden.`;
+      await loadContacts();
+    }
   } catch {
     if (identity.generation === generation)
       error.value =
@@ -764,7 +778,12 @@ onBeforeUnmount(() => {
                 >Nächster Prüftermin mit Zeitzone<input
                   v-model="retention.review_at"
                   required /></label></template
-            ><label v-if="retention.action === 'release_retention'"
+            ><template v-if="retention.action === 'minimize' && !record.closed_at && retention.fields.split(',').some((field) => ['author_contact', 'notifier_contact'].includes(field.trim()))">
+              <label>Konkrete Prüfung: warum dieser Kontakt unnötig ist<textarea v-model="retention.contact_necessity_assessment" required /></label>
+              <label>Verbleibender Zugang zu offenen Rechten und Beschwerden<textarea v-model="retention.remaining_remedy_access" required /></label>
+              <label>Nächster individueller Prüftermin mit Zeitzone<input v-model="retention.review_at" required /></label>
+              <label><input v-model="retention.unnotified_rights_preserved" type="checkbox" required />Unbekannte Information bleibt unbekannt; offene Beschwerde- und sonstige Rechte bleiben erhalten.</label>
+            </template><label v-if="retention.action === 'release_retention'"
               >Exakte Kennung der freizugebenden Ausnahme<input
                 v-model="retention.retention_id"
                 required /></label
@@ -826,6 +845,7 @@ onBeforeUnmount(() => {
               Berechtigung. Sie bestätigt keine erfolgte Zustellung.
             </p>
             <button type="submit">Nachgewiesenen Kontakt korrigieren</button>
+            <p v-if="contactResult" role="status">{{ contactResult }}</p>
           </fieldset>
         </form>
       </details>
