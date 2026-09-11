@@ -40,7 +40,7 @@ export default defineComponent({
         valid: false,
         value: '',
         rules: [
-          (v: string) => Boolean(v) || 'Error.InputEmpty_Inputs.CompanyName',
+          (v: string) => Boolean(v) || 'Error.InputEmpty_Headings.Title',
           (v: string) => !v || v.length >= 3 || 'Error.InputMinLength_3',
           (v: string) => v.length <= 255 || 'Error.InputMaxLength_255',
         ],

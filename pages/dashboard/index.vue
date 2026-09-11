@@ -1,52 +1,34 @@
-<!--
-❌ Responsive UI
-✅ Page Title
-❌ Translation
-❌ Animation
-✅ middleware
-
-❌ Tested on chrome
-❌ Tested on firefox
-❌ Tested on safari
-❌ Tested on android mobile
-❌ Tested on apple mobile
-
-❌ Handle loading if data already exists
-❌ Handle loading if data is empty
-❌ Display data
-❌ Handle empty state
-
-❌ Recaptcha
-❌ Preset Form
-❌ Api implemented
-❌ Form Client Side Error Handling
-❌ Form Submission Process
-❌ Form Post Api Error Handling + ❌ Translation
-❌ Form Post Api Success Handling + ❌ Translation
--->
-
 <template>
-	<main>
-		<PageTitle />
+  <main class="space-y-6">
+    <PageTitle />
 
-		<UnderConstruction />
-	</main>
+    <section class="rounded-2xl border border-slate-800 bg-slate-900/60 p-8 shadow-xl shadow-slate-900/30">
+      <div class="space-y-4 text-slate-200">
+        <h2 class="text-lg font-semibold text-slate-100">
+          {{ t('Headings.Dashboard') }}
+        </h2>
+        <p class="text-sm text-slate-400">
+          {{ t('Body.DashboardPlaceholder') }}
+        </p>
+        <p class="text-sm text-slate-500">
+          {{ t('Body.DashboardPlaceholderHint') }}
+        </p>
+      </div>
+    </section>
+  </main>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
 definePageMeta({
   middleware: ['auth'],
   layout: 'dashboard',
 });
 
-export default {
-  head: {
-    title: 'Dashboard',
-  },
-  setup() {
-    return {};
-  },
-};
-</script>
+useHead({
+  title: 'Dashboard',
+});
 
-<style scoped></style>
+const { t } = useI18n();
+</script>

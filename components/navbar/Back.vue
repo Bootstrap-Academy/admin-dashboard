@@ -44,12 +44,6 @@ export default defineComponent({
         label.value = 'Links.Users';
       }
 
-      // ! Jobs
-      else if (to == 'dashboard-jobs-id' || to == 'dashboard-jobs-create') {
-        pathname.value = '/dashboard/jobs';
-        label.value = 'Links.Jobs';
-      }
-
       // ! Skill Tree
       else if (
         to == 'dashboard-skill-tree-id' ||

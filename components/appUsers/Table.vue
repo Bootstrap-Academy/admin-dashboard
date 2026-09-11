@@ -7,10 +7,9 @@
   >
     <template #display_name="{ item }">
       <div class="flex gap-2 md:gap-4 items-center">
-        <img
-          :src="item.avatar_url"
-          alt=""
-          class="h-5 w-5 md:h-10 md:w-10 object-contain rounded-full"
+        <Avatar
+          :name="item.display_name"
+          class="h-5 w-5 md:h-10 md:w-10 flex-shrink-0"
         />
         <div class="overflow-hidden w-full max-w-[325px]">
           <p class="truncate text-ellipsis text-body-2">
@@ -47,11 +46,6 @@
 
     <template #email_verified="{ item }">
       <CheckIcon v-if="item.email_verified" class="icon text-success" />
-      <XMarkIcon v-else class="icon text-error" />
-    </template>
-
-    <template #newsletter="{ item }">
-      <CheckIcon v-if="item.newsletter" class="icon text-success" />
       <XMarkIcon v-else class="icon text-error" />
     </template>
 
@@ -185,10 +179,6 @@ export default {
         {
           label: "Headings.MFA",
           key: "mfa_enabled",
-        },
-        {
-          label: "Headings.Newsletter",
-          key: "newsletter",
         },
         {
           label: "Headings.Enabled",
