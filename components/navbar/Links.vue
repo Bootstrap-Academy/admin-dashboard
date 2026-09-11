@@ -20,6 +20,7 @@
         v-for="({ name, icon, label, pathname }, i) of links"
         :key="i"
         :to="pathname"
+        :data-commercial-nav="name === 'dashboard-commercial' ? '' : undefined"
         class="h-fit px-4 py-3 rounded"
         @click.prevent="emit('closeMenu', true)"
         :class="{
@@ -29,10 +30,28 @@
         <IconText
           lg
           :icon="icon"
-          :fill="activePathName == name ? 'fill-white' : 'fill-accent'"
-          :iconColor="activePathName == name ? 'text-white' : 'text-accent'"
+          :fill="
+            activePathName == name
+              ? name === 'dashboard-commercial'
+                ? 'fill-dark'
+                : 'fill-white'
+              : 'fill-accent'
+          "
+          :iconColor="
+            activePathName == name
+              ? name === 'dashboard-commercial'
+                ? 'text-dark'
+                : 'text-white'
+              : 'text-accent'
+          "
           :labelColor="
-            activePathName == name ? 'text-white' : 'text-subheading'
+            name === 'dashboard-commercial'
+              ? activePathName == name
+                ? 'text-dark'
+                : 'text-body'
+              : activePathName == name
+                ? 'text-white'
+                : 'text-subheading'
           "
         >
           {{ t(label) }}
@@ -70,6 +89,12 @@ export default {
     const { t } = useI18n();
 
     const links = shallowRef([
+      {
+        name: "dashboard-commercial",
+        icon: DocumentTextIcon,
+        label: "Links.Commercial",
+        pathname: "/dashboard/commercial",
+      },
       {
         name: "dashboard-moderation",
         icon: DocumentTextIcon,
@@ -132,5 +157,9 @@ export default {
 .active-link > * {
   color: var(--color-white) !important;
   fill: var(--color-white) !important;
+}
+a[data-commercial-nav]:focus-visible {
+  outline: 3px solid var(--color-heading);
+  outline-offset: 3px;
 }
 </style>
