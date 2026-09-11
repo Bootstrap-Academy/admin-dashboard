@@ -10,14 +10,15 @@ import { GET, PATCH } from './fetch';
  */
 
 export const useDeclarations = () => useState<any[]>('declarations', () => []);
-export const useTotalDeclarations = () => useState('totalDeclarations', () => 0);
+export const useTotalDeclarations = () =>
+  useState('totalDeclarations', () => 0);
 
 export const DECLARATION_KINDS = ['CANCELLATION', 'WITHDRAWAL'];
 
 export async function getDeclarations(query: {
-  kind?: string;
-  limit: number;
-  offset: number;
+	kind?: string;
+	limit: number;
+	offset: number;
 }) {
   try {
     const response: any = await GET('/contracts/declarations', {
@@ -35,17 +36,27 @@ export async function getDeclarations(query: {
   }
 }
 
-/**
- * Record that a declaration has been dealt with. A field that is not given is
- * left as it is stored, so marking an ordinary cancellation as processed does
- * not throw away the end date the backend determined.
+/** Record a verified external resolution or schedule the original identified agreement.
+ * The backend preserves the original declaration and receipt-based rights.
  */
 export async function setDeclarationProcessed(
   id: string,
-  body: { effective_end?: string | null; note?: string | null }
+  body: {
+		effective_end?: string | null;
+		note?: string | null;
+		action: string;
+		identity_verified: boolean;
+		verified_user_id?: string | null;
+		renewal_agreement_id?: string | null;
+	},
 ) {
   try {
-    const payload: any = {};
+    const payload: any = {
+      action: body.action,
+      identity_verified: body.identity_verified,
+      verified_user_id: body.verified_user_id,
+      renewal_agreement_id: body.renewal_agreement_id,
+    };
     if (body.effective_end) payload.effective_end = body.effective_end;
     if (body.note) payload.note = body.note;
 
@@ -54,7 +65,7 @@ export async function setDeclarationProcessed(
     // Keep the row that is on screen in step with what was stored.
     const declarations = useDeclarations();
     declarations.value = declarations.value.map((declaration: any) =>
-      declaration?.id == id ? response : declaration
+      declaration?.id == id ? response : declaration,
     );
 
     return [response, null];
@@ -64,11 +75,12 @@ export async function setDeclarationProcessed(
 }
 
 /**
- * The date picked in a `type="date"` input (`2026-12-31`) as the RFC 3339 UTC
- * timestamp the api expects.
+ * An explicitly zoned RFC 3339 timestamp, preserving the confirmed instant.
  */
-export function toEffectiveEnd(date: string) {
-  return date ? `${date}T00:00:00Z` : null;
+export function toEffectiveEnd(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}T.*(Z|[+-]\d{2}:\d{2})$/.test(value)) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
 /**
