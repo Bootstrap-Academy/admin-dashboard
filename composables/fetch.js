@@ -49,7 +49,8 @@ const onRequest = async ({ request, options }) => {
     await mutex.waitForUnlock();
     const accessToken = getAccessToken();
 
-    options.headers.Authorization = `Bearer ${accessToken}`;
+    options.headers = new Headers(options.headers);
+    options.headers.set("Authorization", `Bearer ${accessToken}`);
   } else {
     const release = await mutex.acquire();
     const [success, error] = await refresh();
@@ -57,7 +58,8 @@ const onRequest = async ({ request, options }) => {
     if (success) {
       const accessToken = getAccessToken();
 
-      options.headers.Authorization = `Bearer ${accessToken}`;
+      options.headers = new Headers(options.headers);
+      options.headers.set("Authorization", `Bearer ${accessToken}`);
     }
   }
 };
