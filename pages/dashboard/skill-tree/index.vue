@@ -7,7 +7,6 @@
 ❌ Tested on firefox
 ❌ Tested on safari
 
-❌ Recaptcha
 ❌ Api implemented
 ❌ Form Client Side Error Handling
 ❌ Form Submission Process
@@ -78,7 +77,6 @@ export default {
         admin: false,
         mfa_enabled: false,
         email_verified: false,
-        newsletter: false,
       }
     );
 
@@ -121,10 +119,6 @@ export default {
         label: 'Headings.Verified',
         value: 'email_verified',
       },
-      {
-        label: 'Headings.Newsletter',
-        value: 'newsletter',
-      },
     ];
 
     function onSelectedOption(option: string) {
@@ -133,7 +127,6 @@ export default {
         admin: option == 'admin',
         mfa_enabled: option == 'mfa_enabled',
         email_verified: option == 'email_verified',
-        newsletter: option == 'newsletter',
       });
     }
 

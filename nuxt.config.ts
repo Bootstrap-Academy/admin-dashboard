@@ -16,8 +16,6 @@ export default defineNuxtConfig({
     public: {
       BASE_API_URL: 'https://api.bootstrap.academy',
       BASE_WEB_URL: 'https://bootstrap.academy',
-      Gleap_API_KEY: '8TVLuULNmWxZHIifA1PW6TYHUCKEb5so',
-      Vue3ReCaptcha_SITE_KEY: '6Le9pMIiAAAAAAMmaH3J7ZCsQk6JcBdQtAJNXaQJ',
       NODE_ENV: 'production',
     },
   },

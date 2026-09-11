@@ -17,7 +17,8 @@ export const useMcq = () => useState("mcq", () => null);
 export const useNoMoreSubtasks = () => useState("noMoreSubtasks", () => false);
 export const useReportedTasksLoading = () =>
   useState("useReportedTasksLoading", () => false);
-export const useMatching = () => useState<MatchingWithSolution>("matching", () => new MatchingWithSolution())
+export const useMatching = () =>
+  useState<MatchingWithSolution>("matching", () => new MatchingWithSolution());
 
 export async function getreportedSubtasksList(firstCall: boolean) {
   const loading = useReportedTasksLoading();
@@ -34,7 +35,7 @@ export async function getreportedSubtasksList(firstCall: boolean) {
     }
 
     const response: ReportBase[] = await GET(
-      `/challenges/subtask_reports?limit=${limit.value}&offset=${offset.value}`
+      `/challenges/subtask_reports?limit=${limit.value}&offset=${offset.value}`,
     );
 
     let arr: ReportBase[] = response ?? [];
@@ -68,18 +69,19 @@ export async function assignReportUser() {
   const loading = useReportedTasksLoading();
 
   arr.value.forEach((subTask: ReportBase) => {
-    subTask.creator_id = allSubTasks.find(
-      (allSubTask: any) => allSubTask.task_id === subTask.task_id
-    ).creator;
+    subTask.creator_id =
+      allSubTasks.find(
+        (allSubTask: any) => allSubTask.id === subTask.subtask_id,
+      )?.creator ?? "";
   });
   try {
     loading.value = true;
     // Combine all promises into an array
     const reporterPromises = arr.value.map(
-      async (subtask) => await getAppUser(subtask?.user_id ?? "")
+      async (subtask) => await getAppUser(subtask?.user_id ?? ""),
     );
     const creatorPromises = arr.value.map(
-      async (subtask) => await getAppUser(subtask.creator_id)
+      async (subtask) => await getAppUser(subtask.creator_id),
     );
 
     // Execute all promises concurrently
@@ -96,19 +98,19 @@ export async function assignReportUser() {
         console.log(
           "Error in getAppUser for user_id:",
           arr.value[index]?.user_id,
-          error
+          error,
         );
       }
     });
     creators.forEach(([creator, creatorError], index) => {
-      if (creator.name) {
+      if (creator?.name) {
         arr.value[index].creatorName = creator.name;
         arr.value[index].taskType = creator.subtask_type;
       } else {
         console.log(
           "No creator for creator_id:",
           arr.value[index]?.creator_id,
-          creatorError
+          creatorError,
         );
       }
     });
@@ -140,7 +142,7 @@ export async function resolveReport(report_id: any, body: any) {
 export async function getCodingChallenge(task_id: any, subtask_id: any) {
   try {
     const res = await GET(
-      `/challenges/tasks/${task_id}/coding_challenges/${subtask_id}`
+      `/challenges/tasks/${task_id}/coding_challenges/${subtask_id}`,
     );
     await getCodingChallengeSolution(task_id, subtask_id);
     const codingChallenge: any = useCodingChallenge();
@@ -159,11 +161,11 @@ export async function getCodingChallenge(task_id: any, subtask_id: any) {
 
 export async function getCodingChallengeSolution(
   task_id: any,
-  subtask_id: any
+  subtask_id: any,
 ) {
   try {
     const res = await GET(
-      `/challenges/tasks/${task_id}/coding_challenges/${subtask_id}/solution`
+      `/challenges/tasks/${task_id}/coding_challenges/${subtask_id}/solution`,
     );
     const codingChallengeSolution: any = useCodingChallengeSolution();
     codingChallengeSolution.value = res ?? null;
@@ -176,7 +178,7 @@ export async function getCodingChallengeSolution(
 export async function getMcq(task_id: any, subtask_id: any) {
   try {
     const res = await GET(
-      `/challenges/tasks/${task_id}/multiple_choice/${subtask_id}/solution`
+      `/challenges/tasks/${task_id}/multiple_choice/${subtask_id}/solution`,
     );
     const mcq: any = useMcq();
     mcq.value = res ?? null;
@@ -193,21 +195,19 @@ export async function getMcq(task_id: any, subtask_id: any) {
 }
 
 export async function getMatching(taskId: string, subTaskId: string) {
-  const matching = useMatching()
-  matching.value = new MatchingWithSolution()
+  const matching = useMatching();
+  matching.value = new MatchingWithSolution();
   try {
-    const res :MatchingWithSolution= await GET(
-      `/challenges/tasks/${taskId}/matchings/${subTaskId}/solution`
+    const res: MatchingWithSolution = await GET(
+      `/challenges/tasks/${taskId}/matchings/${subTaskId}/solution`,
     );
     matching.value = res ?? null;
     return [res, null];
   } catch (error: any) {
-
     console.log("error in getMatching", error.data, taskId, subTaskId);
     return [null, error];
   }
 }
-
 
 export async function deleteReportedTask(taskId: string, subTaskId: string) {
   let error: Error | undefined;

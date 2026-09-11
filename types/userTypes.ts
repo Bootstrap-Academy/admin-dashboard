@@ -13,7 +13,6 @@ export class User {
   mfa_enabled: boolean = false;
   description: string = '';
   tags: string[] = [];
-  newsletter: boolean = false;
 }
 
 export class UserFilter {
@@ -22,7 +21,6 @@ export class UserFilter {
   admin?: boolean = false;
   mfa_enabled?: boolean = false;
   email_verified?: boolean = false;
-  newsletter?: boolean = false;
 }
 
 export class UserSearchRequestBody {
@@ -34,7 +32,6 @@ export class UserSearchRequestBody {
   admin: boolean | undefined = undefined;
   mfa_enabled: boolean | undefined = undefined;
   email_verified: boolean | undefined = undefined;
-  newsletter: boolean | undefined = undefined;
 
   clearSearch(){
     this.name = undefined;
@@ -46,7 +43,6 @@ export class UserSearchRequestBody {
     this.admin = undefined;
     this.mfa_enabled = undefined;
     this.email_verified = undefined;
-    this.newsletter = undefined;
   }
 }
 
@@ -65,8 +61,6 @@ export enum USERSORT{
     NOMFA = 'nomfa',
     EMAILVERIFIED = 'emailverified',
     NOTEMAILVERIFIED = 'notemailverified',
-    NEWSLETTER = 'newsletter',
-    NOTNEWSLETTER = 'notnewsletter',
 }
 
 export enum USER_LOCALES{
@@ -74,5 +68,4 @@ export enum USER_LOCALES{
     USER_ADMIN = 'Headings.Admin',
     USER_MFA = 'Headings.MFA',
     USER_EMAIL_VERIFIED = 'Headings.Verified',
-    USER_NEWSLETTER = 'Headings.Newsletter',
 }

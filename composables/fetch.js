@@ -49,7 +49,8 @@ const onRequest = async ({ request, options }) => {
     await mutex.waitForUnlock();
     const accessToken = getAccessToken();
 
-    options.headers.Authorization = `Bearer ${accessToken}`;
+    options.headers = new Headers(options.headers);
+    options.headers.set("Authorization", `Bearer ${accessToken}`);
   } else {
     const release = await mutex.acquire();
     const [success, error] = await refresh();
@@ -57,7 +58,8 @@ const onRequest = async ({ request, options }) => {
     if (success) {
       const accessToken = getAccessToken();
 
-      options.headers.Authorization = `Bearer ${accessToken}`;
+      options.headers = new Headers(options.headers);
+      options.headers.set("Authorization", `Bearer ${accessToken}`);
     }
   }
 };
@@ -110,20 +112,18 @@ const onResponseError = async ({ request, options, response }) => {
     response._data.detail = "Error.InvalidCredentials";
   } else if (details.includes("user disabled")) {
     response._data.detail = "Error.UserDisabled";
-  } else if (details.includes("recaptcha failed")) {
-    response._data.detail = "Error.RecaptchaFailed";
   } else if (details.includes("could not send message")) {
     response._data.detail = "Error.MessageNotSubmitted";
   } else if (details.includes("user not found")) {
     response._data.detail = "Error.UserNotFound";
+  } else if (details.includes("admin mfa required")) {
+    response._data.detail = "Error.AdminMFARequired";
   } else if (details.includes("permission denied")) {
     response._data.detail = "Error.PermissionDenied";
   } else if (details.includes("invalid verification code")) {
     response._data.detail = "Error.InvalidVerificationCode";
   } else if (details.includes("email already verified")) {
     response._data.detail = "Error.EmailAlreadyVerified";
-  } else if (details.includes("newsletter already subscribed")) {
-    response._data.detail = "Error.NewsletterAlreadySubscribed";
   } else if (details.includes("mfa already enabled")) {
     response._data.detail = "Error.MFAAlreadyEnabled";
   } else if (details.includes("mfa not initialized")) {
