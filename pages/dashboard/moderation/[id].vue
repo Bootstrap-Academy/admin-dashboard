@@ -22,10 +22,9 @@ const form = reactive({
   notifier_rationale: "",
   ground: "",
   rule_version: "",
-  automation:
-    "Menschliche Prüfung und Entscheidung; Speicherung und Versand automatisiert.",
+  automation: "",
   redress:
-    "Du kannst ab Information über diese Entscheidung mindestens sechs Kalendermonate kostenlos eine menschliche Überprüfung unter /moderation oder hallo@bootstrap.academy verlangen. Eigene Tatsachen und Korrekturen werden geprüft. Spätere Beschwerden werden zur menschlichen Bewertung angenommen. Gesetzliche außergerichtliche Rechtsbehelfe, soweit anwendbar, und der Rechtsweg bleiben unberührt.",
+    "Du kannst diese Entscheidung mindestens sechs Kalendermonate, nachdem du darüber informiert wurdest, kostenlos prüfen lassen: unter /moderation oder per E-Mail an hallo@bootstrap.academy. Ein Mensch prüft deine Beschwerde, neue Tatsachen und Korrekturen. Auch spätere Beschwerden werden von einem Menschen bewertet. Deine gesetzlichen Möglichkeiten außerhalb eines Gerichts bleiben bestehen, soweit sie für deinen Fall gelten. Du kannst dich auch an ein Gericht wenden.",
   ends_at: "",
   hearing: "",
   complaint_id: "",
