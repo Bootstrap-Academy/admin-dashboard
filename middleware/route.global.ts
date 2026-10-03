@@ -1,5 +1,5 @@
 export default defineNuxtRouteMiddleware((to, from) => {
-  if (to.path !== from.path && process.client) {
+  if (to.path !== from.path && import.meta.client) {
     setTimeout(() => {
       window.scrollTo({
         top: 0,
@@ -9,8 +9,4 @@ export default defineNuxtRouteMiddleware((to, from) => {
     }, 450);
   }
 
-  // const cookie_accessToken = useCookie('accessToken');
-  // if (to.path.includes('/') && !!cookie_accessToken.value) {
-  // 	return navigateTo('/dashboard');
-  // }
 });

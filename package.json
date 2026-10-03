@@ -7,6 +7,8 @@
 		"preview": "nuxt preview",
 		"postinstall": "nuxt prepare",
 		"lint": "eslint --ext .js,.vue,.ts .",
+		"typecheck": "nuxt prepare && tsc --noEmit",
+		"test:browser": "node tests/browser-runner.mjs",
 		"test": "node --test tests/*.test.mjs"
 	},
 	"devDependencies": {
