@@ -1,7 +1,4 @@
-import { jwtDecode } from "jwt-decode";
-import { Mutex, Semaphore, withTimeout } from "async-mutex";
-
-export const mutex = new Mutex();
+import { accessTokenExpired, sameSession, sameSessionContext, sameSessionPair } from '~/utils/sessionRefresh';
 
 export function GET(url, query) {
   return createApiFetch(url, "GET", null, query);
@@ -25,76 +22,74 @@ export function DELETE(url, body = null) {
 
 async function createApiFetch(url, method, body, query) {
   const config = useRuntimeConfig().public;
-  const accessToken = getAccessToken();
-
-  return $fetch(url, {
+  const snapshot = getSessionSnapshot();
+  const options = {
     baseURL: config.BASE_API_URL,
-    method: method,
-    body: body,
-    query: query,
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      //
-    },
+    method,
+    body,
+    query,
+    retry: 0,
+    _session: snapshot,
+    headers: { Authorization: `Bearer ${snapshot.accessToken}` },
     onRequest,
     onResponse,
     onResponseError,
-  });
-}
-
-const onRequest = async ({ request, options }) => {
-  if (!isAccessTokenExpired(1)) return;
-
-  if (mutex.isLocked()) {
-    await mutex.waitForUnlock();
-    const accessToken = getAccessToken();
-
-    options.headers = new Headers(options.headers);
-    options.headers.set("Authorization", `Bearer ${accessToken}`);
-  } else {
-    const release = await mutex.acquire();
-    const [success, error] = await refresh();
-    release();
-    if (success) {
-      const accessToken = getAccessToken();
-
-      options.headers = new Headers(options.headers);
-      options.headers.set("Authorization", `Bearer ${accessToken}`);
+  };
+  try {
+    return await $fetch(url, options);
+  } catch (error) {
+    if (!invalidTokenResponse(error?.response) || !snapshot.identity ||
+      !sameSession(snapshot, getSessionSnapshot())) throw error;
+    const [success, refreshError] = await refresh(snapshot);
+    if (!success) throw refreshError;
+    // One retry is allowed only for the captured browser session.
+    if (!sameSession(snapshot, getSessionSnapshot()))
+      throw { statusCode: 401, data: { error: 'session_changed' } };
+    const attempted = getSessionSnapshot();
+    try {
+      return await $fetch(url, { ...options, _session: attempted });
+    } catch (retryError) {
+      if (invalidTokenResponse(retryError?.response) &&
+        sameSessionPair(attempted, getSessionSnapshot())) setStates(null);
+      throw retryError;
     }
   }
+}
+
+function invalidTokenResponse(response) {
+  const detail = response?._data?.detail;
+  return response?.status === 401 &&
+    (response?._data?.error === 'invalid_token' ||
+      (typeof detail === 'string' && detail.toLowerCase().includes('invalid token')));
+}
+
+const onRequest = async ({ options }) => {
+  if (!sameSessionContext(options._session, getSessionSnapshot()))
+    throw { statusCode: 401, data: { error: 'session_changed' } };
+  if (accessTokenExpired(getAccessToken())) {
+    const [success, error] = await refresh(options._session);
+    if (!success) throw error;
+  }
+  if (!sameSessionContext(options._session, getSessionSnapshot()))
+    throw { statusCode: 401, data: { error: 'session_changed' } };
+  options._session = getSessionSnapshot();
+  options.headers = new Headers(options.headers);
+  options.headers.set('Authorization', `Bearer ${getAccessToken()}`);
 };
 
-const onResponse = async ({ request, options, response }) => {
-  let status = response?.ok ?? null;
-  const config = useRuntimeConfig().public;
-  if (config.NODE_ENV == "development" && status == true) {
-    // console.log('success', response._data);
-  }
+const onResponse = ({ options }) => {
+  if (!sameSessionContext(options._session, getSessionSnapshot()))
+    throw { statusCode: 401, data: { error: 'session_changed' } };
 };
 
-const onResponseError = async ({ request, options, response }) => {
-  let details = response?._data?.detail ?? "";
-
-  if (typeof details == "object") {
-    response._data.detail = details[0].msg;
-    details = details[0].msg;
-  } else if (details == "") {
-    response._data.detail = "No error msg";
-  } else {
-    details = details.toLocaleLowerCase();
-  }
-
-  const config = useRuntimeConfig().public;
-  if (config.NODE_ENV == "development") {
-    console.log("error", details);
-  }
-
-  if (
-    details.includes("invalid token") ||
-    details.includes("invalid refresh token")
-  ) {
-    router.push("/");
-  }
+const onResponseError = ({ options, response }) => {
+  if (!sameSessionContext(options._session, getSessionSnapshot())) return;
+  // Normalize API validation errors without logging account or credential data.
+  if (!response._data || typeof response._data !== 'object') return;
+  const detail = response._data.detail;
+  const message = typeof detail === 'string' ? detail :
+    (Array.isArray(detail) ? detail[0]?.msg : detail?.msg);
+  const details = typeof message === 'string' ? message.toLowerCase() : '';
 
   if (details.includes("user already exists")) {
     response._data.detail = "Error.NicknameAlreadyExists";
@@ -102,7 +97,7 @@ const onResponseError = async ({ request, options, response }) => {
     response._data.detail = "Error.EmailAlreadyExists";
   } else if (details.includes("invalid email")) {
     response._data.detail = "Error.InvalidEmail";
-  } else if (details.includes("invalid OAuth token")) {
+  } else if (details.includes("invalid oauth token")) {
     response._data.detail = "Error.InvalidOAuthToken";
   } else if (details.includes("registration disabled")) {
     response._data.detail = "Error.RegistrationDisabled";
@@ -138,22 +133,3 @@ const onResponseError = async ({ request, options, response }) => {
     response._data.detail = "Error.ProviderNotFound";
   }
 };
-
-function isAccessTokenExpired() {
-  const accessToken = getAccessToken();
-
-  try {
-    if (!accessToken) {
-      throw { data: "Invalid Access Token: " + accessToken };
-    }
-
-    let exp = jwtDecode(accessToken).exp;
-    let time = parseInt(Math.round(new Date().getTime() / 1000));
-    let difference = exp - time;
-    let isTokenExpired = difference <= 100 ? true : false;
-
-    return isTokenExpired;
-  } catch (error) {
-    return false;
-  }
-}

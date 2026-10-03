@@ -1,4 +1,5 @@
-import { GET, POST } from './fetch';
+import { GET, POST, PUT } from './fetch';
+import { revokeSession, withSessionRefreshLock } from '~/utils/sessionRefresh';
 
 export const useOauthProviders = () => useState('oauthProviders', () => []);
 
@@ -25,38 +26,37 @@ export async function loginViaOAuthProvider(body: any) {
   }
 }
 
-export async function refresh() {
-  const config = useRuntimeConfig().public;
-  const refreshToken = getRefreshToken();
-
-  let body = JSON.stringify({ refresh_token: refreshToken });
-
+export async function refresh(expected = getSessionSnapshot(), clearOnInvalid = true) {
   try {
-    const response = await $fetch(`${config.BASE_API_URL}/auth/session`, {
-      method: 'PUT',
-      body: body,
-    });
-
-    setStates(response);
+    const response = await refreshSession(expected, clearOnInvalid);
     return [response, null];
   } catch (error: any) {
-    setStates(null);
-    return [null, error.data];
+    return [null, error];
   }
 }
 
 export async function logout() {
-  const user = <any>useUser();
+  const expected = getSessionSnapshot();
+  const config = useRuntimeConfig().public;
 
+  // Explicit logout clears all tabs immediately, even when the API is offline.
+  setStates(null);
+  if (!expected.identity || (!expected.accessToken && !expected.refreshToken))
+    return [true, null];
   try {
-    if (Boolean(!user.value) || Boolean(!user.value.id)) {
-      throw { data: 'Invalid User Id' };
-    }
-
-    const response = await DELETE(`/auth/sessions/${user.value.id}`);
-
-    setStates(null);
-
+    const response = await revokeSession({
+      expected,
+      lock: withSessionRefreshLock,
+      raw: (path, method, body, token) =>
+        $fetch(`${config.BASE_API_URL}${path}`, {
+          method,
+          body: body as any,
+          ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+          retry: 0,
+          timeout: 20000,
+        }),
+    });
+    // The result never writes over a later login or another session.
     return [response, null];
   } catch (error) {
     return [null, error];
