@@ -559,5 +559,20 @@
       "evidence_hash": "Nachweis-Hash",
       "qualified": "Vermerkte Bestätigung"
     }
+  },
+  "PublicationSupport": {
+    "Heading": "Profilfreigabe",
+    "Loading": "Status wird geladen …",
+    "Shared": "Freigegeben",
+    "Private": "Privat",
+    "Scope": "Nur der Nutzer kann sein Profil freigeben. Für den Support bleiben seine privaten Lerndaten einsehbar.",
+    "Withdraw": "Wieder privat stellen",
+    "Saving": "Wird gespeichert …",
+    "Saved": "Das Profil ist wieder privat.",
+    "Denied": "Du brauchst aktuelle Adminrechte und eine bestätigte MFA-Anmeldung.",
+    "Unavailable": "Die Profilfreigabe ist gerade nicht verfügbar.",
+    "Conflict": "Die Freigabe wurde inzwischen geändert. Der aktuelle Status wurde neu abgefragt.",
+    "Failed": "Die Antwort fehlt. Prüfe den aktuellen Status und versuch es erneut.",
+    "Reload": "Status neu laden"
   }
 }
