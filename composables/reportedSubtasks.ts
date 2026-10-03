@@ -64,23 +64,23 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 
 // Information: below code is used to get user name & id of reporter and creator
 export async function assignReportUser() {
-  const allSubTasks = await GET(`challenges/subtasks`);
-  const arr = useReportedSubtasks();
+  // Keep the exact reports that started these lookups across navigation/reload.
+  const reports = [...useReportedSubtasks().value];
   const loading = useReportedTasksLoading();
-
-  arr.value.forEach((subTask: ReportBase) => {
-    subTask.creator_id =
-      allSubTasks.find(
-        (allSubTask: any) => allSubTask.id === subTask.subtask_id,
-      )?.creator ?? "";
-  });
   try {
     loading.value = true;
+    const allSubTasks = await GET(`challenges/subtasks`);
+    reports.forEach((subTask) => {
+      subTask.creator_id =
+        allSubTasks.find(
+          (allSubTask: any) => allSubTask.id === subTask.subtask_id,
+        )?.creator ?? "";
+    });
     // Combine all promises into an array
-    const reporterPromises = arr.value.map(
+    const reporterPromises = reports.map(
       async (subtask) => await getAppUser(subtask?.user_id ?? ""),
     );
-    const creatorPromises = arr.value.map(
+    const creatorPromises = reports.map(
       async (subtask) => await getAppUser(subtask.creator_id),
     );
 
@@ -92,33 +92,35 @@ export async function assignReportUser() {
 
     // Process results
     reporters.forEach(([reporter, error], index) => {
+      const report = reports[index];
+      if (!report) return;
       if (reporter) {
-        arr.value[index].userName = reporter.name ?? "";
+        report.userName = reporter.name ?? "";
       } else {
         console.log(
           "Error in getAppUser for user_id:",
-          arr.value[index]?.user_id,
+          report.user_id,
           error,
         );
       }
     });
     creators.forEach(([creator, creatorError], index) => {
+      const report = reports[index];
+      if (!report) return;
       if (creator?.name) {
-        arr.value[index].creatorName = creator.name;
-        arr.value[index].taskType = creator.subtask_type;
+        report.creatorName = creator.name;
       } else {
         console.log(
           "No creator for creator_id:",
-          arr.value[index]?.creator_id,
+          report.creator_id,
           creatorError,
         );
       }
     });
-    loading.value = false;
   } catch (error) {
-    loading.value = false;
-
     console.log("Error in parallel execution:", error);
+  } finally {
+    loading.value = false;
   }
 }
 
