@@ -196,7 +196,7 @@ export function retentionPage(
   if (exhausted ? next !== null : next === null || rows.length !== 100)
     return fail();
   if (next) {
-    const last = afterRow(rows[rows.length - 1], family);
+    const last = afterRow(rows[rows.length - 1]!, family);
     if (Object.entries(last).some(([key, val]) => next.after[key] !== val))
       return fail();
   }
@@ -291,7 +291,7 @@ export function createCommercialRetentionPage(
       if (!current()) return;
       if (response.status !== 200)
         throw Object.assign(Error("request"), { status: response.status });
-      if (response.mime.split(";")[0].trim() !== "application/json")
+      if (response.mime.split(";")[0]!.trim() !== "application/json")
         throw Error("schema");
       const value = retentionPage(JSON.parse(response.text), family);
       if (!current()) return;

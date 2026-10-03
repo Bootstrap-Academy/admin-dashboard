@@ -410,7 +410,7 @@ export function createCommercialStaff(
     context.reject(proof, response.status); // Authority rejection precedes selected-content guards.
     if (response.status !== 200)
       throw Object.assign(Error("request"), { status: response.status });
-    if (body && response.mime.split(";")[0].trim() !== "application/json")
+    if (body && response.mime.split(";")[0]!.trim() !== "application/json")
       throw Error("schema");
     return response;
   }
@@ -534,7 +534,7 @@ export function createCommercialStaff(
         if (!alive || !context.current(proof) || version !== documentRevision)
           return;
         if (
-          result.mime.split(";")[0].trim() !== tuple.mime ||
+          result.mime.split(";")[0]!.trim() !== tuple.mime ||
           result.bytes.length === 0
         )
           throw Error("schema");
