@@ -8,3 +8,20 @@ If you would like to submit a bug report or feature request, or are looking for 
 2. Clone this repository and `cd` into it.
 3. Run `npm install` to install the dependencies.
 4. Run `npm run dev` to start a development server listening on http://localhost:3000/.
+
+## Validation
+
+Use the lockfile and Node version selected in the workflows:
+
+```sh
+npm ci
+npm run lint
+npm run typecheck
+npm test
+bash build.sh
+npm run test:browser
+```
+
+`typecheck` checks TypeScript sources with Nuxt's generated configuration. Vue component behavior is covered by the unit and browser suites; this command does not typecheck Vue templates.
+
+Browser tests serve the existing `dist` build, use isolated synthetic API responses and block external requests. Install Chromium and set `CHROMIUM_PATH` if it is not on your PATH. The runner owns and removes its temporary profiles and local servers. It reports each tested case group. Authenticated acceptance against the deployed Test API remains a separate release check.
