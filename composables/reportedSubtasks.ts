@@ -40,6 +40,9 @@ export async function getreportedSubtasksList(firstCall: boolean) {
 
     let arr: ReportBase[] = response ?? [];
 
+    if (firstCall) {
+      reportedSubtasks.value = [];
+    }
     if (!arr.length) {
       noMoreSubtasks.value = true;
       return openSnackbar("info", "Body.NoMoreReports");
@@ -48,10 +51,6 @@ export async function getreportedSubtasksList(firstCall: boolean) {
       noMoreSubtasks.value = true;
     } else noMoreSubtasks.value = false;
 
-    if (firstCall) {
-      reportedSubtasks.value = [];
-    }
-
     reportedSubtasks.value = [...reportedSubtasks.value, ...(response ?? [])];
 
     await assignReportUser();
@@ -59,6 +58,8 @@ export async function getreportedSubtasksList(firstCall: boolean) {
     return [response, null];
   } catch (error: any) {
     return [null, error.data];
+  } finally {
+    loading.value = false;
   }
 }
 
@@ -76,12 +77,21 @@ export async function assignReportUser() {
           (allSubTask: any) => allSubTask.id === subTask.subtask_id,
         )?.creator ?? "";
     });
+    // Enrichment must not replace the globally selected user-detail profile.
+    const readUser = async (id: string) => {
+      if (!id) return [null, "Invalid App User Id"] as const;
+      try {
+        return [await GET(`/auth/users/${id}`), null] as const;
+      } catch (error: any) {
+        return [null, error.data] as const;
+      }
+    };
     // Combine all promises into an array
     const reporterPromises = reports.map(
-      async (subtask) => await getAppUser(subtask?.user_id ?? ""),
+      async (subtask) => await readUser(subtask.user_id),
     );
     const creatorPromises = reports.map(
-      async (subtask) => await getAppUser(subtask.creator_id),
+      async (subtask) => await readUser(subtask.creator_id),
     );
 
     // Execute all promises concurrently

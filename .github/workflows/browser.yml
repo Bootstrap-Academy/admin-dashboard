@@ -1,0 +1,41 @@
+name: Browser
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    name: browser
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: "--max_old_space_size=4096"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.14.1
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Chromium
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/admin-chromium
+        run: |
+          set -euo pipefail
+          npx --yes --package=playwright@1.63.0 playwright install --with-deps chromium
+          chromium_candidates=("$PLAYWRIGHT_BROWSERS_PATH"/chromium-*/chrome-linux*/chrome)
+          test "${#chromium_candidates[@]}" -eq 1
+          chromium_path=${chromium_candidates[0]}
+          test -x "$chromium_path"
+          printf 'CHROMIUM_PATH=%s\n' "$chromium_path" >> "$GITHUB_ENV"
+      - name: Build static admin
+        run: bash build.sh
+      - name: Browser suites with isolated APIs
+        run: node tests/browser-runner.mjs
