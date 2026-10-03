@@ -6,7 +6,8 @@
 		"generate": "nuxt generate",
 		"preview": "nuxt preview",
 		"postinstall": "nuxt prepare",
-		"lint": "eslint --ext .js,.vue,.ts ."
+		"lint": "eslint --ext .js,.vue,.ts .",
+		"test": "node --test tests/*.test.mjs"
 	},
 	"devDependencies": {
 		"autoprefixer": "^10.5.4",

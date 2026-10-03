@@ -1,61 +1,78 @@
 import { useState } from '#app';
 
-export const useUser = () => useState('user', () => null);
-export const useSession = () => useState('session', () => null);
+type AuthUser = { id: string; email?: string; email_verified?: boolean; admin?: boolean; enabled?: boolean };
+type AuthSession = { id: string; user_id: string; mfa_verified: boolean };
+export const useUser = () => useState<AuthUser | null>('user', () => null);
+export const useSession = () => useState<AuthSession | null>('session', () => null);
 export const useAccessToken = () => useState('accessToken', () => '');
 export const useRefreshToken = () => useState('refreshToken', () => '');
 
+/** Request snapshots read the shared jar without adding cookie listeners. */
+export function readSessionCookie(name: string): any {
+  if (typeof document === 'undefined' || typeof document.cookie !== 'string')
+    return useCookie<any>(name, { readonly: true, watch: false }).value;
+  const entry = document.cookie.split(';').find((value) => value.trim().startsWith(`${name}=`));
+  if (!entry) return null;
+  try {
+    const value = decodeURIComponent(entry.trim().slice(name.length + 1));
+    if (value === 'undefined') return null;
+    try {
+      return JSON.parse(value);
+    } catch {
+      return value;
+    }
+  } catch {
+    return null;
+  }
+}
+
 export function getAccessToken() {
   const accessToken = useAccessToken();
-
   if (!accessToken.value) return null;
-
-  const cookie_accessToken = useCookie('accessToken');
-  if (cookie_accessToken.value != accessToken.value) {
-    accessToken.value = cookie_accessToken.value;
-  }
-
+  accessToken.value = readSessionCookie('accessToken') ?? '';
   return accessToken.value;
 }
 
 export function getRefreshToken() {
   const refreshToken = useRefreshToken();
-
   if (!refreshToken.value) return null;
-
-  const cookie_refreshToken = useCookie('refreshToken');
-  if (cookie_refreshToken.value != refreshToken.value) {
-    refreshToken.value = cookie_refreshToken.value;
-  }
-
+  refreshToken.value = readSessionCookie('refreshToken') ?? '';
   return refreshToken.value;
 }
 
-export function setStates(response: any) {
+export function syncSessionCookies() {
   const user = useUser();
-  const cookie_user = <any>useCookie('user');
-  user.value = response?.user ?? null;
-  cookie_user.value = user.value;
-
   const session = useSession();
-  const cookie_session = <any>useCookie('session');
+  const cookieUser = readSessionCookie('user');
+  const cookieSession = readSessionCookie('session');
+  if (JSON.stringify(user.value) !== JSON.stringify(cookieUser)) user.value = cookieUser ?? null;
+  if (JSON.stringify(session.value) !== JSON.stringify(cookieSession)) session.value = cookieSession ?? null;
+  useAccessToken().value = readSessionCookie('accessToken') ?? '';
+  useRefreshToken().value = readSessionCookie('refreshToken') ?? '';
+}
+
+export function setStates(response: any, renewing = false) {
+  // Synchronous publication is required before releasing the origin lock.
+  const write = (name: string, value: any) => {
+    if (typeof document !== 'undefined' && typeof document.cookie === 'string') {
+      document.cookie = `${name}=${value == null ? '' : encodeURIComponent(typeof value === 'string' ? value : JSON.stringify(value))}; Path=/; Secure; SameSite=Lax${value == null ? '; Max-Age=0' : ''}`;
+      refreshCookie(name);
+    } else useCookie<any>(name, { watch: false }).value = value;
+  };
+  if (!renewing) write('authGeneration', crypto.randomUUID());
+  const user = useUser();
+  user.value = response?.user ?? null;
+  write('user', user.value);
+  const session = useSession();
   session.value = response?.session ?? null;
-  cookie_session.value = session.value;
-
+  write('session', session.value);
   const accessToken = useAccessToken();
-  const cookie_accessToken = useCookie('accessToken');
-  accessToken.value = response?.access_token ?? null;
-  cookie_accessToken.value = accessToken.value;
-
+  accessToken.value = response?.access_token ?? '';
+  write('accessToken', accessToken.value || null);
   const refreshToken = useRefreshToken();
-  const cookie_refreshToken = useCookie('refreshToken');
-  refreshToken.value = response?.refresh_token ?? null;
-  cookie_refreshToken.value = refreshToken.value;
-
-  if (response == null) {
-    const router = useRouter();
-    router.push('/');
-  }
+  refreshToken.value = response?.refresh_token ?? '';
+  write('refreshToken', refreshToken.value || null);
+  if (response == null) useRouter().push('/');
 }
 
 export const isAuth = computed((): boolean => {
