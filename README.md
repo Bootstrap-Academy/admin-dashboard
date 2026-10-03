@@ -22,6 +22,6 @@ bash build.sh
 npm run test:browser
 ```
 
-`typecheck` checks TypeScript sources with Nuxt's generated configuration. Vue component behavior is covered by the unit and browser suites; this command does not typecheck Vue templates.
+`typecheck` checks TypeScript sources with Nuxt's generated configuration. The unit and browser suites exercise Vue component behavior; this command does not typecheck Vue templates.
 
 Browser tests serve the existing `dist` build, use isolated synthetic API responses and block external requests. Install Chromium and set `CHROMIUM_PATH` if it is not on your PATH. The runner owns and removes its temporary profiles and local servers. It reports each tested case group. Authenticated acceptance against the deployed Test API remains a separate release check.

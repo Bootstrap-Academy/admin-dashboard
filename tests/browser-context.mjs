@@ -8,6 +8,7 @@ export function browserContext() {
 }
 
 export async function runBrowserSuite(context, file) {
+  context.ensureRunning();
   currentContext = context;
   try {
     await import(file);
@@ -20,6 +21,7 @@ export async function connectToBrowser(target) {
   const url = new URL(target);
   if (url.protocol !== "ws:" || url.hostname !== "127.0.0.1")
     throw new Error("Browser CDP must use the runner's loopback server");
+  browserContext().ensureRunning();
   const ws = new WebSocket(target);
   let sequence = 0;
   const pending = new Map(), listeners = new Set();

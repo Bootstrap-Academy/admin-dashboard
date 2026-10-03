@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_OPTIONS: "--max_old_space_size=4096"
-      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/admin-chromium
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -26,6 +25,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Install Chromium
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/admin-chromium
         run: |
           set -euo pipefail
           npx --yes --package=playwright@1.63.0 playwright install --with-deps chromium

@@ -37,10 +37,20 @@ async function chromiumPath() {
   throw new Error("Chromium missing; set CHROMIUM_PATH to its executable");
 }
 const binary = await chromiumPath();
-const work = await fs.mkdtemp(join(tmpdir(), "admin-browser-"));
 const servers = [], browsers = new Set(), results = [];
+const preparations = new Set(), runningSuites = new Set();
+const cancellation = new AbortController();
 const escaped = [];
-let apiHandler, api, app, cleanupPromise;
+let work, apiHandler, api, app, cleanupPromise, stopping = false, summaryPrinted = false;
+function ensureRunning() {
+  if (stopping) throw new Error("Browser runner stopping");
+}
+function prepare(operation) {
+  ensureRunning();
+  const pending = operation();
+  preparations.add(pending);
+  return pending.finally(() => preparations.delete(pending));
+}
 const mime = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
   ".mjs": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
@@ -48,12 +58,16 @@ const mime = {
   ".ico": "image/x-icon", ".woff": "font/woff", ".woff2": "font/woff2",
 };
 async function listen(handler) {
+  ensureRunning();
   const server = http.createServer(handler);
   servers.push(server);
   await new Promise((resolve, reject) => {
     server.once("error", reject);
-    server.listen(0, "127.0.0.1", resolve);
+    server.once("close", () => reject(new Error("Browser runner server closed")));
+    ensureRunning();
+    server.listen({ port: 0, host: "127.0.0.1", signal: cancellation.signal }, resolve);
   });
+  ensureRunning();
   return "http://127.0.0.1:" + server.address().port;
 }
 async function serve(req, res) {
@@ -110,19 +124,35 @@ async function stopBrowser(browser) {
   browsers.delete(browser);
 }
 function cleanup() {
+  // Set this before the first await; a suspended launch must never start again.
+  stopping = true;
+  cancellation.abort();
   return cleanupPromise ||= (async () => {
+    await Promise.allSettled([...preparations]);
     await Promise.all([...browsers].map(stopBrowser));
+    await Promise.allSettled([...runningSuites]);
     await Promise.all(servers.map((server) => new Promise((resolve) => {
       server.closeAllConnections(); server.close(resolve);
     })));
-    await fs.rm(work, { recursive: true, force: true });
+    if (work) await fs.rm(work, { recursive: true, force: true });
   })();
+}
+async function finish() {
+  await cleanup();
+  assert.equal(browsers.size, 0, "Owned Chromium processes stopped");
+  assert(servers.every((server) => !server.listening), "Owned loopback servers stopped");
+  if (work) await assert.rejects(fs.access(work), { code: "ENOENT" });
+  if (summaryPrinted) return;
+  summaryPrinted = true;
+  console.log(JSON.stringify({ suites: results, cases: results.reduce((count, suite) => count + (suite.cases?.length || 0), 0),
+    exitCode: process.exitCode ?? 0, pass: (process.exitCode ?? 0) === 0,
+    cleanup: { browsersStopped: true, serversStopped: true, temporaryFilesRemoved: true } }));
 }
 const signals = new Map();
 for (const [signal, code] of [["SIGINT", 130], ["SIGTERM", 143]]) {
   const handler = () => {
     process.exitCode = code;
-    cleanup().then(() => process.exit(code), (error) => { console.error(error); process.exit(code); });
+    finish().then(() => process.exit(code), (error) => { console.error(error); process.exit(code); });
   };
   signals.set(signal, handler);
   process.once(signal, handler);
@@ -130,8 +160,9 @@ for (const [signal, code] of [["SIGINT", 130], ["SIGTERM", 143]]) {
 async function launch(run) {
   // Chromium uses Unix sockets here, so avoid nesting this under the suite.
   const profile = join(run, "profile"), temporary = join(work, "t");
-  await fs.mkdir(profile);
-  await fs.mkdir(temporary, { recursive: true });
+  await prepare(() => fs.mkdir(profile));
+  await prepare(() => fs.mkdir(temporary, { recursive: true }));
+  ensureRunning();
   const child = spawn(binary, [
     "--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage",
     "--disable-background-networking", "--disable-component-update", "--disable-sync",
@@ -155,15 +186,18 @@ async function launch(run) {
     const end = Date.now() + 15000;
     let port;
     while (!port) {
+      ensureRunning();
       if (browser.spawnError) throw browser.spawnError;
       assert(child.exitCode === null && child.signalCode === null, "Chromium exited: " + browser.log);
       try { port = (await fs.readFile(join(profile, "DevToolsActivePort"), "utf8")).split("\n")[0]; } catch {}
       assert(Date.now() < end, "Chromium startup timed out: " + browser.log);
       if (!port) await new Promise((resolve) => setTimeout(resolve, 50));
     }
+    ensureRunning();
     assert(/^\d+$/.test(port), "Invalid Chromium port");
-    const response = await fetch(`http://127.0.0.1:${port}/json/list`);
+    const response = await fetch(`http://127.0.0.1:${port}/json/list`, { signal: cancellation.signal });
     const target = (await response.json()).find((page) => page.type === "page");
+    ensureRunning();
     assert(target?.webSocketDebuggerUrl, "Chromium page missing");
     return { browser, target: target.webSocketDebuggerUrl };
   } catch (error) {
@@ -172,6 +206,11 @@ async function launch(run) {
   }
 }
 try {
+  work = await prepare(() => fs.mkdtemp(join(tmpdir(), "admin-browser-")).then((directory) => {
+    work = directory;
+    return directory;
+  }));
+  ensureRunning();
   api = await listen((req, res) => {
     if (apiHandler) return apiHandler(req, res);
     escaped.push({ method: req.method, path: req.url });
@@ -180,21 +219,25 @@ try {
   app = await listen((req, res) => { void serve(req, res); });
   for (const suite of selected) {
     const run = join(work, suite), downloadPath = join(run, "downloads");
-    await fs.mkdir(downloadPath, { recursive: true });
+    await prepare(() => fs.mkdir(downloadPath, { recursive: true }));
+    ensureRunning();
     let browser, summary;
     console.log("RUN " + suite);
     try {
       const launched = await launch(run);
       browser = launched.browser;
-      await runBrowserSuite({ app, api, run, downloadPath, target: launched.target,
+      ensureRunning();
+      const running = runBrowserSuite({ app, api, run, downloadPath, target: launched.target, ensureRunning,
         setApiHandler(handler) { apiHandler = handler; },
         report(result) { summary = { suite, ...result }; },
       }, new URL(`./${suite}.browser.mjs`, import.meta.url));
+      runningSuites.add(running);
+      try { await running; } finally { runningSuites.delete(running); }
       assert(summary?.pass, "Browser suite did not report success: " + suite);
     } catch (error) {
-      process.exitCode = 1;
+      if (!stopping) process.exitCode = 1;
       summary = { suite, ...summary, pass: false };
-      console.error("FAIL " + suite + ": " + (error.stack || error));
+      if (!stopping) console.error("FAIL " + suite + ": " + (error.stack || error));
     } finally {
       if (browser) await stopBrowser(browser);
       apiHandler = undefined;
@@ -204,14 +247,11 @@ try {
   }
   assert.equal(escaped.length, 0, JSON.stringify(escaped));
 } catch (error) {
-  process.exitCode = 1;
-  console.error(error.stack || error);
+  if (!stopping) {
+    process.exitCode = 1;
+    console.error(error.stack || error);
+  }
 } finally {
-  await cleanup();
-  assert.equal(browsers.size, 0, "Owned Chromium processes stopped");
-  assert(servers.every((server) => !server.listening), "Owned loopback servers stopped");
-  await assert.rejects(fs.access(work), { code: "ENOENT" });
+  await finish();
   for (const [signal, handler] of signals) process.removeListener(signal, handler);
-  console.log(JSON.stringify({ suites: results, cases: results.reduce((count, suite) => count + (suite.cases?.length || 0), 0),
-    pass: process.exitCode !== 1, cleanup: { browsersStopped: true, serversStopped: true, temporaryFilesRemoved: true } }));
 }
