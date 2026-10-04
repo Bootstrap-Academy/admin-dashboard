@@ -4,7 +4,7 @@ const { app, api, target, report, setPublicationEnabled } = browserContext();
 const browser = await connectToBrowser(target), { cmd } = browser;
 const admin = '11111111-1111-4111-8111-111111111111', userId = '22222222-2222-4222-8222-222222222222';
 const route = `/auth/admin/users/${userId}/publication`, reads = [], writes = [], errors = [], cases = [];
-let current, readFailure, writeFailure, pass = false;
+let current, readFailure, writeFailure, pass = false, denyPrivateUserRead = false;
 const shared = () => ({ profile_visibility: 'shared', visibility_revision: 3, shared_at: 123, withdrawn_at: null });
 async function ev(expression) {
   const result = await cmd('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
@@ -54,8 +54,9 @@ async function mock({ request, requestId }) {
       data = { current, receipt: {}, replayed: false };
     }
   } else if (url.pathname.startsWith('/auth/users/')) {
+    status = denyPrivateUserRead ? 403 : 200;
     data = { id: url.pathname.split('/').pop(), name: 'Synthetic user', display_name: 'Support fixture', email_verified: true, enabled: true, admin: url.pathname.endsWith(admin), created_at: 123, last_login: 123, tags: [] };
-  } else if (url.pathname === `/skills/xp/${userId}`) data = { xp: 42, skills: [] };
+  } else if (url.pathname === `/skills/xp/${userId}`) data = { total_xp: 42, skills: [] };
   else if (url.pathname === `/shop/coins/${userId}`) data = { coins: 0 };
   await cmd('Fetch.fulfillRequest', { requestId, responseCode: status, responseHeaders: [
     { name: 'Content-Type', value: 'application/json' }, { name: 'Access-Control-Allow-Origin', value: '*' },
@@ -129,6 +130,21 @@ try {
     await until(`document.querySelector('[data-publication-status]')`);
     cases.push(`${locale}/${width}: disabled, withdraw, CAS, lost reply, outage/retry`);
   }
+  // A different viewer/session cannot keep the preceding viewer's private XP.
+  await until(`[...document.querySelectorAll('main article h6')].some(el => el.textContent.trim() === '42 XP')`);
+  denyPrivateUserRead = true; readFailure = 403;
+  const nextViewer = '33333333-3333-4333-8333-333333333333';
+  for (const [name, value] of Object.entries({
+    user: JSON.stringify({ id: nextViewer, admin: true }),
+    session: JSON.stringify({ id: 'different-session', user_id: nextViewer, mfa_verified: true }),
+    authGeneration: 'different-login',
+  })) await cmd('Network.setCookie', { name, value: encodeURIComponent(value), url: app, path: '/' });
+  await ev(`window.dispatchEvent(new Event('focus'))`);
+  await until(`[...document.querySelectorAll('main article h6')].some(el => el.textContent.trim() === '0 XP')`);
+  assert.equal(await ev(`[...document.querySelectorAll('main article h6')].some(el => el.textContent.trim() === '42 XP')`), false);
+  await until(`document.querySelector('[data-publication-support] [role=alert]')`);
+  assert.equal(await ev(`!!document.querySelector('[data-publication-withdraw]')`), false);
+  cases.push('viewer/session change clears private XP before a denied reload');
   assert.deepEqual(errors, []);
   pass = true;
 } finally {

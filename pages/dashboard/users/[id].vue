@@ -38,10 +38,10 @@
 		<div
 			class="grid grid-cols-1 midXl:grid-cols-[1fr_auto] gap-container mt-card"
 		>
-			<AppUsersProfile :key="userID" :data="appUser" class="w-full" />
-			<AppUsersAccount :key="userID" :data="appUser" class="w-full md:min-w-[400px]" />
-			<AppUsersPublication v-if="publicationEnabled" :key="userID" :user-id="userID" class="midXl:col-span-2" />
-			<AppUsersProgress :key="userID" :data="appUser" class="midXl:col-span-2" />
+			<AppUsersProfile :key="supportContext" :data="appUser" class="w-full" />
+			<AppUsersAccount :key="supportContext" :data="appUser" class="w-full md:min-w-[400px]" />
+			<AppUsersPublication v-if="publicationEnabled" :key="supportContext" :user-id="userID" class="midXl:col-span-2" />
+			<AppUsersProgress :key="supportContext" :data="appUser" class="midXl:col-span-2" />
 		</div>
 	</main>
 </template>
@@ -72,6 +72,7 @@ export default {
 
     const appUser: Ref<any> = useAppUser();
     const viewer = useUser(), viewerSession = useSession();
+    const supportContext = computed(() => JSON.stringify([userID.value, viewer.value?.id, viewerSession.value?.id]));
     let userLoad = 0;
 
     const userName = computed(() => {
@@ -118,7 +119,7 @@ export default {
       );
     }
 
-    return { appUser, onclickDeleteUser, userID, publicationEnabled };
+    return { appUser, onclickDeleteUser, userID, publicationEnabled, supportContext };
   },
 };
 </script>
