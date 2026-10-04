@@ -4005,3 +4005,110 @@ test("confirmed admin commands remove tab journals and remain exportable without
   const dc = d.calls.length; await d.controller.send(); assert.equal(d.calls.length, dc);
   d.controller.forget(); assert.equal(d.controller.state.saved, null); d.dispose();
 });
+
+// Legacy durable journals: every tab works on a copy; the original stays until confirmation.
+const { commercialStore } = commercialStorage.module;
+test("legacy hold journal: both tabs keep a copy, the confirmation removes the original, the second send is an exact replay", async () => {
+  const hkey = "bootstrap.staff-hold-review.v1." + J,
+    legacy = JSON.stringify({
+      schema_version: 1,
+      actor: U,
+      body_json: JSON.stringify(hbody()),
+      uncertain: true,
+      confirmed: false,
+      receipts: [],
+    }),
+    local = memory();
+  local.setItem(hkey, legacy);
+  const secondTab = commercialStore(local, memory()); // opened before the first tab sends
+  const first = hf({ storage: commercialStore(local, memory()) });
+  first.controller.loadSaved();
+  assert.equal(first.controller.state.records.length, 1);
+  first.controller.selectSaved(J);
+  await first.controller.send();
+  assert(first.controller.state.receipt);
+  assert.equal(local.getItem(hkey), null, "the server confirmation removes the durable original");
+  assert.equal(first.storage.getItem(hkey), null);
+  assert.equal(secondTab.getItem(hkey), legacy, "the other tab keeps seeing its copy");
+  first.dispose();
+  const second = hf({ storage: secondTab });
+  second.controller.loadSaved();
+  second.controller.selectSaved(J);
+  await second.controller.send();
+  // Same command and byte-identical body: the backend answers with the same receipt
+  // (backend hold_review.rs exact replay), so a copy cannot execute twice.
+  assert.equal(second.calls[0][2], first.calls[0][2]);
+  assert.equal(JSON.parse(second.calls[0][2]).command_id, J);
+  assert(second.controller.state.receipt);
+  assert.equal(secondTab.getItem(hkey), null);
+  second.dispose();
+});
+test("legacy determination journal: confirmation in one tab removes the original; another tab's copy replays exactly", async () => {
+  const local = memory(),
+    legacy = JSON.stringify(dsaved());
+  local.setItem(dkey(), legacy);
+  const secondTab = commercialStore(local, memory());
+  const first = df(commercialStore(local, memory()));
+  first.controller.loadSaved();
+  first.controller.selectSaved(DJ);
+  first.reply(async () => response(dreceipt()));
+  await first.controller.send();
+  assert(first.controller.state.receipt);
+  assert.equal(local.getItem(dkey()), null);
+  assert.equal(secondTab.getItem(dkey()), legacy);
+  const sent = first.calls.at(-1)[2];
+  first.dispose();
+  const second = df(secondTab);
+  second.controller.loadSaved();
+  second.controller.selectSaved(DJ);
+  second.reply(async () => response(dreceipt()));
+  await second.controller.send();
+  assert.equal(second.calls.at(-1)[2], sent, "byte-identical replay of the same command");
+  assert(second.controller.state.receipt);
+  assert.equal(secondTab.getItem(dkey()), null);
+  second.dispose();
+});
+test("app start removes journals confirmed in either copy from both stores and keeps every unconfirmed original", async () => {
+  const local = memory(),
+    tab = memory();
+  let listeners = 0;
+  globals({
+    defineNuxtPlugin: (setup) => setup,
+    window: {
+      localStorage: local,
+      sessionStorage: tab,
+      addEventListener: () => listeners++,
+      removeEventListener: () => listeners--,
+    },
+  });
+  const plugin = (
+    await compile("../plugins/commercial-storage.client.ts", {
+      "'../utils/commercialStorage'": JSON.stringify(commercialStorage.url),
+      "'../composables/commercialDetermination'": JSON.stringify(determinationAdapter.url),
+      "'../composables/commercialHoldReview'": JSON.stringify(holdAdapter.url),
+    })
+  ).module.default;
+  const hkey = (id) => "bootstrap.staff-hold-review.v1." + id;
+  const hold = (confirmed) =>
+    JSON.stringify({
+      schema_version: 1,
+      actor: U,
+      body_json: JSON.stringify(hbody()),
+      uncertain: confirmed,
+      confirmed,
+      receipts: confirmed ? [hreceipt()] : [],
+    });
+  const confirmedDetermination = JSON.stringify({ ...dsaved(), uncertain: true, receipts: [dreceipt()] });
+  assert.equal(determinationSaved(determinationJson(confirmedDetermination, false)).receipts.length, 1);
+  assert(holdSaved(JSON.parse(hold(true))).confirmed);
+  local.setItem(dkey(), confirmedDetermination); // confirmed by an older build
+  local.setItem(dkey(DK), JSON.stringify(dsaved(DK))); // still open
+  local.setItem(hkey(J), hold(true)); // confirmed durable copy ...
+  tab.setItem(hkey(J), hold(false)); // ... while this tab holds an older open copy
+  local.setItem("unrelated", "value");
+  plugin({ vueApp: { onUnmount() {} } });
+  assert.deepEqual([...local.map.keys()].sort(), [dkey(DK), "unrelated"].sort());
+  assert.deepEqual([...tab.map.keys()], [dkey(DK)], "the open original is copied, not moved");
+  assert.equal(local.getItem(dkey(DK)), tab.getItem(dkey(DK)));
+  assert.equal(listeners, 1);
+});

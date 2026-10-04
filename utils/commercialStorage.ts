@@ -19,21 +19,40 @@ function entries(store: Store) {
   return result;
 }
 
-/** Move old journals only after a byte-identical tab copy has been verified.
- * Conflicting or unreadable histories stay available for an explicit export. */
-export function migrateCommercialStorage(local: Store, tab: Store) {
-  for (const [key, raw] of entries(local)) {
-    const current = tab.getItem(key);
-    if (current !== null && current !== raw) throw Error("storage");
-    tab.setItem(key, raw);
-    if (tab.getItem(key) !== raw) throw Error("storage");
-    local.removeItem(key);
-    if (local.getItem(key) !== null) throw Error("storage");
+/** Older builds kept journals in localStorage. Each tab works on its own
+ * byte-identical copy, so every open tab can still warn about and export them;
+ * an existing tab copy may carry later progress and is never overwritten.
+ * The durable original goes only with a server confirmation (`removeItem` of the
+ * returned store) or after the logout export was confirmed. Exact replays of the
+ * same command are idempotent on the server, so copies cannot execute twice. */
+export function commercialStore(local: Store, tab: Store): Store {
+  try {
+    for (const [key, raw] of entries(local)) {
+      try {
+        if (tab.getItem(key) === null) tab.setItem(key, raw);
+      } catch {
+        /* The original stays durable and is part of the logout export. */
+      }
+    }
+  } catch {
+    /* Unreadable durable storage leaves this tab's own journals usable. */
   }
-  return tab;
+  return {
+    get length() {
+      return tab.length;
+    },
+    key: (index: number) => tab.key(index),
+    getItem: (key: string) => tab.getItem(key),
+    setItem: (key: string, value: string) => tab.setItem(key, value),
+    // Controllers remove a journal only after the server confirmed it.
+    removeItem(key: string) {
+      tab.removeItem(key);
+      if (own(key)) local.removeItem(key);
+    },
+  };
 }
 export function commercialStorage() {
-  return migrateCommercialStorage(window.localStorage, window.sessionStorage);
+  return commercialStore(window.localStorage, window.sessionStorage);
 }
 
 export function staffBackupRecords(raw: string, prefix: string): string[] {
@@ -66,9 +85,16 @@ export function registerStaffWork(guard: Work) {
   return () => work.delete(guard);
 }
 export function staffWorkSnapshot(local: Store, tab: Store) {
+  const tabbed = entries(tab);
   return {
     version: 1,
-    journals: [...entries(local), ...entries(tab)],
+    // An unchanged tab copy of a durable original is exported once.
+    journals: [
+      ...entries(local).filter(
+        ([key, raw]) => !tabbed.some(([k, v]) => k === key && v === raw),
+      ),
+      ...tabbed,
+    ],
     forms: [...work].map((g) => g.snapshot()).filter(Boolean),
   };
 }
@@ -76,14 +102,21 @@ export function hasStaffWork(local: Store, tab: Store) {
   const saved = staffWorkSnapshot(local, tab);
   return saved.journals.length > 0 || saved.forms.length > 0;
 }
+export type StaffLogoutBlock = "busy" | "changed";
 export async function prepareStaffLogout(options: {
   local: Store;
   tab: Store;
   save: (raw: string) => Promise<boolean> | boolean;
   current?: () => boolean;
+  /** Explains a refusal the person did not choose; cancelling stays silent. */
+  blocked?: (reason: StaffLogoutBlock) => void;
 }) {
-  if (options.current?.() === false || [...work].some((g) => g.busy()))
-    return false;
+  const busy = () => {
+    if (![...work].some((g) => g.busy())) return false;
+    options.blocked?.("busy");
+    return true;
+  };
+  if (options.current?.() === false || busy()) return false;
   const snapshot = staffWorkSnapshot(options.local, options.tab);
   if (
     (snapshot.journals.length || snapshot.forms.length) &&
@@ -91,13 +124,14 @@ export async function prepareStaffLogout(options: {
   )
     return false;
   // A form or request may have changed while the download was being confirmed.
+  if (options.current?.() === false || busy()) return false;
   if (
-    options.current?.() === false ||
-    [...work].some((g) => g.busy()) ||
     JSON.stringify(staffWorkSnapshot(options.local, options.tab)) !==
-      JSON.stringify(snapshot)
-  )
+    JSON.stringify(snapshot)
+  ) {
+    options.blocked?.("changed");
     return false;
+  }
   for (const store of [options.local, options.tab]) {
     for (const [key] of entries(store)) {
       store.removeItem(key);

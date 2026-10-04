@@ -413,7 +413,7 @@
     "scope": "I have reviewed the entire selected existing hold and choose to keep it with the assessment and next review date entered above.",
     "prepare": "Save this exact review command",
     "recovery": "Saved commands and recovery",
-    "local": "Unfinished commands stay in this tab. Download a recovery file before closing it. We remove confirmed commands and clear copies when you sign out.",
+    "local": "New unfinished commands are kept only in this tab. If you close it or the browser crashes, they can be lost, and the browser does not always warn you. Download a recovery file first. We remove confirmed commands, and the rest when you sign out after your backup.",
     "import": "Import an optional recovery file",
     "recordedHistory": "Recorded history",
     "pending": "Outcome not confirmed",
@@ -471,7 +471,7 @@
     "prepare": "Save this determination for review",
     "notPending": "This observation is not pending evidence. It cannot prepare a new determination. Existing command history can still be recovered.",
     "recovery": "Saved commands and recovery",
-    "local": "Unfinished commands stay in this tab. Download a recovery file before closing it. We remove confirmed commands and clear copies when you sign out.",
+    "local": "New unfinished commands are kept only in this tab. If you close it or the browser crashes, they can be lost, and the browser does not always warn you. Download a recovery file first. We remove confirmed commands, and the rest when you sign out after your backup.",
     "loadSaved": "Load saved commands",
     "import": "Open a saved command file",
     "savedHistory": "Previously saved receipt history",
@@ -580,6 +580,8 @@
   "Storage": {
     "logoutSave": "You have unfinished work. Choose OK to download a backup, or Cancel to keep working.",
     "logoutConfirm": "Check that the backup was saved. Sign out and remove the browser copies now?",
-    "cleanupError": "The browser copies could not be removed. Please save your work and try again."
+    "cleanupError": "The browser copies could not be removed. Please save your work and try again.",
+    "logoutBusy": "You are still signed in because a request is still running. Wait until it finishes, then sign out.",
+    "logoutChanged": "You are still signed in because something changed after the backup. Sign out again to get a new backup."
   }
 }

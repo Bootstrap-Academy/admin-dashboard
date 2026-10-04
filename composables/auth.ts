@@ -58,6 +58,8 @@ export async function logout() {
           setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
       },
+      blocked: (reason) =>
+        window.alert(t(reason === 'busy' ? 'Storage.logoutBusy' : 'Storage.logoutChanged')),
     });
     if (!ready) return [false, null];
     // Download confirmation may overlap a different tab's login.
