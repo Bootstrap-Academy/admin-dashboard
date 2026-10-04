@@ -19,6 +19,11 @@ async function until(expression) {
   }
 }
 async function click(selector) {
+  await cmd('Page.bringToFront');
+  await ev('window.focus()');
+  // Let the focus-triggered status reload finish before measuring the target.
+  await new Promise(resolve => setTimeout(resolve, 500));
+  await until(`document.querySelector(${JSON.stringify(selector)}) && !document.querySelector(${JSON.stringify(selector)}).disabled`);
   await ev(`document.querySelector(${JSON.stringify(selector)}).scrollIntoView({block:'center',behavior:'instant'})`);
   await new Promise(resolve => setTimeout(resolve, 200));
   const box = await ev(`document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect().toJSON()`);
