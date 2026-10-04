@@ -525,7 +525,7 @@ async function intercept({ request, requestId }) {
       assert.equal(request.postData, determinationOriginal);
     else determinationOriginal = request.postData;
     const stored = await ev(
-      `JSON.parse(localStorage.getItem('bootstrap.staff-determination.v1.'+${JSON.stringify(body.command_id)}))`,
+      `JSON.parse(sessionStorage.getItem('bootstrap.staff-determination.v1.'+${JSON.stringify(body.command_id)}))`,
     );
     assert(stored.uncertain);
     assert.equal(stored.body_json, request.postData);
@@ -737,7 +737,7 @@ async function holdJourney(language) {
   await click('a[href="/dashboard/commercial"]');
   await until(`document.querySelector('[data-hold-review]')`);
   await ev(
-    `Object.keys(localStorage).filter(k=>k.startsWith('bootstrap.staff-hold-review.v1.')).forEach(k=>localStorage.removeItem(k))`,
+    `Object.keys(sessionStorage).filter(k=>k.startsWith('bootstrap.staff-hold-review.v1.')).forEach(k=>sessionStorage.removeItem(k))`,
   );
   const from = holdPosts.length;
   assert(await ev(`document.querySelector('[data-hold-next]').disabled`));
@@ -776,7 +776,7 @@ async function holdJourney(language) {
   await click("[data-hold-prepare]");
   await until(`document.querySelector('[data-hold-command]')`);
   const original = await ev(
-    `JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k=>k.startsWith('bootstrap.staff-hold-review.v1.'))))`,
+    `JSON.parse(sessionStorage.getItem(Object.keys(sessionStorage).find(k=>k.startsWith('bootstrap.staff-hold-review.v1.'))))`,
   );
   assert.equal(original.uncertain, false);
   assert.equal(original.actor, U);
@@ -807,14 +807,14 @@ async function holdJourney(language) {
   );
   assert(!(await ev(`!!document.querySelector('[data-hold-receipt]')`)));
   const lost = await ev(
-    `JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k=>k.startsWith('bootstrap.staff-hold-review.v1.'))))`,
+    `JSON.parse(sessionStorage.getItem(Object.keys(sessionStorage).find(k=>k.startsWith('bootstrap.staff-hold-review.v1.'))))`,
   );
   assert(lost.uncertain);
   assert.equal(lost.body_json, original.body_json);
   await click('a[href="/dashboard"]');
   await until(`!document.querySelector('[data-commercial]')`);
   await ev(
-    `Object.keys(localStorage).filter(k=>k.startsWith('bootstrap.staff-hold-review.v1.')).forEach(k=>localStorage.removeItem(k))`,
+    `Object.keys(sessionStorage).filter(k=>k.startsWith('bootstrap.staff-hold-review.v1.')).forEach(k=>sessionStorage.removeItem(k))`,
   );
   await click('a[href="/dashboard/commercial"]');
   await until(`document.querySelector('[data-hold-import]')`);
@@ -844,12 +844,12 @@ async function holdJourney(language) {
   });
   await until(`document.querySelector('[data-hold-command]')`);
   const beforeLate = await ev(
-    `({body:document.querySelector('[data-hold-body]').textContent,records:Object.keys(localStorage).filter(k=>k.startsWith('bootstrap.staff-hold-review.v1.')).map(k=>[k,localStorage.getItem(k)])})`,
+    `({body:document.querySelector('[data-hold-body]').textContent,records:Object.keys(sessionStorage).filter(k=>k.startsWith('bootstrap.staff-hold-review.v1.')).map(k=>[k,sessionStorage.getItem(k)])})`,
   );
   await ev(`__hf1File.finish();File.prototype.text=__hf1OriginalText`);
   await delay(80);
   const afterLate = await ev(
-    `({body:document.querySelector('[data-hold-body]').textContent,records:Object.keys(localStorage).filter(k=>k.startsWith('bootstrap.staff-hold-review.v1.')).map(k=>[k,localStorage.getItem(k)])})`,
+    `({body:document.querySelector('[data-hold-body]').textContent,records:Object.keys(sessionStorage).filter(k=>k.startsWith('bootstrap.staff-hold-review.v1.')).map(k=>[k,sessionStorage.getItem(k)])})`,
   );
   assert.deepEqual(afterLate, beforeLate);
   assert.equal(afterLate.records.length, 1);
@@ -863,7 +863,7 @@ async function holdJourney(language) {
   };
   assert(!(await ev(`!!document.querySelector('[data-hold-queue]')`)));
   const imported = await ev(
-    `JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k=>k.startsWith('bootstrap.staff-hold-review.v1.'))))`,
+    `JSON.parse(sessionStorage.getItem(Object.keys(sessionStorage).find(k=>k.startsWith('bootstrap.staff-hold-review.v1.'))))`,
   );
   assert(imported.uncertain);
   assert.equal(imported.body_json, original.body_json);
@@ -909,7 +909,7 @@ async function holdJourney(language) {
     imported,
     posts: holdPosts.slice(from),
     saved: await ev(
-      `JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k=>k.startsWith('bootstrap.staff-hold-review.v1.'))))`,
+      `JSON.parse(sessionStorage.getItem(Object.keys(sessionStorage).find(k=>k.startsWith('bootstrap.staff-hold-review.v1.'))))`,
     ),
   };
   await panel(language + "-hold-preserved", "[data-hold-export]");
@@ -928,7 +928,7 @@ async function determinationJourney(language) {
   await click('a[href="/dashboard/commercial"]');
   await until(`document.querySelector('[data-determination]')`);
   await ev(
-    `Object.keys(localStorage).filter(k=>k.startsWith('bootstrap.staff-determination.v1.')).forEach(k=>localStorage.removeItem(k))`,
+    `Object.keys(sessionStorage).filter(k=>k.startsWith('bootstrap.staff-determination.v1.')).forEach(k=>sessionStorage.removeItem(k))`,
   );
   await click("[data-load-queue]");
   await until(`document.querySelector('[data-case="${C}"]')`);
@@ -975,7 +975,7 @@ async function determinationJourney(language) {
   await click("[data-determination-prepare]");
   await until(`document.querySelector('[data-determination-command]')`);
   const original = await ev(
-    `JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k=>k.startsWith('bootstrap.staff-determination.v1.'))))`,
+    `JSON.parse(sessionStorage.getItem(Object.keys(sessionStorage).find(k=>k.startsWith('bootstrap.staff-determination.v1.'))))`,
   );
   assert.equal(original.uncertain, false);
   assert.equal(original.actor, U);
@@ -1004,7 +1004,7 @@ async function determinationJourney(language) {
     `document.querySelector('[data-determination-error]')&&!document.querySelector('[data-determination-send]').disabled`,
   );
   const lost = await ev(
-    `JSON.parse(localStorage.getItem('bootstrap.staff-determination.v1.'+${JSON.stringify(original.command_id)}))`,
+    `JSON.parse(sessionStorage.getItem('bootstrap.staff-determination.v1.'+${JSON.stringify(original.command_id)}))`,
   );
   assert(lost.uncertain);
   assert.equal(lost.body_json, original.body_json);
@@ -1014,7 +1014,7 @@ async function determinationJourney(language) {
   await click('a[href="/dashboard"]');
   await until(`!document.querySelector('[data-commercial]')`);
   await ev(
-    `Object.keys(localStorage).filter(k=>k.startsWith('bootstrap.staff-determination.v1.')).forEach(k=>localStorage.removeItem(k))`,
+    `Object.keys(sessionStorage).filter(k=>k.startsWith('bootstrap.staff-determination.v1.')).forEach(k=>sessionStorage.removeItem(k))`,
   );
   await click('a[href="/dashboard/commercial"]');
   await until(`document.querySelector('[data-determination-import]')`);
@@ -1044,14 +1044,14 @@ async function determinationJourney(language) {
   });
   await until(`document.querySelector('[data-determination-command]')`);
   const beforeLate = await ev(
-    `({body:document.querySelector('[data-determination-body]').textContent,records:Object.keys(localStorage).filter(k=>k.startsWith('bootstrap.staff-determination.v1.')).map(k=>[k,localStorage.getItem(k)])})`,
+    `({body:document.querySelector('[data-determination-body]').textContent,records:Object.keys(sessionStorage).filter(k=>k.startsWith('bootstrap.staff-determination.v1.')).map(k=>[k,sessionStorage.getItem(k)])})`,
   );
   await ev(
     `__determinationFile.finish();File.prototype.text=__determinationOriginalText`,
   );
   await delay(80);
   const afterLate = await ev(
-    `({body:document.querySelector('[data-determination-body]').textContent,records:Object.keys(localStorage).filter(k=>k.startsWith('bootstrap.staff-determination.v1.')).map(k=>[k,localStorage.getItem(k)])})`,
+    `({body:document.querySelector('[data-determination-body]').textContent,records:Object.keys(sessionStorage).filter(k=>k.startsWith('bootstrap.staff-determination.v1.')).map(k=>[k,sessionStorage.getItem(k)])})`,
   );
   assert.deepEqual(afterLate, beforeLate);
   assert.equal(afterLate.records.length, 1);
@@ -1109,7 +1109,7 @@ async function determinationJourney(language) {
     afterLate,
     posts: determinationPosts.slice(from),
     saved: await ev(
-      `JSON.parse(localStorage.getItem('bootstrap.staff-determination.v1.'+${JSON.stringify(original.command_id)}))`,
+      `JSON.parse(sessionStorage.getItem('bootstrap.staff-determination.v1.'+${JSON.stringify(original.command_id)}))`,
     ),
     note: "Synthetic intercepted status/mutation receipts; no real SQL or payment. Actual built File.text and native Fetch caller; direct denial streams remain separately counted.",
   };
@@ -1127,7 +1127,7 @@ async function determinationJourney(language) {
 async function retentionJourney(language) {
   const from = records.length;
   const savedBefore = await ev(
-    `Object.fromEntries(Object.keys(localStorage).sort().map(k=>[k,localStorage.getItem(k)]))`,
+    `Object.fromEntries(Object.keys(sessionStorage).sort().map(k=>[k,sessionStorage.getItem(k)]))`,
   );
   await click('a[href="/dashboard/commercial"]');
   await until(`document.querySelector('[data-retention-page]')`);
@@ -1240,7 +1240,7 @@ async function retentionJourney(language) {
   );
   assert.deepEqual(
     await ev(
-      `Object.fromEntries(Object.keys(localStorage).sort().map(k=>[k,localStorage.getItem(k)]))`,
+      `Object.fromEntries(Object.keys(sessionStorage).sort().map(k=>[k,sessionStorage.getItem(k)]))`,
     ),
     savedBefore,
   );
@@ -1258,7 +1258,7 @@ async function retentionJourney(language) {
   assert(await ev(`document.cookie.includes('accessToken=')`));
   assert.deepEqual(
     await ev(
-      `Object.fromEntries(Object.keys(localStorage).sort().map(k=>[k,localStorage.getItem(k)]))`,
+      `Object.fromEntries(Object.keys(sessionStorage).sort().map(k=>[k,sessionStorage.getItem(k)]))`,
     ),
     savedBefore,
   );
@@ -1269,7 +1269,7 @@ async function retentionJourney(language) {
     records: records.slice(from),
     savedBefore,
     savedAfter: await ev(
-      `Object.fromEntries(Object.keys(localStorage).sort().map(k=>[k,localStorage.getItem(k)]))`,
+      `Object.fromEntries(Object.keys(sessionStorage).sort().map(k=>[k,sessionStorage.getItem(k)]))`,
     ),
     note: "Synthetic intercepted page/denial responses; all five current schemas and 100/next/restart controls in actual built browser. No SQL ordering/eligibility or cross-page snapshot proof.",
   };

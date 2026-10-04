@@ -12,22 +12,22 @@
 		"test": "node --test tests/*.test.mjs"
 	},
 	"devDependencies": {
-		"autoprefixer": "^10.5.4",
+		"autoprefixer": "^10.6.1",
 		"eslint": "^9.39.5",
-		"eslint-plugin-vue": "^10.9.2",
-		"nuxt": "4.5.1",
-		"postcss": "^8.5.25",
+		"eslint-plugin-vue": "^10.11.1",
+		"nuxt": "4.5.2",
+		"postcss": "^8.5.28",
 		"tailwindcss": "^3.4.19",
-		"vue-i18n": "^11.4.10"
+		"vue-i18n": "^11.4.13"
 	},
 	"dependencies": {
 		"@heroicons/vue": "^2.2.0",
-		"@typescript-eslint/parser": "^8.61.1",
+		"@typescript-eslint/parser": "^8.71.0",
 		"async-mutex": "^0.5.0",
 		"chart.js": "^4.5.1",
-		"dompurify": "^3.4.14",
+		"dompurify": "^3.4.16",
 		"jwt-decode": "^4.0.0",
-		"markdown-it": "^14.2.0",
-		"vue-chartjs": "^5.3.3"
+		"markdown-it": "^14.3.2",
+		"vue-chartjs": "^5.3.4"
 	}
 }

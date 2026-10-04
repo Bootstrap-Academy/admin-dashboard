@@ -329,6 +329,9 @@ for (const result of ["success", "unauthorized", "offline"]) {
     const answer = deferred();
     const calls = [];
     const bindings = {
+      useNuxtApp: () => ({vueApp:{config:{globalProperties:{$t:key=>key}}}}),
+      window: {localStorage:{},sessionStorage:{}},
+      prepareStaffLogout: async () => true,
       revokeSession: tab().revokeSession,
       withSessionRefreshLock: (run) => run(),
       getSessionSnapshot: () => ({ ...current }),
@@ -348,6 +351,7 @@ for (const result of ["success", "unauthorized", "offline"]) {
       ...Object.values(bindings)
     );
     const pending = logout();
+    await Promise.resolve();
     assert.equal(current.identity, null);
     assert.equal(calls.length, 1);
     assert.equal(calls[0].url, "https://synthetic.invalid/auth/sessions/A/S");
@@ -358,6 +362,35 @@ for (const result of ["success", "unauthorized", "offline"]) {
     await pending;
     assert.equal(current.identity, "B:T");
     assert.equal(current.generation, "new-login");
+  });
+}
+
+for (const reason of ["busy", "changed"]) {
+  test(`a logout blocked because work is ${reason} says so and keeps the session`, async () => {
+    const alerts = [];
+    let cleared = 0,
+      fetched = 0;
+    const bindings = {
+      useNuxtApp: () => ({ vueApp: { config: { globalProperties: { $t: (key) => key } } } }),
+      window: { localStorage: {}, sessionStorage: {}, alert: (text) => alerts.push(text) },
+      prepareStaffLogout: async (options) => {
+        options.blocked(reason);
+        return false;
+      },
+      revokeSession: async () => fetched++,
+      withSessionRefreshLock: (run) => run(),
+      getSessionSnapshot: () => ({ ...initial(), accessToken: response().access_token }),
+      useRuntimeConfig: () => ({ public: { BASE_API_URL: "https://synthetic.invalid" } }),
+      setStates: () => cleared++,
+      $fetch: async () => fetched++,
+    };
+    const { logout } = new Function(...Object.keys(bindings), `${authCode}\nreturn { logout };`)(
+      ...Object.values(bindings)
+    );
+    assert.deepEqual(await logout(), [false, null]);
+    assert.deepEqual(alerts, [reason === "busy" ? "Storage.logoutBusy" : "Storage.logoutChanged"]);
+    assert.equal(cleared, 0);
+    assert.equal(fetched, 0);
   });
 }
 

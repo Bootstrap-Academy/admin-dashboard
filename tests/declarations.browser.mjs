@@ -67,8 +67,15 @@ async function until(e) {
   }
 }
 async function click(e) {
-  await ev(`(${e}).scrollIntoView({block:'center',behavior:'instant'})`);
-  await pause(80);
+  // Scroll and wait for layout to expose the real pointer target before clicking.
+  await until(`(()=>{
+    const target=(${e});
+    if(!target) return false;
+    target.scrollIntoView({block:'center',behavior:'instant'});
+    const bounds=target.getBoundingClientRect();
+    return bounds.width>0 && bounds.height>0 &&
+      target.contains(document.elementFromPoint(bounds.x+bounds.width/2,bounds.y+bounds.height/2));
+  })()`);
   const r = await ev(`(${e}).getBoundingClientRect().toJSON()`);
   assert(await ev(`(${e}).contains(document.elementFromPoint(${r.x+r.width/2},${r.y+r.height/2}))`), 'pointer target: '+e);
   for (const type of ['mousePressed', 'mouseReleased'])

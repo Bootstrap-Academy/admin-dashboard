@@ -411,7 +411,7 @@
     "scope": "Ich habe die gesamte ausgewählte bestehende Sperre geprüft und entscheide, sie mit der oben eingetragenen Bewertung und dem nächsten Prüftermin beizubehalten.",
     "prepare": "Diesen genauen Prüfvorgang speichern",
     "recovery": "Gespeicherte Vorgänge und Wiederaufnahme",
-    "local": "Gespeicherte Vorgänge bleiben in diesem Browser. Verschiedene Tabs können unterschiedliche offene Vorgänge anzeigen. Bewahre jeden ungeklärten Vorgang auf. Verwende für die Wiederaufnahme das Konto, mit dem er angelegt wurde.",
+    "local": "Neue offene Vorgänge liegen nur in diesem Tab. Schließt du ihn oder stürzt der Browser ab, können sie verloren gehen, und der Browser warnt nicht immer. Lade vorher eine Wiederaufnahmedatei herunter. Bestätigte Vorgänge entfernen wir, die übrigen beim Abmelden nach deiner Sicherung.",
     "import": "Optionale Wiederaufnahmedatei importieren",
     "recordedHistory": "Dokumentierter Verlauf",
     "pending": "Ergebnis nicht bestätigt",
@@ -469,7 +469,7 @@
     "prepare": "Diese Feststellung zur Prüfung speichern",
     "notPending": "Diese Beobachtung wartet nicht auf Nachweise. Daraus kann keine neue Feststellung vorbereitet werden. Bestehende Auftragshistorie bleibt abrufbar.",
     "recovery": "Gespeicherte Aufträge wiederaufnehmen",
-    "local": "Diese Aufzeichnungen liegen in diesem Browser. Andere Tabs können abweichende Ansichten haben; getrennte Aufträge bleiben erhalten.",
+    "local": "Neue offene Aufträge liegen nur in diesem Tab. Schließt du ihn oder stürzt der Browser ab, können sie verloren gehen, und der Browser warnt nicht immer. Lade vorher eine Wiederaufnahmedatei herunter. Bestätigte Aufträge entfernen wir, die übrigen beim Abmelden nach deiner Sicherung.",
     "loadSaved": "Gespeicherte Aufträge laden",
     "import": "Gespeicherte Auftragsdatei öffnen",
     "savedHistory": "Zuvor gespeicherte Beleggeschichte",
@@ -489,7 +489,7 @@
     "serverHistory": "Gespeichertes Journal-JSON, nicht ursprüngliche HTTP-Bytes",
     "noJournal": "Bei dieser Abfrage wurde kein passender Journaleintrag beobachtet. Bewahre den ursprünglichen Auftrag auf; sein Ausgang ist damit nicht geklärt.",
     "receipt": "Ursprünglicher Feststellungsbeleg bestätigt: festgestellt, nicht bezahlt. Der aktuelle Zustand wird getrennt angezeigt.",
-    "receiptUnsaved": "Die Antwort wurde bestätigt, aber ihr Beleg konnte nicht lokal gespeichert werden. Bewahre dieses Original auf und rufe seine Historie ab; daraus folgt keine Freigabe für einen neuen Auftrag.",
+    "receiptUnsaved": "Die Antwort ist bestätigt. Die lokale Kopie konnte noch nicht entfernt werden. Du kannst das Original herunterladen und die Historie erneut abrufen.",
     "errors": {
       "authority": "Prüfe das aktuelle aktivierte Mitarbeitendenkonto und MFA vor dem Lesen oder Absenden. Gespeicherte Originale bleiben verfügbar.",
       "import": "Diese Datei konnte nicht als unterstützter Auftrag zugelassen werden. Ihr Inhalt ist nur lokal einsehbar.",
@@ -559,5 +559,27 @@
       "evidence_hash": "Nachweis-Hash",
       "qualified": "Vermerkte Bestätigung"
     }
+  },
+  "PublicationSupport": {
+    "Heading": "Profilfreigabe",
+    "Loading": "Status wird geladen …",
+    "Shared": "Freigegeben",
+    "Private": "Privat",
+    "Scope": "Nur der Nutzer kann sein Profil freigeben. Für den Support bleiben seine privaten Lerndaten einsehbar.",
+    "Withdraw": "Wieder privat stellen",
+    "Saving": "Wird gespeichert …",
+    "Saved": "Das Profil ist wieder privat.",
+    "Denied": "Du brauchst aktuelle Adminrechte und eine bestätigte MFA-Anmeldung.",
+    "Unavailable": "Die Profilfreigabe ist gerade nicht verfügbar.",
+    "Conflict": "Die Freigabe wurde inzwischen geändert. Der aktuelle Status wurde neu abgefragt.",
+    "Failed": "Die Antwort fehlt. Prüfe den aktuellen Status und versuch es erneut.",
+    "Reload": "Status neu laden"
+  },
+  "Storage": {
+    "logoutSave": "Du hast offene Arbeit. Mit OK lädst du eine Sicherung herunter. Abbrechen lässt dich weiterarbeiten.",
+    "logoutConfirm": "Prüfe, ob die Sicherung gespeichert wurde. Jetzt abmelden und die Browserkopien entfernen?",
+    "cleanupError": "Die Browserkopien konnten nicht entfernt werden. Bitte sichere deine Arbeit und versuche es erneut.",
+    "logoutBusy": "Du bist noch angemeldet, weil gerade ein Vorgang läuft. Warte, bis er fertig ist, und melde dich dann ab.",
+    "logoutChanged": "Du bist noch angemeldet, weil sich seit der Sicherung etwas geändert hat. Melde dich noch einmal ab, dann bekommst du eine neue Sicherung."
   }
 }
