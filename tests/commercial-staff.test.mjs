@@ -83,6 +83,7 @@ const user = (
     "import { useState } from '#app';": "",
   })
 ).module;
+const commercialStorage = await compile("../utils/commercialStorage.ts");
 const ctx = await compile("../composables/commercialStaffContext.ts");
 const adapter = await compile("../composables/commercialStaff.ts", {
   "'./commercialStaffContext'": JSON.stringify(ctx.url),
@@ -91,6 +92,7 @@ const holdAdapter = await compile("../composables/commercialHoldReview.ts", {
   "'./commercialStaffContext'": JSON.stringify(ctx.url),
 });
 const holdComponent = await compile("../components/CommercialHoldReview.vue", {
+  "'../utils/commercialStorage'": JSON.stringify(commercialStorage.url),
   "'../composables/commercialHoldReview'": JSON.stringify(holdAdapter.url),
 });
 const retentionAdapter = await compile(
@@ -118,6 +120,7 @@ const determinationAdapter = await compile(
 const determinationComponent = await compile(
   "../components/CommercialDetermination.vue",
   {
+    "'../utils/commercialStorage'": JSON.stringify(commercialStorage.url),
     "'../composables/commercialDetermination'": JSON.stringify(
       determinationAdapter.url,
     ),
@@ -1060,6 +1063,7 @@ function memory() {
     key: (n) => [...map.keys()][n] ?? null,
     getItem: (k) => map.get(k) ?? null,
     setItem: (k, v) => map.set(k, v),
+    removeItem: (k) => map.delete(k),
   };
 }
 function hf(options = {}) {
@@ -1402,8 +1406,8 @@ test("hold receipt write failure keeps exact pending original and qualified unsa
   const f = hf(),
     body = await prepared(f);
   f.reply(async (path, p, raw) => {
-    f.storage.setItem = () => {
-      throw Error("quota after response");
+    f.storage.removeItem = () => {
+      throw Error("blocked cleanup after response");
     };
     return response(hreceipt(JSON.parse(raw)));
   });
@@ -1597,7 +1601,8 @@ for (const language of ["de", "en-US"])
       doc = new EventTarget(),
       storage = memory(),
       calls = [];
-    win.localStorage = storage;
+    win.localStorage = memory();
+    win.sessionStorage = storage;
     let lost = true,
       deny = false;
     const denial = unreadable(language === "de" ? 401 : 403);
@@ -1713,7 +1718,7 @@ for (const language of ["de", "en-US"])
       const posts = calls.filter((r) => r.url.endsWith("/hold_review"));
       assert.equal(posts.length, 2);
       assert(posts.every((r) => r.init.body === body));
-      assert.equal(JSON.parse([...storage.map.values()][0]).body_json, body);
+      assert.equal(storage.length, 0);
       assert(
         h
           .text()
@@ -1833,7 +1838,8 @@ async function mountedImports(language = "en-US") {
     win = new EventTarget(),
     doc = new EventTarget(),
     calls = [];
-  win.localStorage = storage;
+  win.localStorage = memory();
+  win.sessionStorage = storage;
   globals({
     window: win,
     document: doc,
@@ -2436,7 +2442,7 @@ test("determination import cannot downgrade qualified local history and separate
   const bytes = f.store.getItem(dkey());
   f.controller.importFile(JSON.stringify(dsaved(DK)));
   assert.equal(f.store.getItem(dkey()), bytes);
-  assert.equal(f.store.length, 2);
+  assert.equal(f.store.length, 1);
   f.dispose();
 });
 test("determination unsupported legacy stored/uploaded originals remain raw without repair or durable admission", () => {
@@ -2546,12 +2552,7 @@ test("determination qualified response with receipt storage failure retains atte
   const store = memory(),
     f = df(store);
   f.controller.importFile(JSON.stringify(dsaved()));
-  const set = store.setItem.bind(store);
-  let calls = 0;
-  store.setItem = (k, v) => {
-    if (++calls === 2) throw Error("quota");
-    set(k, v);
-  };
+  store.removeItem = () => { throw Error("blocked cleanup"); };
   f.reply(async () => response(dreceipt()));
   await f.controller.send();
   assert.equal(f.calls.length, 1);
@@ -2668,7 +2669,8 @@ async function mountedDetermination(language = "en-US") {
     doc = new EventTarget(),
     calls = [],
     target = Vue.ref(null);
-  win.localStorage = storage;
+  win.localStorage = memory();
+  win.sessionStorage = storage;
   globals({
     window: win,
     document: doc,
@@ -2891,7 +2893,8 @@ for (const language of ["de", "en-US"])
       win = new EventTarget(),
       doc = new EventTarget(),
       calls = [];
-    win.localStorage = storage;
+    win.localStorage = memory();
+    win.sessionStorage = storage;
     let lost = true,
       deny = false,
       historical = false,
@@ -3037,10 +3040,7 @@ for (const language of ["de", "en-US"])
       assert(find("data-determination-command"));
       assert(!find("data-determination-receipt"));
       assert.equal(denial.seen.body, 0);
-      assert.equal(
-        JSON.parse([...storage.map.values()][0]).body_json,
-        original.body_json,
-      );
+      assert.equal(storage.length, 0);
       assert(!h.text().includes("Determination."));
     } finally {
       app.unmount();
@@ -3536,7 +3536,8 @@ async function mountedRetention(language, whole = false) {
     win = new EventTarget(),
     doc = new EventTarget(),
     calls = [];
-  win.localStorage = storage;
+  win.localStorage = memory();
+  win.sessionStorage = storage;
   let reply = async (url, init) => {
     const body = JSON.parse(init.body);
     let data;
@@ -3990,3 +3991,17 @@ for (const status of [401, 403])
       assert.equal(scopedCookies, 0);
     }
   });
+
+
+test("confirmed admin commands remove tab journals and remain exportable without a second dispatch", async () => {
+  const hold = hf(); await prepared(hold); await hold.controller.send();
+  assert.equal(hold.storage.length, 0);
+  assert(JSON.parse(hold.controller.exportFile()).confirmed);
+  const count = hold.calls.length; await hold.controller.send(); assert.equal(hold.calls.length, count);
+  hold.controller.forget(); assert.equal(hold.controller.state.saved, null); hold.dispose();
+  const d = df(); d.controller.importFile(JSON.stringify(dsaved()));
+  d.reply(async () => response(dreceipt())); await d.controller.send();
+  assert.equal(d.store.length, 0); assert.equal(JSON.parse(d.controller.exportFile()).receipts.length, 1);
+  const dc = d.calls.length; await d.controller.send(); assert.equal(d.calls.length, dc);
+  d.controller.forget(); assert.equal(d.controller.state.saved, null); d.dispose();
+});

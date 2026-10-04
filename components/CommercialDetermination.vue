@@ -7,6 +7,7 @@ import type {
   StaffTransport,
 } from "../composables/commercialStaff";
 import { createCommercialDetermination } from "../composables/commercialDetermination";
+import { commercialStorage, registerStaffWork, staffBackupRecords } from "../utils/commercialStorage";
 const props = defineProps<{
   context: CommercialStaffContext;
   transport: StaffTransport;
@@ -16,9 +17,18 @@ const { t } = useI18n();
 const controller = createCommercialDetermination(
   props.context,
   props.transport,
-  () => window.localStorage,
+  commercialStorage,
 );
 const state = controller.state;
+const unregisterWork = registerStaffWork({
+  busy: () => state.sendBusy || state.liveBusy || state.recoveryBusy,
+  snapshot: () => !state.receipt && (state.obligation || state.units || state.cash || state.cashKnown || state.cashBasis || state.assessment || state.summary || state.referenceKind || state.reference)
+    ? { kind: "determination-form", target: state.target, obligation: state.obligation, units: state.units,
+      cash: state.cash, cashKnown: state.cashKnown, cashBasis: state.cashBasis, assessment: state.assessment,
+      summary: state.summary, referenceKind: state.referenceKind, reference: state.reference }
+    : null,
+  clear: () => controller.forget(),
+});
 watch(
   () => props.selected,
   (value) => controller.setTarget(value),
@@ -30,7 +40,7 @@ async function importFile(event: Event) {
     ticket = controller.beginImport();
   if (!ticket) return;
   try {
-    if (file) controller.importFile(await file.text(), ticket);
+    if (file) for (const raw of staffBackupRecords(await file.text(), "bootstrap.staff-determination.v1.")) controller.importFile(raw, ticket);
   } catch {
     controller.importError(ticket);
   } finally {
@@ -58,7 +68,7 @@ function download() {
 }
 const amount = (v: string | null) =>
   v === null ? t("Determination.unknown") : v;
-onBeforeUnmount(() => controller.dispose());
+onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
 </script>
 
 <template>

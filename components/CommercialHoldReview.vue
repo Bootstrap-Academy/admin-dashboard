@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import type { CommercialStaffContext } from "../composables/commercialStaffContext";
 import type { StaffTransport } from "../composables/commercialStaff";
+import { commercialStorage, registerStaffWork, staffBackupRecords } from "../utils/commercialStorage";
 import {
   createCommercialHoldReview,
   holdRequest,
@@ -16,9 +17,16 @@ const { t } = useI18n();
 const controller = createCommercialHoldReview(
   props.context,
   props.transport,
-  () => window.localStorage,
+  commercialStorage,
 );
 const state = controller.state;
+const unregisterWork = registerStaffWork({
+  busy: () => state.sendBusy || state.queueBusy,
+  snapshot: () => !state.receipt && (state.assessment || state.nextDate || state.scope)
+    ? { kind: "hold-review-form", selected: state.selected, assessment: state.assessment, nextDate: state.nextDate, scope: state.scope }
+    : null,
+  clear: () => controller.forget(),
+});
 const savedRequest = computed(() =>
   state.saved ? holdRequest(JSON.parse(state.saved.body_json)) : null,
 );
@@ -38,7 +46,7 @@ async function importFile(event: Event) {
     ticket = controller.beginImport();
   if (!ticket) return;
   try {
-    if (file) controller.importFile(await file.text(), ticket);
+    if (file) for (const raw of staffBackupRecords(await file.text(), "bootstrap.staff-hold-review.v1.")) controller.importFile(raw, ticket);
   } catch {
     controller.importError(ticket);
   } finally {
@@ -63,7 +71,7 @@ function download() {
     URL.revokeObjectURL(url);
   }
 }
-onBeforeUnmount(() => controller.dispose());
+onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
 </script>
 
 <template>

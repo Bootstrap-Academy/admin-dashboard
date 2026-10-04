@@ -413,7 +413,7 @@
     "scope": "I have reviewed the entire selected existing hold and choose to keep it with the assessment and next review date entered above.",
     "prepare": "Save this exact review command",
     "recovery": "Saved commands and recovery",
-    "local": "Saved requests are kept in this browser. Different tabs may show different pending requests. Keep each unresolved request and recover it using the account that originally created it.",
+    "local": "Unfinished commands stay in this tab. Download a recovery file before closing it. We remove confirmed commands and clear copies when you sign out.",
     "import": "Import an optional recovery file",
     "recordedHistory": "Recorded history",
     "pending": "Outcome not confirmed",
@@ -471,7 +471,7 @@
     "prepare": "Save this determination for review",
     "notPending": "This observation is not pending evidence. It cannot prepare a new determination. Existing command history can still be recovered.",
     "recovery": "Saved commands and recovery",
-    "local": "These records are stored in this browser. Other tabs may have different views; separate commands are preserved.",
+    "local": "Unfinished commands stay in this tab. Download a recovery file before closing it. We remove confirmed commands and clear copies when you sign out.",
     "loadSaved": "Load saved commands",
     "import": "Open a saved command file",
     "savedHistory": "Previously saved receipt history",
@@ -491,7 +491,7 @@
     "serverHistory": "Stored journal JSON, not original HTTP bytes",
     "noJournal": "No matching journal was observed in this read. Keep the original command; its outcome is not settled by this absence.",
     "receipt": "Original determination receipt confirmed: established, not paid. Current obligation state is shown separately.",
-    "receiptUnsaved": "The response was confirmed, but its receipt could not be saved locally. Keep this original and recover its history; do not infer that a new command is safe.",
+    "receiptUnsaved": "The response is confirmed. Its local copy could not be removed yet. You can download the original and read its history again.",
     "errors": {
       "authority": "Verify the current enabled staff account and MFA before reading or submitting. Saved originals remain available.",
       "import": "This file could not be admitted as a supported command. Its contents are available for local inspection only.",
@@ -576,5 +576,10 @@
     "Conflict": "Sharing changed in the meantime. The current status was requested again.",
     "Failed": "The response is missing. Check the current status and try again.",
     "Reload": "Reload status"
+  },
+  "Storage": {
+    "logoutSave": "You have unfinished work. Choose OK to download a backup, or Cancel to keep working.",
+    "logoutConfirm": "Check that the backup was saved. Sign out and remove the browser copies now?",
+    "cleanupError": "The browser copies could not be removed. Please save your work and try again."
   }
 }
