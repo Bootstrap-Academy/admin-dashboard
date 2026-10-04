@@ -94,17 +94,17 @@ export function holdRequestTime(v: unknown): bigint {
     /^(\d{4,6})-(\d\d)-(\d\d)[T ](\d\d):(\d\d)(?::(\d\d)(?:\.(\d{1,6}))?)?(Z|([+-])(\d\d)(?::?(\d\d))?)$/.exec(
       str(v),
     );
-  if (!m || BigInt(m[1]) === 0n) return fail();
+  if (!m || BigInt(m[1]!) === 0n) return fail();
   const oh = BigInt(m[10] || "0"),
     om = BigInt(m[11] || "0");
   if (oh > 15n || om > 59n) return fail();
   const offset = (oh * 3600n + om * 60n) * (m[9] === "-" ? -1n : 1n);
   return fields(
-    BigInt(m[1]),
-    BigInt(m[2]),
-    BigInt(m[3]),
-    BigInt(m[4]),
-    BigInt(m[5]),
+    BigInt(m[1]!),
+    BigInt(m[2]!),
+    BigInt(m[3]!),
+    BigInt(m[4]!),
+    BigInt(m[5]!),
     BigInt(m[6] || "0"),
     BigInt((m[7] || "").padEnd(6, "0")),
     offset,
@@ -117,15 +117,15 @@ export function holdNativeTime(v: unknown, finite = false): string {
     /^(\d{4,6})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(?:\.(\d{1,6}))?\+00( BC)?$/.exec(
       text,
     );
-  if (!m || BigInt(m[1]) === 0n) return fail();
-  const y = BigInt(m[1]);
+  if (!m || BigInt(m[1]!) === 0n) return fail();
+  const y = BigInt(m[1]!);
   const value = fields(
     m[8] ? 1n - y : y,
-    BigInt(m[2]),
-    BigInt(m[3]),
-    BigInt(m[4]),
-    BigInt(m[5]),
-    BigInt(m[6]),
+    BigInt(m[2]!),
+    BigInt(m[3]!),
+    BigInt(m[4]!),
+    BigInt(m[5]!),
+    BigInt(m[6]!),
     BigInt((m[7] || "").padEnd(6, "0")),
     0n,
   );
@@ -284,7 +284,7 @@ export function holdQueue(v: unknown, limit = 100) {
       ? next !== null
       : !next ||
         parsed.length !== limit ||
-        !same(next, rowCursor(parsed[parsed.length - 1])))
+        !same(next, rowCursor(parsed[parsed.length - 1]!)))
   )
     return fail();
   return {
@@ -579,7 +579,7 @@ export function createCommercialHoldReview(
     const r = await transport(path, p, body);
     context.reject(p, r.status);
     if (r.status !== 200) throw Error("unconfirmed");
-    if (r.mime.split(";")[0].trim() !== "application/json") return fail();
+    if (r.mime.split(";")[0]!.trim() !== "application/json") return fail();
     return JSON.parse(r.text) as unknown;
   }
   return {

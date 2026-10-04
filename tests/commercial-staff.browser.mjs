@@ -1,24 +1,10 @@
-// Owned dashboard + Chromium. Intercepted APIs plus two explicit loopback denial streams; no DB.
+// Built dashboard with intercepted APIs and two native loopback denial streams; no DB.
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import { join } from "node:path";
-import { spawn } from "node:child_process";
-import http from "node:http";
 import crypto from "node:crypto";
-const stage = process.env.STAFF_UI_STAGE;
-assert(stage?.startsWith("/tmp/bootstrap-retention-rpu1-"));
-assert.equal(await fs.realpath(stage), stage);
-const owner = JSON.parse(await fs.readFile(join(stage, "OWNER.json")));
-assert.equal(owner.unit, "L3-retention-family-paging-staff-ui-2");
-assert.equal(owner.owner, "/root/learning_source_review");
-assert.equal(owner.canonical_root, stage);
-const run = await fs.mkdtemp(join(stage, "browser-"));
-const profile = join(run, "profile"),
-  downloadPath = join(run, "downloads");
-await fs.mkdir(profile);
-await fs.mkdir(downloadPath);
-const app = "http://127.0.0.1:56840",
-  api = "http://127.0.0.1:56841";
+import { browserContext, connectToBrowser } from "./browser-context.mjs";
+const { app, api, run, downloadPath, target, setApiHandler, report } = browserContext();
 const records = [],
   errors = [],
   escaped = [],
@@ -37,17 +23,10 @@ let determinationLose = false,
   determinationHistory = false,
   determinationDeny = false,
   determinationOriginal = null;
-let server,
-  chrome,
-  fixture,
-  ws,
-  cdp = "",
-  appExit,
-  chromeExit,
+let browser,
   held = null,
   holdNext = "",
   ready;
-const handles = [];
 const result = {
   run,
   records,
@@ -59,13 +38,6 @@ const result = {
   responses,
 };
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-async function free(port) {
-  await new Promise((resolve, reject) => {
-    const s = http.createServer();
-    s.once("error", reject);
-    s.listen(port, "127.0.0.1", () => s.close(resolve));
-  });
-}
 async function tree(path, prefix = "") {
   const map = {};
   for (const entry of (await fs.readdir(path, { withFileTypes: true })).sort(
@@ -80,20 +52,13 @@ async function tree(path, prefix = "") {
         sha256: crypto.createHash("sha256").update(b).digest("hex"),
         bytes: b.length,
       };
-      const objects = join(stage, "evidence/runtime-inputs");
-      await fs.mkdir(objects, { recursive: true });
-      await fs.writeFile(join(objects, map[name].sha256), b);
     }
   }
   return map;
 }
-function child(command, args, env, log) {
-  const p = spawn(command, args, { env, stdio: ["ignore", "pipe", "pipe"] });
-  let text = "";
-  p.stdout.on("data", (b) => (text += b));
-  p.stderr.on("data", (b) => (text += b));
-  handles.push({ p, log, text: () => text });
-  return p;
+function passed(label) {
+  groups.push(label);
+  console.log("PASS " + label);
 }
 const U = "11000000-0000-4000-8000-000000000001",
   V = "11000000-0000-4000-8000-000000000002",
@@ -272,15 +237,7 @@ const capacity = (id, subject) => ({
   ],
   reservations: [],
 });
-let sequence = 0;
-const pending = new Map();
-function cmd(method, params = {}) {
-  return new Promise((resolve, reject) => {
-    const id = ++sequence;
-    pending.set(id, { resolve, reject });
-    ws.send(JSON.stringify({ id, method, params }));
-  });
-}
+const cmd = (method, params = {}) => browser.cmd(method, params);
 async function ev(expression) {
   const r = await cmd("Runtime.evaluate", {
     expression,
@@ -345,8 +302,6 @@ async function fulfill(
   const body = typeof data === "string" ? data : JSON.stringify(data);
   const raw = Buffer.from(body),
     sha256 = crypto.createHash("sha256").update(raw).digest("hex");
-  await fs.mkdir(join(stage, "evidence/response-inputs"), { recursive: true });
-  await fs.writeFile(join(stage, "evidence/response-inputs", sha256), raw);
   responses.push({ requestId, status, mime, sha256, bytes: raw.length });
   await cmd("Fetch.fulfillRequest", {
     requestId,
@@ -960,7 +915,7 @@ async function holdJourney(language) {
   await panel(language + "-hold-preserved", "[data-hold-export]");
   await click('a[href="/dashboard"]');
   await until(`!document.querySelector('[data-commercial]')`);
-  groups.push(
+  passed(
     language +
       ": explicit hold save/export, lost reply, fresh-storage older-file import, exact retry without live row, recreated hold/history separation, shared denial",
   );
@@ -1164,7 +1119,7 @@ async function determinationJourney(language) {
   );
   await click('a[href="/dashboard"]');
   await until(`!document.querySelector('[data-commercial]')`);
-  groups.push(
+  passed(
     language +
       ": determination save/download/lost reply/fresh-storage deferred import/null-history/exact retry/current-history separation/shared denial",
   );
@@ -1320,16 +1275,13 @@ async function retentionJourney(language) {
   };
   await click('a[href="/dashboard"]');
   await until(`!document.querySelector('[data-commercial]')`);
-  groups.push(
+  passed(
     language +
       ": five retention families, exact 100-boundary continuation/restart, malformed/empty distinction, family ABA and both-direction shared denial with saved histories unchanged",
   );
 }
 try {
-  await free(56840);
-  await free(56841);
-  result.buildBefore = await tree(join(stage, "app/.output"));
-  fixture = http.createServer((req, res) => {
+  setApiHandler((req, res) => {
     const expected = expectedDirect[0];
     if (
       expected &&
@@ -1364,76 +1316,13 @@ try {
     res.writeHead(599);
     res.end("Unexpected non-intercepted fixture request");
   });
-  await new Promise((resolve) => fixture.listen(56841, "127.0.0.1", resolve));
-  const env = {
-    ...process.env,
-    HOST: "127.0.0.1",
-    PORT: "56840",
-    NUXT_PUBLIC_BASE_API_URL: api,
-    NUXT_PUBLIC_BASE_WEB_URL: app,
-  };
-  server = child(
-    process.execPath,
-    [join(stage, "app/.output/server/index.mjs")],
-    env,
-    "app.log",
-  );
-  for (let i = 0; i < 200; i++) {
-    try {
-      if ((await fetch(app)).ok) break;
-    } catch {}
-    assert(server.exitCode === null);
-    await delay(50);
-  }
-  chrome = child(
-    "/run/current-system/sw/bin/chromium",
-    [
-      "--headless=new",
-      "--no-sandbox",
-      "--disable-gpu",
-      "--disable-background-networking",
-      "--disable-component-update",
-      "--disable-sync",
-      "--no-first-run",
-      "--no-default-browser-check",
-      "--disable-extensions",
-      "--disable-features=MediaRouter",
-      "--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1",
-      `--user-data-dir=${profile}`,
-      "--remote-debugging-port=0",
-      "about:blank",
-    ],
-    process.env,
-    "chromium.log",
-  );
-  let port;
-  for (let i = 0; i < 200; i++) {
-    try {
-      port = (
-        await fs.readFile(join(profile, "DevToolsActivePort"), "utf8")
-      ).split("\n")[0];
-      break;
-    } catch {}
-    await delay(50);
-  }
-  assert(port);
-  cdp = `http://127.0.0.1:${port}`;
-  const targets = await (await fetch(cdp + "/json/list")).json();
-  ws = new WebSocket(
-    targets.find((x) => x.type === "page").webSocketDebuggerUrl,
-  );
-  await new Promise((resolve) => (ws.onopen = resolve));
-  ws.onmessage = (event) => {
-    const m = JSON.parse(event.data);
-    if (m.id) {
-      const p = pending.get(m.id);
-      pending.delete(m.id);
-      m.error ? p?.reject(m.error) : p?.resolve(m.result);
-    } else if (m.method === "Fetch.requestPaused")
-      intercept(m.params).catch((e) => errors.push(String(e.stack || e)));
-    else if (m.method === "Runtime.exceptionThrown")
-      errors.push(m.params.exceptionDetails);
-  };
+  browser = await connectToBrowser(target);
+  browser.onEvent((message) => {
+    if (message.method === "Fetch.requestPaused")
+      intercept(message.params).catch((e) => errors.push(String(e.stack || e)));
+    else if (message.method === "Runtime.exceptionThrown")
+      errors.push(message.params.exceptionDetails);
+  });
   for (const method of ["Page.enable", "Runtime.enable", "Network.enable"])
     await cmd(method);
   await cmd("Fetch.enable", {
@@ -1454,6 +1343,9 @@ try {
     source: `(()=>{const listeners=new Set(),originalAdd=EventTarget.prototype.addEventListener,originalRemove=EventTarget.prototype.removeEventListener;window.__staffProbe={listeners,ids:new Map(),nextId:0,adds:0,removes:0,cookieSignals:0,channels:0};EventTarget.prototype.addEventListener=function(type,fn,...rest){if(this===window.cookieStore&&type==='change'){listeners.add(fn);if(!__staffProbe.ids.has(fn))__staffProbe.ids.set(fn,++__staffProbe.nextId);__staffProbe.adds++;}return originalAdd.call(this,type,fn,...rest)};EventTarget.prototype.removeEventListener=function(type,fn,...rest){if(this===window.cookieStore&&type==='change'){listeners.delete(fn);__staffProbe.removes++;}return originalRemove.call(this,type,fn,...rest)};if(window.cookieStore)originalAdd.call(cookieStore,'change',()=>__staffProbe.cookieSignals++);if(window.BroadcastChannel){const Original=window.BroadcastChannel;window.BroadcastChannel=class extends Original{constructor(name){super(name);if(name.startsWith('nuxt:cookies:')){this.tracked=true;__staffProbe.channels++;}}close(){if(this.tracked){this.tracked=false;__staffProbe.channels--;}super.close();}}}})()`,
   });
   for (const language of ["de", "en-US"]) {
+    // Stop the previous page's cookie observers before replacing the test jar.
+    await cmd("Page.navigate", { url: "about:blank" });
+    await until(`location.href === 'about:blank'`);
     await cmd("Network.clearBrowserCookies");
     await cmd("Network.setCookie", {
       name: "locale",
@@ -1510,21 +1402,22 @@ try {
         `document.querySelector('[data-raw-detail]').textContent.includes('9007199254740993')`,
       ),
     );
+    const capacityText = await ev(`document.querySelector('[data-capacity]').innerText`);
     assert(
-      await ev(
-        `document.querySelector('[data-capacity]').innerText.includes(${JSON.stringify(language === "de" ? "90071992547409,93 EUR" : "90071992547409.93 EUR")})`,
-      ),
+      capacityText.includes(language === "de" ? "90071992547409,93 EUR" : "90071992547409.93 EUR"),
+      language + ": " + capacityText,
     );
     const after = await ev(
       `({listeners:__staffProbe.listeners.size,channels:__staffProbe.channels,adds:__staffProbe.adds,removes:__staffProbe.removes})`,
     );
     assert.equal(after.listeners, before.listeners);
     assert.equal(after.channels, before.channels);
-    assert(after.adds > before.adds);
+    // Session snapshots now read document.cookie without creating listeners.
+    assert.equal(after.adds, before.adds);
     assert.equal(after.adds - before.adds, after.removes - before.removes);
     result[language + "GetterScope"] = { before, after };
     await panel(language + "-capacity", "[data-load-capacity]");
-    groups.push(
+    passed(
       language +
         ": actual password/MFA, navbar, raw bigint and exact nullable capacity",
     );
@@ -1566,7 +1459,7 @@ try {
     await input("[data-document-variant]", "confirmation");
     await click("[data-download]");
     await until(`document.querySelector('[data-selected] [role="status"]')`);
-    groups.push(
+    passed(
       language +
         ": held selector away/back suppressed; exact PDF and text byte downloads",
     );
@@ -1581,7 +1474,7 @@ try {
     held = null;
     await until(`!document.querySelector('[data-selected]')`);
     assert(await ev(`document.cookie.includes('accessToken=')`));
-    groups.push(
+    passed(
       language +
         ": current held401 after case change clears only commercial view",
     );
@@ -1637,7 +1530,7 @@ try {
         "base64",
       ),
     );
-    groups.push(
+    passed(
       language +
         ": received " +
         direct[nativeIndex].status +
@@ -1666,7 +1559,7 @@ try {
       disposed,
       note: "Returning dashboard auth middleware adds its own useCookie listener; owned identity removal is checked separately from whole-app count.",
     };
-    groups.push(
+    passed(
       language + ": actual CookieStore replacement and page observer cleanup",
     );
     ready = records.filter(
@@ -1678,8 +1571,7 @@ try {
     assert.equal(Object.keys(result[language + "Downloads"]).length, 2);
     for (const name of Object.keys(result[language + "Downloads"])) {
       assert(!name.endsWith(".crdownload"));
-      await fs.copyFile(join(downloadPath, name), join(saved, name));
-      await fs.unlink(join(downloadPath, name));
+      await fs.rename(join(downloadPath, name), join(saved, name));
     }
     await holdJourney(language);
     await determinationJourney(language);
@@ -1730,53 +1622,15 @@ try {
   } catch {}
   throw error;
 } finally {
-  try {
-    if (ws?.readyState === WebSocket.OPEN) ws.close();
-  } catch {}
-  for (const { p } of handles.slice().reverse()) {
-    if (p.exitCode === null) p.kill("SIGTERM");
-    if (p.exitCode === null)
-      await new Promise((resolve) => {
-        p.once("exit", resolve);
-        setTimeout(() => {
-          if (p.exitCode === null) p.kill("SIGKILL");
-          resolve();
-        }, 3000);
-      });
-  }
-  if (fixture) {
-    fixture.closeAllConnections();
-    await new Promise((resolve) => fixture.close(resolve));
-  }
-  for (const handle of handles)
-    await fs.writeFile(join(run, handle.log), handle.text());
-  result.processes = handles.map(({ p, log }) => ({
-    pid: p.pid,
-    exitCode: p.exitCode,
-    signalCode: p.signalCode,
-    log,
-  }));
-  await fs.rm(profile, { recursive: true, force: true });
-  await free(56840);
-  await free(56841);
-  result.cleanup = { profileRemoved: true, portsFree: [56840, 56841] };
-  result.buildAfter = await tree(join(stage, "app/.output"));
-  assert.deepEqual(result.buildAfter, result.buildBefore);
-  await fs.writeFile(
-    join(run, "results.json"),
-    JSON.stringify(result, null, 2) + "\n",
-  );
-  console.log(
-    JSON.stringify({
-      run,
-      pass: result.pass,
-      groups: groups.length,
-      interceptedRecords: records.length,
-      directRequests: direct.length,
-      panels: panels.length,
-      errors: errors.length,
-      escaped: escaped.length,
-      cleanup: result.cleanup,
-    }),
-  );
+  browser?.close();
+  await fs.writeFile(join(run, "results.json"), JSON.stringify(result, null, 2) + "\n");
+  report({
+    pass: result.pass,
+    cases: groups,
+    interceptedRecords: records.length,
+    directRequests: direct.length,
+    panels: panels.length,
+    errors: errors.length,
+    escaped: escaped.length,
+  });
 }

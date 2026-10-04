@@ -570,7 +570,7 @@ export function createCommercialDetermination(
     context.reject(p, r.status);
     if (r.status !== 200)
       throw Error(r.status === 404 ? "missing" : "unconfirmed");
-    if (r.mime.split(";")[0].trim() !== "application/json") return fail();
+    if (r.mime.split(";")[0]!.trim() !== "application/json") return fail();
     return r.text;
   }
   const recordReceipt = (

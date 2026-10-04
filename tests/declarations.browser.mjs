@@ -1,17 +1,19 @@
-// Real local Nuxt dashboard with synthetic intercepted APIs; blocks external traffic.
-// Start admin on 3186 (API 3199), Chromium CDP on 9229; Node 22+.
+// Built dashboard with synthetic intercepted APIs; run via browser-runner.mjs.
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-const app = 'http://127.0.0.1:3186';
-const targets = await (await fetch('http://127.0.0.1:9229/json/list')).json();
-const ws = new WebSocket(
-  targets.find((t) => t.type === 'page').webSocketDebuggerUrl,
-);
-await new Promise((r) => (ws.onopen = r));
-let seq = 0;
-const pending = new Map(),
-  writes = [],
+import { join } from 'node:path';
+import { browserContext, connectToBrowser } from './browser-context.mjs';
+const { app, api, target, run, report } = browserContext();
+const browser = await connectToBrowser(target);
+const { cmd } = browser;
+const writes = [],
+  groups = [],
   errors = [];
+let pass = false;
+function passed(label) {
+  groups.push(label);
+  console.log('PASS declarations: ' + label);
+}
 const id = '11111111-1111-4111-8111-111111111111',
   agreement = '22222222-2222-4222-8222-222222222222',
   user = '33333333-3333-4333-8333-333333333333';
@@ -47,13 +49,6 @@ const declaration = {
     messages: [{ body: 'IMMUTABLE RECEIPT BYTES' }],
   }),
 };
-function cmd(method, params = {}) {
-  return new Promise((resolve, reject) => {
-    const id = ++seq;
-    pending.set(id, { resolve, reject });
-    ws.send(JSON.stringify({ id, method, params }));
-  });
-}
 async function ev(expression) {
   const r = await cmd('Runtime.evaluate', {
     expression,
@@ -94,13 +89,15 @@ async function set(selector, value) {
 }
 async function mock({ request, requestId }) {
   const url = new URL(request.url);
-  if (url.origin === app || url.protocol === 'data:')
+  if (url.origin === app || url.protocol === 'data:' || url.protocol === 'blob:')
     return cmd('Fetch.continueRequest', { requestId });
-  if (url.origin !== 'http://127.0.0.1:3199')
+  if (url.origin !== api) {
+    errors.push({ externalAttempt: url.href });
     return cmd('Fetch.failRequest', {
       requestId,
       errorReason: 'BlockedByClient',
     });
+  }
   let data = {};
   if (request.method === 'GET' && url.pathname === '/contracts/declarations')
     data = { total: 1, declarations: [declaration] };
@@ -134,17 +131,12 @@ async function mock({ request, requestId }) {
     body: Buffer.from(JSON.stringify(data)).toString('base64'),
   });
 }
-ws.onmessage = (e) => {
-  const m = JSON.parse(e.data);
-  if (m.id) {
-    const p = pending.get(m.id);
-    pending.delete(m.id);
-    m.error ? p?.reject(m.error) : p?.resolve(m.result);
-  } else if (m.method === 'Fetch.requestPaused')
+browser.onEvent((m) => {
+  if (m.method === 'Fetch.requestPaused')
     mock(m.params).catch((e) => errors.push(String(e)));
   else if (m.method === 'Runtime.exceptionThrown')
     errors.push(m.params.exceptionDetails);
-};
+});
 try {
   for (const method of ['Page.enable', 'Runtime.enable', 'Network.enable'])
     await cmd(method);
@@ -200,8 +192,10 @@ try {
       'IMMUTABLE RECEIPT BYTES',
     ),
   );
+  passed('full declaration, exact date, delivery attempts and immutable evidence visible');
   await click(`document.querySelector('form button[type=submit]')`);
   assert.equal(writes.length, 0, 'unverified action does not submit');
+  passed('unverified action sends no write');
   await pause(5500); // Let the validation snackbar release the bottom button hit area.
   await set('#declaration-action', 'SCHEDULE_PREMIUM_CANCELLATION');
   assert.equal(
@@ -228,18 +222,13 @@ try {
   assert.equal(writes[0].identity_verified, true);
   assert(!writes[0].effective_end);
   assert.deepEqual(errors, []);
-  if (process.env.T12_ADMIN_SCREENSHOT)
-    await fs.writeFile(
-      process.env.T12_ADMIN_SCREENSHOT,
-      Buffer.from(
-        (await cmd('Page.captureScreenshot', { format: 'png' })).data,
-        'base64',
-      ),
-    );
-  console.log(
-    'PASS actual admin full declaration/date/delivery/evidence visibility, explicit verification guard, original-agreement action and exact payload; zero browser exceptions',
+  passed('original agreement and verified identity submitted exactly once, without an invented end date');
+  await fs.writeFile(
+    join(run, 'declarations.png'),
+    Buffer.from((await cmd('Page.captureScreenshot', { format: 'png' })).data, 'base64'),
   );
+  pass = true;
 } finally {
-  console.log(JSON.stringify({writes,errors}));
-  ws.close();
+  browser.close();
+  report({ pass, cases: groups, writes: writes.length, errors: errors.length });
 }
