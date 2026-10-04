@@ -22,7 +22,7 @@ const controller = createCommercialHoldReview(
 const state = controller.state;
 const unregisterWork = registerStaffWork({
   busy: () => state.sendBusy || state.queueBusy,
-  snapshot: () => !state.receipt && (state.assessment || state.nextDate)
+  snapshot: () => !state.receipt && (state.assessment || state.nextDate || state.scope)
     ? { kind: "hold-review-form", selected: state.selected, assessment: state.assessment, nextDate: state.nextDate, scope: state.scope }
     : null,
   clear: () => controller.forget(),

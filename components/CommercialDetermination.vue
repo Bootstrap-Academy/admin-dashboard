@@ -22,7 +22,7 @@ const controller = createCommercialDetermination(
 const state = controller.state;
 const unregisterWork = registerStaffWork({
   busy: () => state.sendBusy || state.liveBusy || state.recoveryBusy,
-  snapshot: () => !state.receipt && (state.assessment || state.summary || state.cash || state.reference)
+  snapshot: () => !state.receipt && (state.obligation || state.units || state.cash || state.cashKnown || state.cashBasis || state.assessment || state.summary || state.referenceKind || state.reference)
     ? { kind: "determination-form", target: state.target, obligation: state.obligation, units: state.units,
       cash: state.cash, cashKnown: state.cashKnown, cashBasis: state.cashBasis, assessment: state.assessment,
       summary: state.summary, referenceKind: state.referenceKind, reference: state.reference }
