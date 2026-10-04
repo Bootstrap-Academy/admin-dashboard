@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { runBrowserSuite } from "./browser-context.mjs";
 
-const suites = ["commercial-staff", "declarations", "publication-support"];
+const suites = ["commercial-staff", "declarations", "publication-support", "user-navigation"];
 const selected = process.argv.slice(2);
 if (!selected.length) selected.push(...suites);
 assert(selected.every((name) => suites.includes(name)), "Unknown browser suite");
