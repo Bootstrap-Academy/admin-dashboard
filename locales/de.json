@@ -411,7 +411,7 @@
     "scope": "Ich habe die gesamte ausgewählte bestehende Sperre geprüft und entscheide, sie mit der oben eingetragenen Bewertung und dem nächsten Prüftermin beizubehalten.",
     "prepare": "Diesen genauen Prüfvorgang speichern",
     "recovery": "Gespeicherte Vorgänge und Wiederaufnahme",
-    "local": "Offene Vorgänge bleiben in diesem Tab. Lade vor dem Schließen eine Wiederaufnahmedatei herunter. Bestätigte Vorgänge und die Kopien beim Abmelden entfernen wir.",
+    "local": "Neue offene Vorgänge liegen nur in diesem Tab. Schließt du ihn oder stürzt der Browser ab, können sie verloren gehen, und der Browser warnt nicht immer. Lade vorher eine Wiederaufnahmedatei herunter. Bestätigte Vorgänge entfernen wir, die übrigen beim Abmelden nach deiner Sicherung.",
     "import": "Optionale Wiederaufnahmedatei importieren",
     "recordedHistory": "Dokumentierter Verlauf",
     "pending": "Ergebnis nicht bestätigt",
@@ -469,7 +469,7 @@
     "prepare": "Diese Feststellung zur Prüfung speichern",
     "notPending": "Diese Beobachtung wartet nicht auf Nachweise. Daraus kann keine neue Feststellung vorbereitet werden. Bestehende Auftragshistorie bleibt abrufbar.",
     "recovery": "Gespeicherte Aufträge wiederaufnehmen",
-    "local": "Offene Aufträge bleiben in diesem Tab. Lade vor dem Schließen eine Wiederaufnahmedatei herunter. Bestätigte Aufträge und die Kopien beim Abmelden entfernen wir.",
+    "local": "Neue offene Aufträge liegen nur in diesem Tab. Schließt du ihn oder stürzt der Browser ab, können sie verloren gehen, und der Browser warnt nicht immer. Lade vorher eine Wiederaufnahmedatei herunter. Bestätigte Aufträge entfernen wir, die übrigen beim Abmelden nach deiner Sicherung.",
     "loadSaved": "Gespeicherte Aufträge laden",
     "import": "Gespeicherte Auftragsdatei öffnen",
     "savedHistory": "Zuvor gespeicherte Beleggeschichte",
@@ -578,6 +578,8 @@
   "Storage": {
     "logoutSave": "Du hast offene Arbeit. Mit OK lädst du eine Sicherung herunter. Abbrechen lässt dich weiterarbeiten.",
     "logoutConfirm": "Prüfe, ob die Sicherung gespeichert wurde. Jetzt abmelden und die Browserkopien entfernen?",
-    "cleanupError": "Die Browserkopien konnten nicht entfernt werden. Bitte sichere deine Arbeit und versuche es erneut."
+    "cleanupError": "Die Browserkopien konnten nicht entfernt werden. Bitte sichere deine Arbeit und versuche es erneut.",
+    "logoutBusy": "Du bist noch angemeldet, weil gerade ein Vorgang läuft. Warte, bis er fertig ist, und melde dich dann ab.",
+    "logoutChanged": "Du bist noch angemeldet, weil sich seit der Sicherung etwas geändert hat. Melde dich noch einmal ab, dann bekommst du eine neue Sicherung."
   }
 }

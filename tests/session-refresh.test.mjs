@@ -365,6 +365,35 @@ for (const result of ["success", "unauthorized", "offline"]) {
   });
 }
 
+for (const reason of ["busy", "changed"]) {
+  test(`a logout blocked because work is ${reason} says so and keeps the session`, async () => {
+    const alerts = [];
+    let cleared = 0,
+      fetched = 0;
+    const bindings = {
+      useNuxtApp: () => ({ vueApp: { config: { globalProperties: { $t: (key) => key } } } }),
+      window: { localStorage: {}, sessionStorage: {}, alert: (text) => alerts.push(text) },
+      prepareStaffLogout: async (options) => {
+        options.blocked(reason);
+        return false;
+      },
+      revokeSession: async () => fetched++,
+      withSessionRefreshLock: (run) => run(),
+      getSessionSnapshot: () => ({ ...initial(), accessToken: response().access_token }),
+      useRuntimeConfig: () => ({ public: { BASE_API_URL: "https://synthetic.invalid" } }),
+      setStates: () => cleared++,
+      $fetch: async () => fetched++,
+    };
+    const { logout } = new Function(...Object.keys(bindings), `${authCode}\nreturn { logout };`)(
+      ...Object.values(bindings)
+    );
+    assert.deepEqual(await logout(), [false, null]);
+    assert.deepEqual(alerts, [reason === "busy" ? "Storage.logoutBusy" : "Storage.logoutChanged"]);
+    assert.equal(cleared, 0);
+    assert.equal(fetched, 0);
+  });
+}
+
 const userSource = await readFile(new URL("../composables/user.ts", import.meta.url), "utf8");
 const userAst = ts.createSourceFile("user.ts", userSource, ts.ScriptTarget.Latest, true);
 const cookieCode = ts.transpileModule(
