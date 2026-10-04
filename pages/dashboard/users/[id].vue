@@ -38,9 +38,10 @@
 		<div
 			class="grid grid-cols-1 midXl:grid-cols-[1fr_auto] gap-container mt-card"
 		>
-			<AppUsersProfile :data="appUser" class="w-full" />
-			<AppUsersAccount :data="appUser" class="w-full md:min-w-[400px]" />
-			<AppUsersProgress :data="appUser" class="midXl:col-span-2" />
+			<AppUsersProfile :key="supportContext" :data="appUser" class="w-full" />
+			<AppUsersAccount :key="supportContext" :data="appUser" class="w-full md:min-w-[400px]" />
+			<AppUsersPublication v-if="publicationEnabled" :key="supportContext" :user-id="userID" class="midXl:col-span-2" />
+			<AppUsersProgress :key="supportContext" :data="appUser" class="midXl:col-span-2" />
 		</div>
 	</main>
 </template>
@@ -62,23 +63,27 @@ export default {
     const { t } = useI18n();
 
     const route = useRoute();
+    const publicationFlag = useRuntimeConfig().public.PROFILE_PUBLICATION_ENABLED;
+    const publicationEnabled = publicationFlag === true || String(publicationFlag) === 'true';
 
     const userID = computed(() => {
       return <string>(route?.params?.id ?? '');
     });
 
-    const loading = ref(true);
     const appUser: Ref<any> = useAppUser();
+    const viewer = useUser(), viewerSession = useSession();
+    const supportContext = computed(() => JSON.stringify([userID.value, viewer.value?.id, viewerSession.value?.id]));
+    let userLoad = 0;
 
     const userName = computed(() => {
       return appUser.value?.name ?? 'User';
     });
 
-    onMounted(async () => {
-      loading.value = true;
-      await getAppUser(userID.value);
-      loading.value = false;
-    });
+    watch([userID, () => viewer.value?.id, () => viewerSession.value?.id], async ([id]) => {
+      const attempt = ++userLoad;
+      appUser.value = null;
+      await getAppUser(id, () => userID.value === id && userLoad === attempt);
+    }, { immediate: true, flush: 'sync' });
 
     const router = useRouter();
     async function onclickDeleteUser() {
@@ -114,7 +119,7 @@ export default {
       );
     }
 
-    return { appUser, onclickDeleteUser };
+    return { appUser, onclickDeleteUser, userID, publicationEnabled, supportContext };
   },
 };
 </script>

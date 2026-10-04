@@ -98,7 +98,7 @@ export async function getAppUsers(filters: UserFilter) {
   }
 }
 
-export async function getAppUser(id: string) {
+export async function getAppUser(id: string, isCurrent: () => boolean = () => true) {
   try {
     if (!id) {
       throw { data: "Invalid App User Id" };
@@ -106,7 +106,7 @@ export async function getAppUser(id: string) {
     const response = await GET(`/auth/users/${id}`);
 
     const appUser = useAppUser();
-    appUser.value = response ?? null;
+    if (isCurrent()) appUser.value = response ?? null;
 
     return [response, null];
   } catch (error: any) {

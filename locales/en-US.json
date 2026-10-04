@@ -561,5 +561,20 @@
       "evidence_hash": "Evidence hash",
       "qualified": "Recorded qualification"
     }
+  },
+  "PublicationSupport": {
+    "Heading": "Profile sharing",
+    "Loading": "Loading status …",
+    "Shared": "Shared",
+    "Private": "Private",
+    "Scope": "Only the user can share their profile. Their private learning data remains available for support.",
+    "Withdraw": "Make private again",
+    "Saving": "Saving …",
+    "Saved": "The profile is private again.",
+    "Denied": "You need current admin permissions and an MFA-verified session.",
+    "Unavailable": "Profile sharing is currently unavailable.",
+    "Conflict": "Sharing changed in the meantime. The current status was requested again.",
+    "Failed": "The response is missing. Check the current status and try again.",
+    "Reload": "Reload status"
   }
 }

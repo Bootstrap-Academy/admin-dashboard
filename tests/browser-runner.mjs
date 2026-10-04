@@ -1,6 +1,6 @@
 // Run after bash build.sh. No test account or live API is needed.
 // CHROMIUM_PATH overrides chromium/chromium-browser/google-chrome on PATH.
-// Optional arguments select commercial-staff and/or declarations (default: both).
+// Optional arguments select suites (default: all).
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import { constants } from "node:fs";
@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { runBrowserSuite } from "./browser-context.mjs";
 
-const suites = ["commercial-staff", "declarations"];
+const suites = ["commercial-staff", "declarations", "publication-support"];
 const selected = process.argv.slice(2);
 if (!selected.length) selected.push(...suites);
 assert(selected.every((name) => suites.includes(name)), "Unknown browser suite");
@@ -42,6 +42,7 @@ const preparations = new Set(), runningSuites = new Set();
 const cancellation = new AbortController();
 const escaped = [];
 let work, apiHandler, api, app, cleanupPromise, stopping = false, summaryPrinted = false;
+let publicationEnabled = false;
 function ensureRunning() {
   if (stopping) throw new Error("Browser runner stopping");
 }
@@ -94,6 +95,10 @@ async function serve(req, res) {
           (_match, property) => { replaced++; return property + JSON.stringify(value); });
         assert(replaced > 0, "Missing Nuxt runtime config: " + key);
       }
+      let publicationFlags = 0;
+      html = html.replace(/(PROFILE_PUBLICATION_ENABLED["']?\s*:\s*)(?:true|false|["'](?:true|false)["'])/g,
+        (_match, property) => { publicationFlags++; return property + String(publicationEnabled); });
+      assert(publicationFlags > 0, "Missing publication runtime flag");
       body = Buffer.from(html);
     }
     res.writeHead(200, { "Content-Type": mime[extname(file)] || "application/octet-stream", "Cache-Control": "no-store" });
@@ -229,6 +234,7 @@ try {
       ensureRunning();
       const running = runBrowserSuite({ app, api, run, downloadPath, target: launched.target, ensureRunning,
         setApiHandler(handler) { apiHandler = handler; },
+        setPublicationEnabled(enabled) { publicationEnabled = enabled === true; },
         report(result) { summary = { suite, ...result }; },
       }, new URL(`./${suite}.browser.mjs`, import.meta.url));
       runningSuites.add(running);
@@ -241,6 +247,7 @@ try {
     } finally {
       if (browser) await stopBrowser(browser);
       apiHandler = undefined;
+      publicationEnabled = false;
       results.push(summary);
       await fs.rm(run, { recursive: true, force: true });
     }
