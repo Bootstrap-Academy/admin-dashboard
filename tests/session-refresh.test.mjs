@@ -329,6 +329,9 @@ for (const result of ["success", "unauthorized", "offline"]) {
     const answer = deferred();
     const calls = [];
     const bindings = {
+      useNuxtApp: () => ({vueApp:{config:{globalProperties:{$t:key=>key}}}}),
+      window: {localStorage:{},sessionStorage:{}},
+      prepareStaffLogout: async () => true,
       revokeSession: tab().revokeSession,
       withSessionRefreshLock: (run) => run(),
       getSessionSnapshot: () => ({ ...current }),
@@ -348,6 +351,7 @@ for (const result of ["success", "unauthorized", "offline"]) {
       ...Object.values(bindings)
     );
     const pending = logout();
+    await Promise.resolve();
     assert.equal(current.identity, null);
     assert.equal(calls.length, 1);
     assert.equal(calls[0].url, "https://synthetic.invalid/auth/sessions/A/S");

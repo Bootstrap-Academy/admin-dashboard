@@ -5,7 +5,7 @@ import {
   type StaffProof,
 } from "./commercialStaffContext";
 import type { CaseSelection, StaffTransport } from "./commercialStaff";
-import { holdNativeTime, type HoldStorage } from "./commercialHoldReview";
+import { holdNativeTime, newStaffCommand, type HoldStorage } from "./commercialHoldReview";
 
 const fail = (): never => {
   throw Error("schema");
@@ -476,6 +476,7 @@ export function createCommercialDetermination(
     clearForm();
   };
   const unlisten = context.onInvalidate(clear);
+  let completed: DeterminationSaved | null = null;
   const proof = () => {
     if (!context.activate()) {
       clear();
@@ -536,6 +537,7 @@ export function createCommercialDetermination(
     return records;
   };
   const selected = (r: DeterminationSaved | null, importing = false) => {
+    completed = null;
     if (!importing) invalidateImports();
     savedRevision++;
     state.saved = r;
@@ -550,6 +552,7 @@ export function createCommercialDetermination(
     if (!state.saved) return fail();
     const r = determinationSaved(clone(state.saved)),
       stored = readRecord(r.command_id);
+    if (completed && same(completed, r)) return r;
     if (!stored || !same(stored, r)) throw Error("storage");
     return stored;
   };
@@ -590,9 +593,13 @@ export function createCommercialDetermination(
         uncertain: true,
         receipts: unique([...stored.receipts, receipt]),
       };
-      save(updated, guard);
       if (!guard()) return;
+      storage().removeItem(key(saved.command_id));
+      if (storage().getItem(key(saved.command_id)) !== null) throw Error("storage");
+      if (!guard()) return;
+      completed = updated;
       state.saved = updated;
+      clearForm();
       list();
     } catch {
       if (guard()) {
@@ -603,6 +610,15 @@ export function createCommercialDetermination(
   };
   return {
     state,
+    forget() {
+      clear();
+      completed = null;
+      state.saved = state.target = null;
+      state.records = [];
+      state.unsupported = [];
+      state.importRaw = "";
+      state.obligation = "";
+    },
     beginImport,
     finishImport,
     importError(ticket: ImportTicket | null) {
@@ -792,7 +808,7 @@ export function createCommercialDetermination(
         )
           throw Error("pending");
         if (!current(p, rev, false)) return;
-        candidate.command_id = uuid(newId());
+        candidate.command_id = newStaffCommand(context, uuid(newId()));
         if (storage().getItem(key(candidate.command_id)) !== null)
           throw Error("storage");
         const body = JSON.stringify(candidate),
@@ -825,6 +841,10 @@ export function createCommercialDetermination(
       try {
         const r = determinationSaved(determinationJson(raw, false)),
           old = readRecord(r.command_id);
+        if (completed?.command_id === r.command_id) {
+          if (completed.actor !== r.actor || completed.body_json !== r.body_json || !same(completed.preparation, r.preparation)) return fail();
+          return;
+        }
         if (
           old &&
           (old.actor !== r.actor ||
@@ -861,7 +881,7 @@ export function createCommercialDetermination(
       }
     },
     async send() {
-      if (!alive || state.sendBusy) return;
+      if (!alive || state.sendBusy || completed) return;
       invalidateImports();
       let p: StaffProof | null = null,
         rev = savedRevision;

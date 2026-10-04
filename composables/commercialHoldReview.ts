@@ -6,6 +6,15 @@ import {
 } from "./commercialStaffContext";
 import type { StaffTransport } from "./commercialStaff";
 
+const usedCommands = new WeakMap<CommercialStaffContext, Set<string>>();
+export function newStaffCommand(context: CommercialStaffContext, id: string) {
+  const commands = usedCommands.get(context) || new Set<string>();
+  if (commands.has(id)) throw Error("storage");
+  commands.add(id);
+  usedCommands.set(context, commands);
+  return id;
+}
+
 const fail = (): never => {
   throw Error("schema");
 };
@@ -440,7 +449,7 @@ const logical = (r: HoldRequest) =>
   JSON.stringify([r.case_id, r.hold.kind, r.hold.record_id]);
 export type HoldStorage = Pick<
   Storage,
-  "length" | "key" | "getItem" | "setItem"
+  "length" | "key" | "getItem" | "setItem" | "removeItem"
 >;
 type HoldImportTicket = Readonly<{ ordinal: number }>;
 export function createCommercialHoldReview(
@@ -507,6 +516,7 @@ export function createCommercialHoldReview(
     state.error = "authority";
   };
   const unlisten = context.onInvalidate(clear);
+  let completed: HoldSaved | null = null;
   const readRecord = (id: string) => {
     const raw = storage().getItem(storageKey(id));
     if (raw === null) return null;
@@ -549,10 +559,12 @@ export function createCommercialHoldReview(
     const expected = holdSaved(JSON.parse(JSON.stringify(state.saved))),
       request = holdRequest(JSON.parse(expected.body_json)),
       current = readRecord(request.command_id);
+    if (completed && same(completed, expected)) return { saved: expected, request };
     if (!current || !same(current, expected)) throw Error("storage");
     return { saved: current, request };
   };
   const selectedSaved = (r: HoldSaved | null, fromCurrentImport = false) => {
+    completed = null;
     if (!fromCurrentImport) invalidateImports();
     savedRevision++;
     state.saved = r;
@@ -584,6 +596,12 @@ export function createCommercialHoldReview(
   }
   return {
     state,
+    forget() {
+      clear();
+      completed = null;
+      state.saved = null;
+      state.records = [];
+    },
     beginImport,
     finishImport,
     importError(ticket: HoldImportTicket | null) {
@@ -660,7 +678,7 @@ export function createCommercialHoldReview(
         holdRequestTime(state.nextDate);
         const request = holdRequest({
           version: 1,
-          command_id: uuid(newId()),
+          command_id: newStaffCommand(context, uuid(newId())),
           case_id: selected.case_id,
           subject: selected.subject,
           hold: selected.hold,
@@ -717,6 +735,10 @@ export function createCommercialHoldReview(
         const record = holdSaved(JSON.parse(raw)),
           id = holdRequest(JSON.parse(record.body_json)).command_id,
           old = readRecord(id);
+        if (completed && holdRequest(JSON.parse(completed.body_json)).command_id === id) {
+          if (completed.actor !== record.actor || completed.body_json !== record.body_json) return fail();
+          return;
+        }
         if (
           old &&
           (old.body_json !== record.body_json || old.actor !== record.actor)
@@ -746,7 +768,7 @@ export function createCommercialHoldReview(
       }
     },
     async send() {
-      if (!alive || state.sendBusy) return;
+      if (!alive || state.sendBusy || completed) return;
       // An intervening attempt stays relevant even after sendBusy becomes false.
       invalidateImports();
       let p: StaffProof | null = null,
@@ -794,8 +816,11 @@ export function createCommercialHoldReview(
           ],
         };
         try {
-          save(updated);
+          storage().removeItem(storageKey(request.command_id));
+          if (storage().getItem(storageKey(request.command_id)) !== null) throw Error("storage");
+          completed = updated;
           state.saved = updated;
+          clearForm();
           list();
         } catch {
           state.receiptUnsaved = true;

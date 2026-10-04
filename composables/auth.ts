@@ -1,5 +1,6 @@
 import { GET, POST, PUT } from './fetch';
 import { revokeSession, withSessionRefreshLock } from '~/utils/sessionRefresh';
+import { prepareStaffLogout } from '../utils/commercialStorage';
 
 export const useOauthProviders = () => useState('oauthProviders', () => []);
 
@@ -38,6 +39,34 @@ export async function refresh(expected = getSessionSnapshot(), clearOnInvalid = 
 export async function logout() {
   const expected = getSessionSnapshot();
   const config = useRuntimeConfig().public;
+  const t = useNuxtApp().vueApp.config.globalProperties.$t;
+  try {
+    const ready = await prepareStaffLogout({
+      local: window.localStorage,
+      tab: window.sessionStorage,
+      current: () => getSessionSnapshot().identity === expected.identity && getSessionSnapshot().generation === expected.generation,
+      save: (raw) => {
+        if (!window.confirm(t('Storage.logoutSave'))) return false;
+        const url = URL.createObjectURL(new Blob([raw], { type: 'application/json' }));
+        const link = document.createElement('a');
+        try {
+          link.href = url;
+          link.download = 'academy-admin-open-work.json';
+          link.click();
+          return window.confirm(t('Storage.logoutConfirm'));
+        } finally {
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+      },
+    });
+    if (!ready) return [false, null];
+    // Download confirmation may overlap a different tab's login.
+    if (getSessionSnapshot().identity !== expected.identity || getSessionSnapshot().generation !== expected.generation)
+      return [false, null];
+  } catch {
+    window.alert(t('Storage.cleanupError'));
+    return [false, null];
+  }
 
   // Explicit logout clears all tabs immediately, even when the API is offline.
   setStates(null);
