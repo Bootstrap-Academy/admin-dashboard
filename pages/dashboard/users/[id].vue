@@ -74,6 +74,7 @@ export default {
     const viewer = useUser(), viewerSession = useSession();
     const supportContext = computed(() => JSON.stringify([userID.value, viewer.value?.id, viewerSession.value?.id]));
     let userLoad = 0;
+    onBeforeUnmount(() => { userLoad++; });
 
     const userName = computed(() => {
       return appUser.value?.name ?? 'User';
