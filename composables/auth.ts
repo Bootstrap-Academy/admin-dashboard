@@ -1,4 +1,6 @@
-import { GET, POST } from './fetch';
+import { GET, POST, PUT } from './fetch';
+import { revokeSession, withSessionRefreshLock } from '~/utils/sessionRefresh';
+import { prepareStaffLogout } from '../utils/commercialStorage';
 
 export const useOauthProviders = () => useState('oauthProviders', () => []);
 
@@ -25,38 +27,67 @@ export async function loginViaOAuthProvider(body: any) {
   }
 }
 
-export async function refresh() {
-  const config = useRuntimeConfig().public;
-  const refreshToken = getRefreshToken();
-
-  let body = JSON.stringify({ refresh_token: refreshToken });
-
+export async function refresh(expected = getSessionSnapshot(), clearOnInvalid = true) {
   try {
-    const response = await $fetch(`${config.BASE_API_URL}/auth/session`, {
-      method: 'PUT',
-      body: body,
-    });
-
-    setStates(response);
+    const response = await refreshSession(expected, clearOnInvalid);
     return [response, null];
   } catch (error: any) {
-    setStates(null);
-    return [null, error.data];
+    return [null, error];
   }
 }
 
 export async function logout() {
-  const user = <any>useUser();
-
+  const expected = getSessionSnapshot();
+  const config = useRuntimeConfig().public;
+  const t = useNuxtApp().vueApp.config.globalProperties.$t;
   try {
-    if (Boolean(!user.value) || Boolean(!user.value.id)) {
-      throw { data: 'Invalid User Id' };
-    }
+    const ready = await prepareStaffLogout({
+      local: window.localStorage,
+      tab: window.sessionStorage,
+      current: () => getSessionSnapshot().identity === expected.identity && getSessionSnapshot().generation === expected.generation,
+      save: (raw) => {
+        if (!window.confirm(t('Storage.logoutSave'))) return false;
+        const url = URL.createObjectURL(new Blob([raw], { type: 'application/json' }));
+        const link = document.createElement('a');
+        try {
+          link.href = url;
+          link.download = 'academy-admin-open-work.json';
+          link.click();
+          return window.confirm(t('Storage.logoutConfirm'));
+        } finally {
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+      },
+      blocked: (reason) =>
+        window.alert(t(reason === 'busy' ? 'Storage.logoutBusy' : 'Storage.logoutChanged')),
+    });
+    if (!ready) return [false, null];
+    // Download confirmation may overlap a different tab's login.
+    if (getSessionSnapshot().identity !== expected.identity || getSessionSnapshot().generation !== expected.generation)
+      return [false, null];
+  } catch {
+    window.alert(t('Storage.cleanupError'));
+    return [false, null];
+  }
 
-    const response = await DELETE(`/auth/sessions/${user.value.id}`);
-
-    setStates(null);
-
+  // Explicit logout clears all tabs immediately, even when the API is offline.
+  setStates(null);
+  if (!expected.identity || (!expected.accessToken && !expected.refreshToken))
+    return [true, null];
+  try {
+    const response = await revokeSession({
+      expected,
+      lock: withSessionRefreshLock,
+      raw: (path, method, body, token) =>
+        $fetch(`${config.BASE_API_URL}${path}`, {
+          method,
+          body: body as any,
+          ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+          retry: 0,
+          timeout: 20000,
+        }),
+    });
+    // The result never writes over a later login or another session.
     return [response, null];
   } catch (error) {
     return [null, error];

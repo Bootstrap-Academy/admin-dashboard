@@ -83,6 +83,7 @@ const user = (
     "import { useState } from '#app';": "",
   })
 ).module;
+const commercialStorage = await compile("../utils/commercialStorage.ts");
 const ctx = await compile("../composables/commercialStaffContext.ts");
 const adapter = await compile("../composables/commercialStaff.ts", {
   "'./commercialStaffContext'": JSON.stringify(ctx.url),
@@ -91,6 +92,7 @@ const holdAdapter = await compile("../composables/commercialHoldReview.ts", {
   "'./commercialStaffContext'": JSON.stringify(ctx.url),
 });
 const holdComponent = await compile("../components/CommercialHoldReview.vue", {
+  "'../utils/commercialStorage'": JSON.stringify(commercialStorage.url),
   "'../composables/commercialHoldReview'": JSON.stringify(holdAdapter.url),
 });
 const retentionAdapter = await compile(
@@ -118,6 +120,7 @@ const determinationAdapter = await compile(
 const determinationComponent = await compile(
   "../components/CommercialDetermination.vue",
   {
+    "'../utils/commercialStorage'": JSON.stringify(commercialStorage.url),
     "'../composables/commercialDetermination'": JSON.stringify(
       determinationAdapter.url,
     ),
@@ -1060,6 +1063,7 @@ function memory() {
     key: (n) => [...map.keys()][n] ?? null,
     getItem: (k) => map.get(k) ?? null,
     setItem: (k, v) => map.set(k, v),
+    removeItem: (k) => map.delete(k),
   };
 }
 function hf(options = {}) {
@@ -1402,8 +1406,8 @@ test("hold receipt write failure keeps exact pending original and qualified unsa
   const f = hf(),
     body = await prepared(f);
   f.reply(async (path, p, raw) => {
-    f.storage.setItem = () => {
-      throw Error("quota after response");
+    f.storage.removeItem = () => {
+      throw Error("blocked cleanup after response");
     };
     return response(hreceipt(JSON.parse(raw)));
   });
@@ -1597,7 +1601,8 @@ for (const language of ["de", "en-US"])
       doc = new EventTarget(),
       storage = memory(),
       calls = [];
-    win.localStorage = storage;
+    win.localStorage = memory();
+    win.sessionStorage = storage;
     let lost = true,
       deny = false;
     const denial = unreadable(language === "de" ? 401 : 403);
@@ -1713,7 +1718,7 @@ for (const language of ["de", "en-US"])
       const posts = calls.filter((r) => r.url.endsWith("/hold_review"));
       assert.equal(posts.length, 2);
       assert(posts.every((r) => r.init.body === body));
-      assert.equal(JSON.parse([...storage.map.values()][0]).body_json, body);
+      assert.equal(storage.length, 0);
       assert(
         h
           .text()
@@ -1833,7 +1838,8 @@ async function mountedImports(language = "en-US") {
     win = new EventTarget(),
     doc = new EventTarget(),
     calls = [];
-  win.localStorage = storage;
+  win.localStorage = memory();
+  win.sessionStorage = storage;
   globals({
     window: win,
     document: doc,
@@ -2436,7 +2442,7 @@ test("determination import cannot downgrade qualified local history and separate
   const bytes = f.store.getItem(dkey());
   f.controller.importFile(JSON.stringify(dsaved(DK)));
   assert.equal(f.store.getItem(dkey()), bytes);
-  assert.equal(f.store.length, 2);
+  assert.equal(f.store.length, 1);
   f.dispose();
 });
 test("determination unsupported legacy stored/uploaded originals remain raw without repair or durable admission", () => {
@@ -2546,12 +2552,7 @@ test("determination qualified response with receipt storage failure retains atte
   const store = memory(),
     f = df(store);
   f.controller.importFile(JSON.stringify(dsaved()));
-  const set = store.setItem.bind(store);
-  let calls = 0;
-  store.setItem = (k, v) => {
-    if (++calls === 2) throw Error("quota");
-    set(k, v);
-  };
+  store.removeItem = () => { throw Error("blocked cleanup"); };
   f.reply(async () => response(dreceipt()));
   await f.controller.send();
   assert.equal(f.calls.length, 1);
@@ -2668,7 +2669,8 @@ async function mountedDetermination(language = "en-US") {
     doc = new EventTarget(),
     calls = [],
     target = Vue.ref(null);
-  win.localStorage = storage;
+  win.localStorage = memory();
+  win.sessionStorage = storage;
   globals({
     window: win,
     document: doc,
@@ -2891,7 +2893,8 @@ for (const language of ["de", "en-US"])
       win = new EventTarget(),
       doc = new EventTarget(),
       calls = [];
-    win.localStorage = storage;
+    win.localStorage = memory();
+    win.sessionStorage = storage;
     let lost = true,
       deny = false,
       historical = false,
@@ -3037,10 +3040,7 @@ for (const language of ["de", "en-US"])
       assert(find("data-determination-command"));
       assert(!find("data-determination-receipt"));
       assert.equal(denial.seen.body, 0);
-      assert.equal(
-        JSON.parse([...storage.map.values()][0]).body_json,
-        original.body_json,
-      );
+      assert.equal(storage.length, 0);
       assert(!h.text().includes("Determination."));
     } finally {
       app.unmount();
@@ -3536,7 +3536,8 @@ async function mountedRetention(language, whole = false) {
     win = new EventTarget(),
     doc = new EventTarget(),
     calls = [];
-  win.localStorage = storage;
+  win.localStorage = memory();
+  win.sessionStorage = storage;
   let reply = async (url, init) => {
     const body = JSON.parse(init.body);
     let data;
@@ -3990,3 +3991,124 @@ for (const status of [401, 403])
       assert.equal(scopedCookies, 0);
     }
   });
+
+
+test("confirmed admin commands remove tab journals and remain exportable without a second dispatch", async () => {
+  const hold = hf(); await prepared(hold); await hold.controller.send();
+  assert.equal(hold.storage.length, 0);
+  assert(JSON.parse(hold.controller.exportFile()).confirmed);
+  const count = hold.calls.length; await hold.controller.send(); assert.equal(hold.calls.length, count);
+  hold.controller.forget(); assert.equal(hold.controller.state.saved, null); hold.dispose();
+  const d = df(); d.controller.importFile(JSON.stringify(dsaved()));
+  d.reply(async () => response(dreceipt())); await d.controller.send();
+  assert.equal(d.store.length, 0); assert.equal(JSON.parse(d.controller.exportFile()).receipts.length, 1);
+  const dc = d.calls.length; await d.controller.send(); assert.equal(d.calls.length, dc);
+  d.controller.forget(); assert.equal(d.controller.state.saved, null); d.dispose();
+});
+
+// Legacy durable journals: every tab works on a copy; the original stays until confirmation.
+const { commercialStore } = commercialStorage.module;
+test("legacy hold journal: both tabs keep a copy, the confirmation removes the original, the second send is an exact replay", async () => {
+  const hkey = "bootstrap.staff-hold-review.v1." + J,
+    legacy = JSON.stringify({
+      schema_version: 1,
+      actor: U,
+      body_json: JSON.stringify(hbody()),
+      uncertain: true,
+      confirmed: false,
+      receipts: [],
+    }),
+    local = memory();
+  local.setItem(hkey, legacy);
+  const secondTab = commercialStore(local, memory()); // opened before the first tab sends
+  const first = hf({ storage: commercialStore(local, memory()) });
+  first.controller.loadSaved();
+  assert.equal(first.controller.state.records.length, 1);
+  first.controller.selectSaved(J);
+  await first.controller.send();
+  assert(first.controller.state.receipt);
+  assert.equal(local.getItem(hkey), null, "the server confirmation removes the durable original");
+  assert.equal(first.storage.getItem(hkey), null);
+  assert.equal(secondTab.getItem(hkey), legacy, "the other tab keeps seeing its copy");
+  first.dispose();
+  const second = hf({ storage: secondTab });
+  second.controller.loadSaved();
+  second.controller.selectSaved(J);
+  await second.controller.send();
+  // Same command and byte-identical body: the backend answers with the same receipt
+  // (backend hold_review.rs exact replay), so a copy cannot execute twice.
+  assert.equal(second.calls[0][2], first.calls[0][2]);
+  assert.equal(JSON.parse(second.calls[0][2]).command_id, J);
+  assert(second.controller.state.receipt);
+  assert.equal(secondTab.getItem(hkey), null);
+  second.dispose();
+});
+test("legacy determination journal: confirmation in one tab removes the original; another tab's copy replays exactly", async () => {
+  const local = memory(),
+    legacy = JSON.stringify(dsaved());
+  local.setItem(dkey(), legacy);
+  const secondTab = commercialStore(local, memory());
+  const first = df(commercialStore(local, memory()));
+  first.controller.loadSaved();
+  first.controller.selectSaved(DJ);
+  first.reply(async () => response(dreceipt()));
+  await first.controller.send();
+  assert(first.controller.state.receipt);
+  assert.equal(local.getItem(dkey()), null);
+  assert.equal(secondTab.getItem(dkey()), legacy);
+  const sent = first.calls.at(-1)[2];
+  first.dispose();
+  const second = df(secondTab);
+  second.controller.loadSaved();
+  second.controller.selectSaved(DJ);
+  second.reply(async () => response(dreceipt()));
+  await second.controller.send();
+  assert.equal(second.calls.at(-1)[2], sent, "byte-identical replay of the same command");
+  assert(second.controller.state.receipt);
+  assert.equal(secondTab.getItem(dkey()), null);
+  second.dispose();
+});
+test("app start removes journals confirmed in either copy from both stores and keeps every unconfirmed original", async () => {
+  const local = memory(),
+    tab = memory();
+  let listeners = 0;
+  globals({
+    defineNuxtPlugin: (setup) => setup,
+    window: {
+      localStorage: local,
+      sessionStorage: tab,
+      addEventListener: () => listeners++,
+      removeEventListener: () => listeners--,
+    },
+  });
+  const plugin = (
+    await compile("../plugins/commercial-storage.client.ts", {
+      "'../utils/commercialStorage'": JSON.stringify(commercialStorage.url),
+      "'../composables/commercialDetermination'": JSON.stringify(determinationAdapter.url),
+      "'../composables/commercialHoldReview'": JSON.stringify(holdAdapter.url),
+    })
+  ).module.default;
+  const hkey = (id) => "bootstrap.staff-hold-review.v1." + id;
+  const hold = (confirmed) =>
+    JSON.stringify({
+      schema_version: 1,
+      actor: U,
+      body_json: JSON.stringify(hbody()),
+      uncertain: confirmed,
+      confirmed,
+      receipts: confirmed ? [hreceipt()] : [],
+    });
+  const confirmedDetermination = JSON.stringify({ ...dsaved(), uncertain: true, receipts: [dreceipt()] });
+  assert.equal(determinationSaved(determinationJson(confirmedDetermination, false)).receipts.length, 1);
+  assert(holdSaved(JSON.parse(hold(true))).confirmed);
+  local.setItem(dkey(), confirmedDetermination); // confirmed by an older build
+  local.setItem(dkey(DK), JSON.stringify(dsaved(DK))); // still open
+  local.setItem(hkey(J), hold(true)); // confirmed durable copy ...
+  tab.setItem(hkey(J), hold(false)); // ... while this tab holds an older open copy
+  local.setItem("unrelated", "value");
+  plugin({ vueApp: { onUnmount() {} } });
+  assert.deepEqual([...local.map.keys()].sort(), [dkey(DK), "unrelated"].sort());
+  assert.deepEqual([...tab.map.keys()], [dkey(DK)], "the open original is copied, not moved");
+  assert.equal(local.getItem(dkey(DK)), tab.getItem(dkey(DK)));
+  assert.equal(listeners, 1);
+});

@@ -6,6 +6,15 @@ import {
 } from "./commercialStaffContext";
 import type { StaffTransport } from "./commercialStaff";
 
+const usedCommands = new WeakMap<CommercialStaffContext, Set<string>>();
+export function newStaffCommand(context: CommercialStaffContext, id: string) {
+  const commands = usedCommands.get(context) || new Set<string>();
+  if (commands.has(id)) throw Error("storage");
+  commands.add(id);
+  usedCommands.set(context, commands);
+  return id;
+}
+
 const fail = (): never => {
   throw Error("schema");
 };
@@ -94,17 +103,17 @@ export function holdRequestTime(v: unknown): bigint {
     /^(\d{4,6})-(\d\d)-(\d\d)[T ](\d\d):(\d\d)(?::(\d\d)(?:\.(\d{1,6}))?)?(Z|([+-])(\d\d)(?::?(\d\d))?)$/.exec(
       str(v),
     );
-  if (!m || BigInt(m[1]) === 0n) return fail();
+  if (!m || BigInt(m[1]!) === 0n) return fail();
   const oh = BigInt(m[10] || "0"),
     om = BigInt(m[11] || "0");
   if (oh > 15n || om > 59n) return fail();
   const offset = (oh * 3600n + om * 60n) * (m[9] === "-" ? -1n : 1n);
   return fields(
-    BigInt(m[1]),
-    BigInt(m[2]),
-    BigInt(m[3]),
-    BigInt(m[4]),
-    BigInt(m[5]),
+    BigInt(m[1]!),
+    BigInt(m[2]!),
+    BigInt(m[3]!),
+    BigInt(m[4]!),
+    BigInt(m[5]!),
     BigInt(m[6] || "0"),
     BigInt((m[7] || "").padEnd(6, "0")),
     offset,
@@ -117,15 +126,15 @@ export function holdNativeTime(v: unknown, finite = false): string {
     /^(\d{4,6})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(?:\.(\d{1,6}))?\+00( BC)?$/.exec(
       text,
     );
-  if (!m || BigInt(m[1]) === 0n) return fail();
-  const y = BigInt(m[1]);
+  if (!m || BigInt(m[1]!) === 0n) return fail();
+  const y = BigInt(m[1]!);
   const value = fields(
     m[8] ? 1n - y : y,
-    BigInt(m[2]),
-    BigInt(m[3]),
-    BigInt(m[4]),
-    BigInt(m[5]),
-    BigInt(m[6]),
+    BigInt(m[2]!),
+    BigInt(m[3]!),
+    BigInt(m[4]!),
+    BigInt(m[5]!),
+    BigInt(m[6]!),
     BigInt((m[7] || "").padEnd(6, "0")),
     0n,
   );
@@ -284,7 +293,7 @@ export function holdQueue(v: unknown, limit = 100) {
       ? next !== null
       : !next ||
         parsed.length !== limit ||
-        !same(next, rowCursor(parsed[parsed.length - 1])))
+        !same(next, rowCursor(parsed[parsed.length - 1]!)))
   )
     return fail();
   return {
@@ -440,7 +449,7 @@ const logical = (r: HoldRequest) =>
   JSON.stringify([r.case_id, r.hold.kind, r.hold.record_id]);
 export type HoldStorage = Pick<
   Storage,
-  "length" | "key" | "getItem" | "setItem"
+  "length" | "key" | "getItem" | "setItem" | "removeItem"
 >;
 type HoldImportTicket = Readonly<{ ordinal: number }>;
 export function createCommercialHoldReview(
@@ -507,6 +516,7 @@ export function createCommercialHoldReview(
     state.error = "authority";
   };
   const unlisten = context.onInvalidate(clear);
+  let completed: HoldSaved | null = null;
   const readRecord = (id: string) => {
     const raw = storage().getItem(storageKey(id));
     if (raw === null) return null;
@@ -549,10 +559,12 @@ export function createCommercialHoldReview(
     const expected = holdSaved(JSON.parse(JSON.stringify(state.saved))),
       request = holdRequest(JSON.parse(expected.body_json)),
       current = readRecord(request.command_id);
+    if (completed && same(completed, expected)) return { saved: expected, request };
     if (!current || !same(current, expected)) throw Error("storage");
     return { saved: current, request };
   };
   const selectedSaved = (r: HoldSaved | null, fromCurrentImport = false) => {
+    completed = null;
     if (!fromCurrentImport) invalidateImports();
     savedRevision++;
     state.saved = r;
@@ -579,11 +591,17 @@ export function createCommercialHoldReview(
     const r = await transport(path, p, body);
     context.reject(p, r.status);
     if (r.status !== 200) throw Error("unconfirmed");
-    if (r.mime.split(";")[0].trim() !== "application/json") return fail();
+    if (r.mime.split(";")[0]!.trim() !== "application/json") return fail();
     return JSON.parse(r.text) as unknown;
   }
   return {
     state,
+    forget() {
+      clear();
+      completed = null;
+      state.saved = null;
+      state.records = [];
+    },
     beginImport,
     finishImport,
     importError(ticket: HoldImportTicket | null) {
@@ -660,7 +678,7 @@ export function createCommercialHoldReview(
         holdRequestTime(state.nextDate);
         const request = holdRequest({
           version: 1,
-          command_id: uuid(newId()),
+          command_id: newStaffCommand(context, uuid(newId())),
           case_id: selected.case_id,
           subject: selected.subject,
           hold: selected.hold,
@@ -717,6 +735,10 @@ export function createCommercialHoldReview(
         const record = holdSaved(JSON.parse(raw)),
           id = holdRequest(JSON.parse(record.body_json)).command_id,
           old = readRecord(id);
+        if (completed && holdRequest(JSON.parse(completed.body_json)).command_id === id) {
+          if (completed.actor !== record.actor || completed.body_json !== record.body_json) return fail();
+          return;
+        }
         if (
           old &&
           (old.body_json !== record.body_json || old.actor !== record.actor)
@@ -746,7 +768,7 @@ export function createCommercialHoldReview(
       }
     },
     async send() {
-      if (!alive || state.sendBusy) return;
+      if (!alive || state.sendBusy || completed) return;
       // An intervening attempt stays relevant even after sendBusy becomes false.
       invalidateImports();
       let p: StaffProof | null = null,
@@ -794,8 +816,11 @@ export function createCommercialHoldReview(
           ],
         };
         try {
-          save(updated);
+          storage().removeItem(storageKey(request.command_id));
+          if (storage().getItem(storageKey(request.command_id)) !== null) throw Error("storage");
+          completed = updated;
           state.saved = updated;
+          clearForm();
           list();
         } catch {
           state.receiptUnsaved = true;
