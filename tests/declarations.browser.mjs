@@ -202,7 +202,9 @@ try {
   passed('full declaration, exact date, delivery attempts and immutable evidence visible');
   // The navigation shows that one declaration is waiting.
   const waiting = `document.querySelector('[data-waiting="dashboard-declarations"]')`;
-  await until(`${waiting}?.textContent.trim()==='1'`);
+  await until(
+    `${waiting}?.querySelector('[data-waiting-number]').textContent.trim()==='1'`,
+  );
   await click(`document.querySelector('form button[type=submit]')`);
   assert.equal(writes.length, 0, 'unverified action does not submit');
   passed('unverified action sends no write');

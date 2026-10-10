@@ -291,18 +291,18 @@
       "dueOf": "{n} von {total} Fällen wartet auf dich. | {n} von {total} Fällen warten auf dich.",
       "dueSinceOf": "{n} von {total} Fällen wartet auf dich, fällig seit dem {date}. | {n} von {total} Fällen warten auf dich, der älteste seit dem {date}.",
       "partial": "Es gibt mehr als 100 aufbewahrte Unterlagen, die Zahl kann also höher sein.",
-      "none": "Gerade ist nichts fällig.",
+      "none": "Keine Unterlage ist gerade zur Prüfung fällig.",
       "next": "Die nächste Prüfung steht am {date} an.",
       "total": "Es gibt {total} Fall. | Es gibt {total} Fälle.",
       "totalNext": "Es gibt {total} Fall, die nächste Prüfung steht am {date} an. | Es gibt {total} Fälle, die nächste Prüfung steht am {date} an."
     },
     "aboutTitle": "Was ist ein Fall?",
-    "about": "Das System legt einen Fall an, wenn ein Konto gelöscht wird. Darin steht, welche Unterlagen wir dazu aufbewahren und ob noch Guthaben offen ist. Zu erledigen ist ein Fall, sobald eine dieser Unterlagen zur Prüfung fällig ist.",
+    "about": "Das System legt einen Fall an, wenn ein Konto gelöscht wird. Darin steht, welche Unterlagen wir dazu aufbewahren und ob noch Guthaben offen ist. Als zu erledigen zählt die Liste einen Fall, sobald eine dieser Unterlagen zur Prüfung fällig ist. Posten, die noch festzustellen sind, zählt sie nicht mit; du findest sie im Fall unter „Geld“.",
     "filter": "Fälle filtern",
     "states": {
       "due": "Zu erledigen",
-      "later": "Später fällig",
-      "clear": "Ohne Frist",
+      "later": "Unterlage später fällig",
+      "clear": "Ohne fällige Unterlage",
       "closed": "Abgeschlossen",
       "all": "Alle"
     },
@@ -311,12 +311,17 @@
     "case": "Fall",
     "account": "Konto",
     "work": {
-      "title": "Zu tun",
-      "unknown": "unbekannt",
+      "title": "Unterlagen",
+      "unknown": "Unterlagen unbekannt",
       "due": "{n} Unterlage prüfen | {n} Unterlagen prüfen",
-      "later": "nichts fällig",
-      "clear": "nichts fällig",
-      "closed": "abgeschlossen"
+      "none": "keine Unterlage fällig",
+      "closed": "Fall abgeschlossen",
+      "cell": {
+        "unknown": "unbekannt",
+        "due": "{n} zu prüfen",
+        "none": "keine fällig",
+        "closed": "Fall abgeschlossen"
+      }
     },
     "deadline": "Frist",
     "erased": "gelöscht am {date}",
@@ -334,6 +339,8 @@
     "technical": "Technische Angaben",
     "caseId": "Fall-ID",
     "subject": "Konto-ID",
+    "erasedAt": "Konto gelöscht (genaue Zeit)",
+    "recordsAsOf": "Stand der Unterlagenliste",
     "reason": "Vermerk",
     "due": "Früheste Frist laut System",
     "assigned": "Zuständig",

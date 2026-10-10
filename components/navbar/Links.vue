@@ -55,17 +55,19 @@
           "
         >
           {{ t(label) }}
-          <span
-            v-if="waiting(name)"
-            class="waiting"
-            :data-waiting="name"
-            :aria-label="
-              t(waiting(name).more ? 'Links.WaitingMore' : 'Links.Waiting', {
-                n: waiting(name).count,
-              })
-            "
-            >{{ waiting(name).count }}{{ waiting(name).more ? "+" : "" }}</span
-          >
+          <span v-if="waiting(name)" class="waiting" :data-waiting="name">
+            <span aria-hidden="true" data-waiting-number
+              >{{ waiting(name).count }}{{ waiting(name).more ? "+" : "" }}</span
+            >
+            <span class="sr-only"
+              >,
+              {{
+                t(waiting(name).more ? "Links.WaitingMore" : "Links.Waiting", {
+                  n: waiting(name).count,
+                })
+              }}</span
+            >
+          </span>
         </IconText>
       </NuxtLink>
     </nav>

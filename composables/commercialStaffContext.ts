@@ -28,7 +28,10 @@ type Options = {
   document?: Document;
 };
 
-// Commercial-only lifetime: no credential refresh, persistence or global logout.
+// Commercial-only lifetime. The guard itself never renews a credential, keeps
+// one or signs anybody out. The commercial page renews an expiring session
+// through the dashboard's ordinary refresh, which signs the whole dashboard
+// out when the server refuses it.
 export function createCommercialStaffContext(options: Options) {
   let revision = 0,
     alive = true,
@@ -108,9 +111,15 @@ export function createCommercialStaffContext(options: Options) {
   // bearer leaves nothing of it.
   function recheck() {
     if (!alive || blocked) return;
-    if (options.reread) owned(options.reread);
-    // Rereading or the token getter may already have published a change.
-    const proof = blocked ? null : coherent();
+    let proof: Omit<StaffProof, "revision"> | null = null;
+    try {
+      if (options.reread) owned(options.reread);
+      // Rereading or the token getter may already have published a change.
+      if (!blocked) proof = coherent();
+    } catch {
+      // A session that cannot be read is treated as a changed one.
+      proof = null;
+    }
     if (blocked) return;
     if (
       !proof ||
@@ -215,3 +224,7 @@ export function createCommercialStaffContext(options: Options) {
 export type CommercialStaffContext = ReturnType<
   typeof createCommercialStaffContext
 >;
+/** What the page answers before a read from an open case: the session is the
+ * same, it was renewed and everything shown was read again, or the read
+ * cannot go ahead. */
+export type StaffReadiness = false | "same" | "renewed";

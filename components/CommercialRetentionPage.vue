@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
-import type { CommercialStaffContext } from "../composables/commercialStaffContext";
+import type {
+  CommercialStaffContext,
+  StaffReadiness,
+} from "../composables/commercialStaffContext";
 import type { StaffTransport } from "../composables/commercialStaff";
 import {
   createCommercialRetentionPage,
@@ -12,6 +15,8 @@ import {
 const props = defineProps<{
   context: CommercialStaffContext;
   transport: StaffTransport;
+  /** Asked before a page of records is read. */
+  ready?: () => Promise<StaffReadiness>;
 }>();
 const { t } = useI18n();
 const controller = createCommercialRetentionPage(
@@ -29,6 +34,15 @@ const valueText = (value: string | boolean | null) =>
         : value;
 const raw = (key: string) =>
   key === "assessment_json" || key === "evidence_json";
+// A renewed session has emptied the list, so its next page is gone as well:
+// the list then starts again from the first page.
+async function read(mode: "first" | "next" | "restart") {
+  const answer = props.ready ? await props.ready() : "same";
+  if (!answer) return;
+  if (mode === "restart") await controller.restart();
+  else if (mode === "next" && answer === "same") await controller.next();
+  else await controller.first();
+}
 onBeforeUnmount(() => controller.dispose());
 </script>
 
@@ -67,7 +81,7 @@ onBeforeUnmount(() => controller.dispose());
         class="rounded border px-3 py-2 text-heading"
         data-retention-first
         :disabled="state.busy"
-        @click="controller.first()"
+        @click="read('first')"
       >
         {{ t("RetentionPage.first") }}
       </button>
@@ -76,7 +90,7 @@ onBeforeUnmount(() => controller.dispose());
         class="rounded border px-3 py-2 text-heading"
         data-retention-next
         :disabled="state.busy || !state.page?.next_cursor"
-        @click="controller.next()"
+        @click="read('next')"
       >
         {{ t("RetentionPage.next") }}
       </button>
@@ -85,7 +99,7 @@ onBeforeUnmount(() => controller.dispose());
         class="rounded border px-3 py-2 text-heading"
         data-retention-restart
         :disabled="state.busy"
-        @click="controller.restart()"
+        @click="read('restart')"
       >
         {{ t("RetentionPage.restart") }}
       </button>

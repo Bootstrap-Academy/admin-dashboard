@@ -10,7 +10,8 @@ import { overviewTime, recordWork, waitingWork } from "./commercialOverview";
 // read of the declaration list returns names and addresses and is recorded in
 // the administrative audit log, so nothing rereads it on a timer or while
 // moving between pages. A page that has just saved work updates its own
-// number. A count that could not be determined stays `null` and shows none.
+// number. A count that could not be determined stays `null` and shows none,
+// and the numbers of one session are never left standing for another.
 
 export type WaitingCount = { count: number; more: boolean } | null;
 type WaitingCounts = {
@@ -72,6 +73,8 @@ async function waitingCommercial(): Promise<WaitingCount> {
     )
       return null;
     const queue = holdQueue(JSON.parse(response.text));
+    // An answer for a session that is no longer the current one counts nothing.
+    if (!context.current(proof)) return null;
     const now = overviewTime(queue.observed_at) ?? Date.now();
     const last = queue.rows.at(-1);
     return {
@@ -87,6 +90,7 @@ async function waitingCommercial(): Promise<WaitingCount> {
   }
 }
 
+const nothing = (): WaitingCounts => ({ declarations: null, commercial: null });
 let running: Promise<void> | null = null;
 
 /** Reads the counts; the dashboard calls this once when it loads. Failures
@@ -95,6 +99,10 @@ let running: Promise<void> | null = null;
 export function loadWaitingCounts(commercial = true): Promise<void> {
   const counts = useWaitingCounts();
   if (running) return running;
+  const user = useUser(),
+    session = useSession(),
+    who = () => `${user.value?.id ?? ""}/${session.value?.id ?? ""}`,
+    owner = who();
   const app = useNuxtApp();
   const run: Run = (callback) =>
     app.runWithContext(callback) as ReturnType<typeof callback>;
@@ -105,9 +113,26 @@ export function loadWaitingCounts(commercial = true): Promise<void> {
     const own = commercial
       ? await run(waitingCommercial).catch(() => null)
       : counts.value.commercial;
-    counts.value = { declarations, commercial: own };
+    counts.value =
+      who() === owner ? { declarations, commercial: own } : nothing();
   })().finally(() => {
     running = null;
   });
   return running;
+}
+
+/** For the navigation bar: reads the counts once when the dashboard loads and
+ * takes them away as soon as another account or session is the current one. */
+export function useDashboardCounts(commercial: boolean) {
+  const counts = useWaitingCounts(),
+    user = useUser(),
+    session = useSession();
+  watch(
+    () => `${user.value?.id ?? ""}/${session.value?.id ?? ""}`,
+    () => {
+      counts.value = nothing();
+    },
+    { flush: "sync" },
+  );
+  onMounted(() => loadWaitingCounts(commercial));
 }

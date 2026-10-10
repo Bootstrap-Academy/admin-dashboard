@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import type { CommercialStaffContext } from "../composables/commercialStaffContext";
+import type {
+  CommercialStaffContext,
+  StaffReadiness,
+} from "../composables/commercialStaffContext";
 import type {
   CaseSelection,
   StaffTransport,
@@ -17,6 +20,8 @@ const props = defineProps<{
   selected: CaseSelection | null;
   /** Renews a session that is about to expire before a determination is sent. */
   renew?: () => Promise<unknown>;
+  /** Asked before an item or the server's record of a command is read. */
+  ready?: () => Promise<StaffReadiness>;
   /** The surrounding page already says when the session needs confirming. */
   embedded?: boolean;
 }>();
@@ -52,6 +57,17 @@ const savedRequest = computed(() => {
 function open(obligation: string) {
   controller.editObligation(obligation);
   return controller.loadStatus();
+}
+async function openTyped() {
+  // A renewal reads the case again, which empties the identifier field.
+  const obligation = state.obligation;
+  if (props.ready && !(await props.ready())) return;
+  if (state.obligation !== obligation) controller.editObligation(obligation);
+  await controller.loadStatus();
+}
+async function reconcile() {
+  if (props.ready && !(await props.ready())) return;
+  await controller.loadStatus(true);
 }
 async function send() {
   await props.renew?.();
@@ -129,7 +145,7 @@ onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
           <button
             data-determination-status
             :disabled="state.liveBusy"
-            @click="controller.loadStatus()"
+            @click="openTyped()"
           >
             {{ t("Determination.load") }}
           </button>
@@ -369,7 +385,7 @@ onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
         <button
           data-determination-reconcile
           :disabled="state.recoveryBusy || state.sendBusy"
-          @click="controller.loadStatus(true)"
+          @click="reconcile()"
         >
           {{ t("Determination.reconcile") }}
         </button>
@@ -455,11 +471,14 @@ onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
         @click="controller.selectSaved(record.command_id)"
       >
         <span class="break-all">{{ record.command_id }}</span>
-        <span>{{
-          record.receipts.length
-            ? t("Determination.savedHistory")
-            : t("Determination.pending")
-        }}</span>
+        <span class="break-all"
+          >{{ t("Determination.actor") }} {{ record.actor }} ·
+          {{
+            record.receipts.length
+              ? t("Determination.savedHistory")
+              : t("Determination.pending")
+          }}</span
+        >
       </button>
       <details v-for="record in state.unsupported" :key="record.key">
         <summary>

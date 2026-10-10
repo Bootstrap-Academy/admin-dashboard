@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import type { CommercialStaffContext } from "../composables/commercialStaffContext";
+import type {
+  CommercialStaffContext,
+  StaffReadiness,
+} from "../composables/commercialStaffContext";
 import type { StaffTransport } from "../composables/commercialStaff";
 import { commercialStorage, registerStaffWork, staffBackupRecords } from "../utils/commercialStorage";
 import {
@@ -18,6 +21,8 @@ const props = defineProps<{
   caseId?: string | null;
   /** Renews a session that is about to expire before a review is sent. */
   renew?: () => Promise<unknown>;
+  /** Asked before the list is read again from an open case. */
+  ready?: () => Promise<StaffReadiness>;
   /** The surrounding page already says when the session needs confirming. */
   embedded?: boolean;
 }>();
@@ -107,6 +112,12 @@ function load(next = false) {
   head.value = !next;
   return controller.queue(next);
 }
+async function again(next = false) {
+  const answer = props.ready ? await props.ready() : "same";
+  // After a renewal the page has just read the first page of the list again.
+  if (!answer || (answer === "renewed" && !next)) return;
+  await load(next);
+}
 async function send() {
   await props.renew?.();
   await controller.send();
@@ -160,7 +171,7 @@ onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
             class="quiet"
             data-hold-head
             :disabled="state.queueBusy"
-            @click="load()"
+            @click="again()"
           >
             {{ t("HoldReview.load") }}
           </button>
@@ -169,7 +180,7 @@ onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
             data-hold-next
             :hidden="!state.queue?.next_cursor"
             :disabled="state.queueBusy || !state.queue?.next_cursor"
-            @click="load(true)"
+            @click="again(true)"
           >
             {{ t("HoldReview.next") }}
           </button>
@@ -414,11 +425,14 @@ onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
           >{{ t(`HoldReview.kinds.${request(record.body_json).hold.kind}`) }}
           {{ request(record.body_json).hold.record_id }}</span
         >
-        <span>{{
-          record.confirmed
-            ? t("HoldReview.recordedHistory")
-            : t("HoldReview.pending")
-        }}</span>
+        <span class="break-all"
+          >{{ t("HoldReview.actor") }} {{ record.actor }} ·
+          {{
+            record.confirmed
+              ? t("HoldReview.recordedHistory")
+              : t("HoldReview.pending")
+          }}</span
+        >
       </button>
     </details>
   </section>

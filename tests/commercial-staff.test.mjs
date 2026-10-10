@@ -420,6 +420,27 @@ test("read-only cookie signals, a page put away and terminal disposal clean all 
   assert.equal(scopedCookies, 0);
   assert(!f.context.activate());
 });
+test("returning to the window when the session cannot be reread leaves no proof", () => {
+  const win = new EventTarget(),
+    doc = new EventTarget();
+  let broken = false;
+  const f = fixture({
+    browser: win,
+    document: doc,
+    reread: () => {
+      if (broken) throw Error("unreadable");
+    },
+  });
+  f.context.activate();
+  const old = f.context.capture();
+  win.dispatchEvent(new Event("focus"));
+  assert(f.context.current(old));
+  broken = true;
+  win.dispatchEvent(new Event("focus"));
+  assert.equal(f.context.capture(), null);
+  f.controller.dispose();
+  assert.equal(scopedCookies, 0);
+});
 // What another tab can do to the shared cookie jar while this window is away.
 // No cookie notification reaches this tab in these tests: the return to the
 // window alone has to notice the change.
@@ -924,6 +945,7 @@ for (const failure of ["network", "200-body"])
   });
 
 function host() {
+  let focused = null;
   const node = (type, text = "") => ({
     type,
     text,
@@ -935,6 +957,9 @@ function host() {
     tagName: type.toUpperCase(),
     addEventListener() {},
     getRootNode: () => globalThis.document,
+    focus() {
+      focused = this;
+    },
   });
   const detach = (n) => {
     if (n.parent) n.parent.children.splice(n.parent.children.indexOf(n), 1);
@@ -962,7 +987,7 @@ function host() {
     all = (n = root) => [n, ...n.children.flatMap(all)],
     text = (n = root) =>
       [n.type === "comment" ? "" : n.text, ...n.children.map(text)].join(" ");
-  return { renderer, root, all, text };
+  return { renderer, root, all, text, focused: () => focused };
 }
 for (const language of ["de", "en-US"])
   test(`mounted ${language}: opening reads the two lists once, then actual page reads/raw text/amounts and auth clearing`, async () => {
@@ -1100,7 +1125,7 @@ const record = (case_id, review_due_at, number) => ({
 });
 const past = "2026-09-10 08:00:00+00",
   ahead = "2031-01-01 00:00:00+00";
-async function mountedPage(language, reply) {
+async function mountedPage(language, reply, signIn = null) {
   const f = fixture(),
     h = host(),
     win = new EventTarget(),
@@ -1109,6 +1134,7 @@ async function mountedPage(language, reply) {
   win.localStorage = memory();
   win.sessionStorage = memory();
   win.cookieStore = new EventTarget();
+  if (signIn) user.setStates(signIn);
   globals({
     window: win,
     document: doc,
@@ -1215,7 +1241,39 @@ for (const language of ["de", "en-US"])
       );
       // Only what waits is listed at first; everything is one click away.
       assert.deepEqual(m.listed(), [C]);
-      assert(m.h.text().includes(de ? "2 Unterlagen prüfen" : "review 2 records"));
+      assert(m.h.text().includes(de ? "2 zu prüfen" : "2 to review"));
+      // The row button says more than the short identifier.
+      assert.equal(
+        m.h.all().find((n) => n.props["data-case"] === C).props["aria-label"],
+        de
+          ? "Fall 33000000, Konto gelöscht am 10.09.2026, 2 Unterlagen prüfen, fällig seit 10.09.2026"
+          : "Case 33000000, Account deleted on 09/10/2026, review 2 records, due since 09/10/2026",
+      );
+      // Opening a case moves the focus to its heading and lists its records only.
+      await m.press("data-case", C);
+      assert(Object.hasOwn(m.h.focused().props, "data-case-title"));
+      const rows = () =>
+        m.h.all().filter((n) => Object.hasOwn(n.props, "data-hold-row"));
+      assert.equal(rows().length, 2);
+      assert(rows().every((n) => JSON.parse(n.props["data-hold-row"])[0] === C));
+      // What the list no longer shows by itself is one click away.
+      assert(m.h.text().includes(native) && m.h.text().includes(when));
+      await rows()[0].props.onClick();
+      await flush();
+      assert(m.find("data-hold-selected"));
+      // Going back returns the focus to the row that was open.
+      await m.find("data-back").props.onClick();
+      await settle();
+      assert.equal(m.h.focused().props["data-case"], C);
+      // A record picked in one case is not offered in another.
+      await m.press("data-filter", "later");
+      await m.press("data-case", D);
+      assert.equal(rows().length, 1);
+      assert.equal(JSON.parse(rows()[0].props["data-hold-row"])[0], D);
+      assert(!m.find("data-hold-selected"));
+      await m.find("data-back").props.onClick();
+      await settle();
+      await m.press("data-filter", "due");
       await m.press("data-filter", "all");
       assert.deepEqual(m.listed(), [C, D, E]);
       await m.press("data-filter", "later");
@@ -1233,11 +1291,11 @@ for (const language of ["de", "en-US"])
       assert.equal(m.find("data-todo").props["data-todo"], "none");
       for (const sentence of de
         ? [
-          "Gerade ist nichts fällig.",
+          "Keine Unterlage ist gerade zur Prüfung fällig.",
           "Es gibt 3 Fälle, die nächste Prüfung steht am 01.01.2031 an.",
         ]
         : [
-          "Nothing is due right now.",
+          "No record is due for review right now.",
           "There are 3 cases, the next review is due on 01/01/2031.",
         ])
         assert(m.h.text().includes(sentence), sentence);
@@ -1497,6 +1555,391 @@ test("mounted send with a session about to run out: it is renewed, the saved rev
   }
 });
 
+// A token that knows how many seconds it has left, and a server that refuses
+// it once it has run out. Renewing gives it a full life again.
+function aging(m) {
+  const order = [];
+  const clock = { left: 300, order, renewals: 0 };
+  globals({
+    accessTokenExpired: (_token, margin = 100) => clock.left <= margin,
+    refresh: async () => {
+      order.push("renew");
+      clock.renewals++;
+      clock.left = 300;
+      // A renewed session empties the page through the session guard.
+      m().win.cookieStore.dispatchEvent(
+        Object.assign(new Event("change"), {
+          changed: [{ name: "accessToken" }],
+        }),
+      );
+      return [true, null];
+    },
+  });
+  clock.reply = (operation, init) => {
+    order.push(operation);
+    if (clock.left <= 0) return new Response("", { status: 401 });
+    if (operation === "queue") return [queueRow()];
+    if (operation === "hold_queue") return hqueue();
+    if (operation === "hold_review") return hreceipt(JSON.parse(init.body));
+    if (operation === "detail") return JSON.parse(rawDetail());
+    if (operation === "determination_status") return dstatus();
+    if (operation === "determine") return dreceipt();
+    if (operation === "retention_page") {
+      const body = JSON.parse(init.body);
+      return retentionResult(body.family, body.cursor ? 1 : 100, !!body.cursor);
+    }
+    if (operation === "cash_capacity") return capacity();
+    // A document of the case.
+    return new Response("%PDF-1.4", {
+      headers: { "content-type": "application/pdf" },
+    });
+  };
+  clock.restore = () =>
+    globals({
+      accessTokenExpired: () => false,
+      refresh: async () => [true, null],
+    });
+  // Lets the pause after a renewal pass and the reads that follow finish.
+  clock.settle = async (work) => {
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    await work;
+    await settle();
+    await settle();
+  };
+  return clock;
+}
+async function typedReview(m) {
+  await m.press("data-case", C);
+  await m.find("data-hold-row").props.onClick();
+  await flush();
+  m.find("data-hold-assessment").props.onInput({
+    target: { value: hbody().assessment },
+  });
+  m.find("data-hold-date").props.onInput({ target: { value: future } });
+  m.find("data-hold-scope").props.onChange({ target: { checked: true } });
+  await flush();
+}
+const typedKept = (m) =>
+  m.find("data-hold-assessment")?.props.value === hbody().assessment;
+const noticed = (m) =>
+  m.h.text().includes("frische Anmeldung mit zweitem Faktor");
+
+test("mounted with 150 seconds left: sending renews first, so the case stays open and the confirmation is shown", async () => {
+  let m;
+  const clock = aging(() => m);
+  m = await mountedPage("de", clock.reply);
+  try {
+    await typedReview(m);
+    await m.find("data-hold-prepare").props.onClick();
+    await flush();
+    clock.left = 150;
+    clock.order.length = 0;
+    await clock.settle(m.find("data-hold-send").props.onClick());
+    // One renewal, before the review goes out; the read after the answer needs none.
+    assert.deepEqual(clock.order, [
+      "renew",
+      "hold_review",
+      "queue",
+      "hold_queue",
+      "cash_capacity",
+    ]);
+    assert(m.find("data-selected") && m.find("data-capacity"));
+    assert(m.find("data-hold-receipt"));
+    assert(
+      m.h.text().includes("Gespeichert. Die nächste Prüfung steht am 10.10.2030 an."),
+    );
+    assert(!m.h.text().includes("frühere Bestätigung"));
+    assert(!noticed(m));
+  } finally {
+    clock.restore();
+    m.dispose();
+  }
+});
+
+test("mounted with 150 seconds left: refreshing inside a case renews and returns to the case", async () => {
+  let m;
+  const clock = aging(() => m);
+  m = await mountedPage("de", clock.reply);
+  try {
+    await m.press("data-case", C);
+    clock.left = 150;
+    clock.order.length = 0;
+    await clock.settle(m.find("data-load-queue").props.onClick());
+    assert.deepEqual(clock.order, [
+      "renew",
+      "queue",
+      "hold_queue",
+      "cash_capacity",
+    ]);
+    assert(m.find("data-selected") && m.find("data-capacity"));
+    assert(!noticed(m));
+  } finally {
+    clock.restore();
+    m.dispose();
+  }
+});
+
+test("mounted with 150 seconds left: a read from the open case does not renew, and what was typed stays", async () => {
+  let m;
+  const clock = aging(() => m);
+  m = await mountedPage("de", clock.reply);
+  try {
+    await typedReview(m);
+    clock.left = 150;
+    clock.order.length = 0;
+    await clock.settle(m.find("data-load-detail").props.onClick());
+    await clock.settle(m.find("data-load-capacity").props.onClick());
+    assert.deepEqual(clock.order, ["detail", "cash_capacity"]);
+    assert(m.find("data-detail") && m.find("data-selected"));
+    assert(typedKept(m));
+  } finally {
+    clock.restore();
+    m.dispose();
+  }
+});
+
+// Every read that can start from an open case. Each returns what it asked
+// the server for after the lists and the case came back.
+const readsFromTheCase = {
+  "the amounts": {
+    act: (m) => m.find("data-load-capacity").props.onClick(),
+    // The amounts come back together with the case; no second read.
+    reads: [],
+    shown: (m) => m.find("data-capacity"),
+  },
+  "the raw data": {
+    act: (m) => m.find("data-load-detail").props.onClick(),
+    reads: ["detail"],
+    shown: (m) => m.find("data-detail"),
+  },
+  "the record list": {
+    act: (m) => m.find("data-hold-head").props.onClick(),
+    // The list comes back together with the case; no second read.
+    reads: [],
+    shown: (m) => m.find("data-hold-row"),
+  },
+  "an item": {
+    act: (m) =>
+      m.h
+        .all()
+        .find((n) => n.props["data-obligation"] === O)
+        .props.onClick(),
+    reads: ["determination_status"],
+    shown: (m) => m.find("data-determination-live"),
+  },
+  "an item by its identifier": {
+    before: (m) =>
+      m.find("data-determination-obligation").props.onInput({
+        target: { value: O },
+      }),
+    act: (m) => m.find("data-determination-status").props.onClick(),
+    reads: ["determination_status"],
+    shown: (m) => m.find("data-determination-live"),
+  },
+  "the server's record of a prepared determination": {
+    before: async (m) => {
+      await m.find("data-determination-import").props.onChange({
+        target: {
+          files: [{ text: async () => JSON.stringify(dsaved()) }],
+          value: "saved",
+        },
+      });
+      await flush();
+    },
+    act: (m) => m.find("data-determination-reconcile").props.onClick(),
+    reads: ["determination_status"],
+    shown: (m) => m.find("data-determination-history"),
+  },
+  "a document": {
+    before: (m) =>
+      m.find("data-document-id").props["onUpdate:modelValue"]("10000000"),
+    act: (m) =>
+      m.h
+        .all()
+        .find((n) => n.type === "form")
+        .props.onSubmit({ preventDefault() {} }),
+    reads: ["original"],
+    shown: () => true,
+  },
+  "a list of retained records": {
+    act: (m) => m.find("data-retention-first").props.onClick(),
+    reads: ["retention_page"],
+    shown: (m) => m.find("data-retention-row"),
+  },
+  "the next page of retained records": {
+    before: async (m) => {
+      await m.find("data-retention-first").props.onClick();
+      await settle();
+      assert(!m.find("data-retention-next").props.disabled);
+    },
+    act: (m) => m.find("data-retention-next").props.onClick(),
+    // The renewal emptied the list, so it starts again from its first page.
+    reads: ["retention_page"],
+    shown: (m) => m.find("data-retention-row"),
+  },
+};
+for (const [what, read] of Object.entries(readsFromTheCase))
+  test(`mounted after the access token ran out: reading ${what} from the open case renews first, and the case is open again`, async () => {
+    let m;
+    const clock = aging(() => m);
+    m = await mountedPage("de", clock.reply);
+    try {
+      await m.press("data-case", C);
+      await read.before?.(m);
+      await flush();
+      clock.left = 0;
+      clock.order.length = 0;
+      await clock.settle(read.act(m));
+      assert.deepEqual(clock.order, [
+        "renew",
+        "queue",
+        "hold_queue",
+        "cash_capacity",
+        ...read.reads,
+      ]);
+      assert.equal(clock.renewals, 1);
+      assert(m.find("data-selected") && m.find("data-capacity"));
+      assert(read.shown(m), "what was asked for is shown");
+      assert(!noticed(m));
+    } finally {
+      clock.restore();
+      m.dispose();
+    }
+  });
+
+for (const [session, signIn] of [
+  [
+    "without a second factor",
+    { ...login(), session: { id: S, user_id: U, mfa_verified: false } },
+  ],
+  [
+    "of an account that is no administrator",
+    { ...login(), user: { id: U, admin: false, enabled: true } },
+  ],
+  [
+    "of a disabled account",
+    { ...login(), user: { id: U, admin: true, enabled: false } },
+  ],
+])
+  test(`mounted with an expired token in a session ${session}: nothing is renewed and nothing is read`, async () => {
+    let m;
+    const clock = aging(() => m);
+    clock.left = 0;
+    m = await mountedPage("de", clock.reply, signIn);
+    try {
+      await clock.settle();
+      assert.deepEqual(clock.order, []);
+      assert.equal(m.calls.length, 0);
+      assert(noticed(m));
+      // The button the notice points to does not renew such a session either.
+      await clock.settle(m.find("data-load-queue").props.onClick());
+      assert.deepEqual(clock.order, []);
+    } finally {
+      clock.restore();
+      m.dispose();
+    }
+  });
+
+for (const noticedBy of ["the page itself", "a cookie notification"])
+  test(`mounted while another account signs in during the first read (seen by ${noticedBy}): nothing is read for the new session`, async () => {
+    const seen = [];
+    let change = true,
+      m;
+    const pageWindow = { cookieStore: null };
+    const reply = (operation, init) => {
+      seen.push([
+        operation,
+        init.headers.Authorization === "Bearer " + token()
+          ? "first account"
+          : "other account",
+      ]);
+      if (change) {
+        change = false;
+        // Another tab signs in as another administrator.
+        sessionChanges["another account"]();
+        if (noticedBy === "the page itself") user.syncSessionCookies();
+        else
+          pageWindow.cookieStore.dispatchEvent(
+            Object.assign(new Event("change"), {
+              changed: [{ name: "accessToken" }],
+            }),
+          );
+      }
+      return operation === "queue" ? [queueRow()] : hqueue();
+    };
+    // The cookie store exists only once the page is mounted; the first read
+    // starts later, so the reply above finds it.
+    const mounting = mountedPage("de", reply);
+    await Promise.resolve();
+    pageWindow.cookieStore = globalThis.window.cookieStore;
+    m = await mounting;
+    try {
+      await settle();
+      assert(seen.length >= 1 && seen.length <= 2);
+      assert(seen.every(([, account]) => account === "first account"));
+      assert.deepEqual(m.listed(), []);
+      assert(!m.find("data-todo"));
+      assert(noticed(m));
+      assert.equal(user.useUser().value.id, V);
+    } finally {
+      m.dispose();
+    }
+  });
+
+test("mounted determination: sending renews a session about to run out, and a saved determination reads the amounts again", async () => {
+  let m;
+  const clock = aging(() => m);
+  m = await mountedPage("de", clock.reply);
+  const prepare = async () => {
+    await m.h
+      .all()
+      .find((n) => n.props["data-obligation"] === O)
+      .props.onClick();
+    await settle();
+    for (const [key, value] of [
+      ["units", "17"],
+      ["assessment", dbody().assessment],
+      ["summary", "Actual mounted synthetic evidence"],
+    ])
+      m.find("data-determination-" + key).props.onInput({ target: { value } });
+    m.find("data-determination-confirm").props.onChange({
+      target: { checked: true },
+    });
+    await flush();
+    await m.find("data-determination-prepare").props.onClick();
+    await flush();
+    assert(m.find("data-determination-command"));
+  };
+  try {
+    await m.press("data-case", C);
+    await prepare();
+    clock.order.length = 0;
+    await clock.settle(m.find("data-determination-send").props.onClick());
+    // With time left nothing is renewed; the amounts are read again.
+    assert.deepEqual(clock.order, ["determine", "cash_capacity"]);
+    assert(m.find("data-determination-receipt") && m.find("data-selected"));
+    // The same with 150 seconds left: one renewal before the determination.
+    m.win.sessionStorage.map.clear();
+    await prepare();
+    clock.left = 150;
+    clock.order.length = 0;
+    await clock.settle(m.find("data-determination-send").props.onClick());
+    assert.deepEqual(clock.order, [
+      "renew",
+      "determine",
+      "queue",
+      "hold_queue",
+      "cash_capacity",
+    ]);
+    assert(m.find("data-determination-receipt"));
+    assert(m.find("data-selected") && m.find("data-capacity"));
+    assert(!noticed(m));
+  } finally {
+    clock.restore();
+    m.dispose();
+  }
+});
+
 test("mounted while the server refuses: one read, one notice, and no further read until the administrator asks", async () => {
   let refuse = true;
   const m = await mountedPage("de", (operation) =>
@@ -1524,6 +1967,62 @@ test("mounted while the server refuses: one read, one notice, and no further rea
   } finally {
     m.dispose();
   }
+});
+
+test("navigation counts belong to one session: a late answer for another one publishes nothing, and a session change takes the numbers away", async () => {
+  const { loadWaitingCounts, useWaitingCounts, useDashboardCounts } =
+    waitingCounts.module;
+  states = new Map();
+  cookies = new Map();
+  user.setStates(login());
+  let gate = null;
+  globals({
+    useNuxtApp: () => ({ runWithContext: (fn) => fn() }),
+    useRuntimeConfig: () => ({
+      public: { BASE_API_URL: "http://127.0.0.1:56841" },
+    }),
+    ...user,
+    watch: Vue.watch,
+    onMounted: (run) => run(),
+    GET: async () => ({ total: 1, declarations: [{ processed_at: null }] }),
+    fetch: async () => {
+      if (gate) await gate.promise;
+      return new Response(JSON.stringify(hqueue([record(C, past, 1)])), {
+        headers: { "content-type": "application/json" },
+      });
+    },
+  });
+  const counts = useWaitingCounts();
+  const one = { count: 1, more: false };
+  // Another account signs in while the record list is on its way.
+  gate = defer();
+  let loading = loadWaitingCounts();
+  await flush();
+  user.setStates(login(V, T));
+  gate.resolve();
+  await loading;
+  assert.deepEqual(counts.value, { declarations: null, commercial: null });
+  // The same account with a renewed token: the declarations still count, the
+  // record list that was read with the old token does not.
+  user.setStates(login());
+  gate = defer();
+  loading = loadWaitingCounts();
+  await flush();
+  cookies.get("accessToken").value = token(U, S, "renewed");
+  user.getAccessToken();
+  gate.resolve();
+  await loading;
+  assert.deepEqual(counts.value, { declarations: one, commercial: null });
+  // The navigation bar reads once and drops the numbers with the session.
+  gate = null;
+  const scope = Vue.effectScope();
+  scope.run(() => useDashboardCounts(true));
+  await settle();
+  assert.deepEqual(counts.value, { declarations: one, commercial: one });
+  user.setStates(login(V, T));
+  assert.deepEqual(counts.value, { declarations: null, commercial: null });
+  scope.stop();
+  assert.equal(scopedCookies, 0);
 });
 
 test("navigation counts: unprocessed declarations over all pages, cases with a due record, and no number when a read fails", async () => {

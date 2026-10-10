@@ -38,8 +38,7 @@ export default {
     // How much is waiting is read once per dashboard load, here and not in
     // the links, which mount again whenever the small-screen menu opens. The
     // commercial page counts for itself.
-    const route = useRoute();
-    onMounted(() => loadWaitingCounts(route.name !== "dashboard-commercial"));
+    useDashboardCounts(useRoute().name !== "dashboard-commercial");
 
     return { show, toggleMenu, Bars3Icon };
   },

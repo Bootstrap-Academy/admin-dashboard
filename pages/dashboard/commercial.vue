@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   computed,
+  nextTick,
   onBeforeUnmount,
   onMounted,
   reactive,
@@ -9,7 +10,10 @@ import {
   watch,
 } from "vue";
 import { useI18n } from "vue-i18n";
-import { createCommercialStaffContext } from "../../composables/commercialStaffContext";
+import {
+  createCommercialStaffContext,
+  type StaffReadiness,
+} from "../../composables/commercialStaffContext";
 import CommercialHoldReview from "../../components/CommercialHoldReview.vue";
 import CommercialDetermination from "../../components/CommercialDetermination.vue";
 import CommercialRetentionPage from "../../components/CommercialRetentionPage.vue";
@@ -27,6 +31,7 @@ import {
   overviewTime,
   recordWork,
   waitingWork,
+  type CaseLine,
   type CaseState,
   type CaseWork,
 } from "../../composables/commercialOverview";
@@ -35,9 +40,11 @@ import { useWaitingCounts } from "../../composables/waitingCounts";
 definePageMeta({ layout: "dashboard" });
 const { t, te, locale } = useI18n();
 const app = useNuxtApp();
+const profile = useUser(),
+  session = useSession();
 const context = createCommercialStaffContext({
-  user: useUser(),
-  session: useSession(),
+  user: profile,
+  session,
   token: useAccessToken(),
   getToken: getAccessToken,
   reread: syncSessionCookies,
@@ -120,6 +127,10 @@ const day = (value: string | null) =>
   value === null ? "" : overviewDate(overviewTime(value), locale.value);
 const date = (time: number | null) => overviewDate(time, locale.value);
 const short = (id: string) => id.slice(0, 8);
+const accountText = (row: StaffCase) =>
+  row.erased_at
+    ? t("Commercial.erased", { date: day(row.erased_at) })
+    : t("Commercial.notErased");
 function itemName(row: { source: string; component: string }) {
   const key = `Commercial.components.${row.component}`;
   return /^[a-z_]+$/.test(row.component) && te(key)
@@ -208,6 +219,35 @@ const todo = computed(() => {
         : "",
   };
 });
+// What the list knows about the records of a case: short for the table
+// cell, in full for the name of the row button.
+function workText(line: CaseLine, cell = true) {
+  const keys = cell ? "Commercial.work.cell" : "Commercial.work";
+  if (!work.value) return t(`${keys}.unknown`);
+  return line.state === "due"
+    ? t(`${keys}.due`, { n: line.work!.due }, line.work!.due)
+    : t(`${keys}.${line.state === "closed" ? "closed" : "none"}`);
+}
+function deadlineText(line: CaseLine) {
+  if (!work.value) return "";
+  if (line.state === "due")
+    return date(line.work!.since)
+      ? t("Commercial.overdue", { date: date(line.work!.since) })
+      : t("Commercial.overdueNow");
+  return line.state === "later"
+    ? t("Commercial.nextReview", { date: date(line.work!.next) })
+    : "";
+}
+// What the row button is called: more than the short identifier.
+const rowName = (line: CaseLine) =>
+  [
+    `${t("Commercial.case")} ${short(line.row.id)}`,
+    `${t("Commercial.account")} ${accountText(line.row)}`,
+    workText(line, false),
+    deadlineText(line),
+  ]
+    .filter(Boolean)
+    .join(", ");
 const chosenFilter = ref<CaseState | "all" | null>(null);
 const filter = computed(
   () => chosenFilter.value ?? (counts.value.due ? "due" : "all"),
@@ -251,17 +291,39 @@ watch(waiting, (value) => {
     };
 });
 
+// Seconds of life the access token must still have. Before the page, a case
+// or a send starts, a renewal costs nothing that was typed, so it comes early
+// and the same for all three. A read from an open case renews only when the
+// token would not last the request, because a renewal empties the form.
+const EARLY = 180,
+  LATE = 30;
+// Only the session of an administrator with a second factor is renewed here.
+// Any other gets the notice without a request.
+const staff = () =>
+  profile.value?.admin === true &&
+  profile.value?.enabled !== false &&
+  session.value?.mfa_verified === true &&
+  session.value?.user_id === profile.value?.id;
 // The commercial requests never renew a session. Without this, the page would
 // stop loading once the access token has run out. The browser reports the
 // renewed cookies a moment later, which empties the page once more; that
 // moment is waited out here.
-async function renew(margin?: number) {
+async function renew(margin: number) {
   const token = app.runWithContext(getAccessToken);
-  if (typeof token !== "string" || !accessTokenExpired(token, margin))
+  if (
+    typeof token !== "string" ||
+    !staff() ||
+    !accessTokenExpired(token, margin)
+  )
     return false;
   await app.runWithContext(() => refresh());
   await new Promise((resolve) => setTimeout(resolve, 50));
   return true;
+}
+// Account and session as the shared cookie jar has them now.
+function who() {
+  app.runWithContext(syncSessionCookies);
+  return `${profile.value?.id ?? ""}/${session.value?.id ?? ""}`;
 }
 // The case the administrator has open, and whether to return to it once a
 // renewed session has emptied the page.
@@ -272,13 +334,20 @@ function reload(offset = state.offset) {
   if (reloading) return reloading;
   reading.value = true;
   reloading = (async () => {
+    const owner = who(),
+      mine = () => who() === owner;
     // A late cookie notification of the renewal can still empty the page
-    // while it loads. Read again then, three times at most.
+    // while it loads. Read again then, three times at most, and only for the
+    // account and session that asked: never for one that appeared meanwhile.
     for (let pass = 0; pass < 3; pass++) {
-      await renew(180);
+      const shown = !!state.selected;
+      if ((await renew(EARLY)) && shown) restore = true;
       emptied = denied = false;
-      await Promise.all([controller.queue(offset), hold.value?.load()]);
-      if (state.authority || denied || !emptied) break;
+      await Promise.all([
+        mine() && controller.queue(offset),
+        mine() && hold.value?.load(),
+      ]);
+      if (state.authority || denied || !emptied || !mine()) break;
     }
     const row =
       restore && !state.selected && state.queue.find((item) => item.id === opened);
@@ -295,28 +364,66 @@ function show(row: StaffCase) {
   opened = row.id;
   return controller.capacity();
 }
+// Keyboard and screen reader follow the view: into the case, back to its row.
+const title = ref<HTMLElement | null>(null);
+const rowButtons = new Map<string, HTMLElement>();
+function rowButton(id: string, element: unknown) {
+  if (element) rowButtons.set(id, element as HTMLElement);
+  else rowButtons.delete(id);
+}
 async function open(row: StaffCase) {
   let target: StaffCase | undefined = row;
-  if (await renew(180)) {
+  if (await renew(EARLY)) {
     // A renewed session empties the lists; read them again before opening.
     await reload();
     target = state.queue.find((item) => item.id === row.id);
   }
-  if (target) await show(target);
+  if (!target) return;
+  const amounts = show(target);
+  await nextTick();
+  title.value?.focus?.();
+  await amounts;
 }
-function back() {
+async function back() {
+  const id = state.selected?.id;
   opened = null;
   controller.select(null);
+  await nextTick();
+  if (id) rowButtons.get(id)?.focus?.();
 }
 // Named apart from `refresh`, which renews the session.
 function update() {
   if (!state.selected) opened = null;
   return reload();
 }
-// Sending renews a session that is about to run out, which empties the page.
-// The lists and the open case return once the answer is in.
+// Sending renews a session that is about to run out, with the same margin as
+// the read that follows the answer. The renewal empties the page; the lists
+// and the open case return once the answer is in.
 async function renewToSend() {
-  if (await renew()) restore = true;
+  if (await renew(EARLY)) restore = true;
+}
+// Before a read from the open case. With a token that has run out the read
+// would be refused, and a refusal closes the case. A renewal empties the page
+// as well, so the lists and the case are read again before the read itself.
+async function beforeRead(): Promise<StaffReadiness> {
+  const id = state.selected?.id ?? null;
+  if (!(await renew(LATE))) return "same";
+  if (id) restore = true;
+  await reload();
+  return !id || state.selected?.id === id ? "renewed" : false;
+}
+async function loadCapacity() {
+  // After a renewal the amounts came back together with the case.
+  if ((await beforeRead()) === "same") await controller.capacity();
+}
+async function loadDetail() {
+  if (await beforeRead()) await controller.detail();
+}
+async function download() {
+  if (await beforeRead()) await controller.document({ ...selector });
+}
+async function openItem(obligation: string) {
+  if (await beforeRead()) await determination.value?.open(obligation);
 }
 // A saved review changes what waits; a determination changes the items.
 watch(
@@ -418,47 +525,31 @@ onBeforeUnmount(() => controller.dispose());
             >
               <td :data-label="t('Commercial.case')">
                 <button
+                  :ref="(element) => rowButton(line.row.id, element)"
                   type="button"
                   class="link"
                   :data-case="line.row.id"
                   :title="line.row.id"
+                  :aria-label="rowName(line)"
                   @click="open(line.row)"
                 >
                   {{ short(line.row.id) }}
                 </button>
               </td>
               <td :data-label="t('Commercial.account')">
-                {{
-                  line.row.erased_at
-                    ? t("Commercial.erased", { date: day(line.row.erased_at) })
-                    : t("Commercial.notErased")
-                }}
+                {{ accountText(line.row) }}
               </td>
               <td :data-label="t('Commercial.work.title')">
-                <template v-if="!work">{{
-                  t("Commercial.work.unknown")
-                }}</template>
-                <strong v-else-if="line.state === 'due'">{{
-                  t(
-                    "Commercial.work.due",
-                    { n: line.work!.due },
-                    line.work!.due,
-                  )
+                <strong v-if="work && line.state === 'due'">{{
+                  workText(line)
                 }}</strong>
-                <template v-else>{{
-                  t(`Commercial.work.${line.state}`)
-                }}</template>
+                <template v-else>{{ workText(line) }}</template>
               </td>
               <td :data-label="t('Commercial.deadline')">
                 <span v-if="work && line.state === 'due'" class="late">{{
-                  date(line.work!.since)
-                    ? t("Commercial.overdue", { date: date(line.work!.since) })
-                    : t("Commercial.overdueNow")
+                  deadlineText(line)
                 }}</span>
-                <template v-else-if="work && line.state === 'later'">{{
-                  t("Commercial.nextReview", { date: date(line.work!.next) })
-                }}</template>
-                <template v-else>–</template>
+                <template v-else>{{ deadlineText(line) || "–" }}</template>
               </td>
             </tr>
           </tbody>
@@ -506,7 +597,12 @@ onBeforeUnmount(() => controller.dispose());
       >
         ← {{ t("Commercial.back") }}
       </button>
-      <h2 class="text-heading text-heading-3">
+      <h2
+        ref="title"
+        class="text-heading text-heading-3"
+        tabindex="-1"
+        data-case-title
+      >
         {{ t("Commercial.case") }} {{ short(state.selected.id) }}
       </h2>
       <p v-if="current">
@@ -527,6 +623,10 @@ onBeforeUnmount(() => controller.dispose());
           <dt>{{ t("Commercial.subject") }}</dt>
           <dd>{{ state.selected.subject }}</dd>
           <template v-if="current">
+            <template v-if="current.erased_at">
+              <dt>{{ t("Commercial.erasedAt") }}</dt>
+              <dd>{{ current.erased_at }}</dd>
+            </template>
             <dt>{{ t("Commercial.reason") }}</dt>
             <dd>{{ current.review_reason }}</dd>
             <dt>{{ t("Commercial.due") }}</dt>
@@ -537,6 +637,10 @@ onBeforeUnmount(() => controller.dispose());
               <dt>{{ t("Commercial.closed") }}</dt>
               <dd>{{ current.closed_at }}</dd>
             </template>
+          </template>
+          <template v-if="hold?.state.queue">
+            <dt>{{ t("Commercial.recordsAsOf") }}</dt>
+            <dd>{{ hold.state.queue.observed_at }}</dd>
           </template>
         </dl>
       </details>
@@ -549,6 +653,7 @@ onBeforeUnmount(() => controller.dispose());
       :transport="transport"
       :case-id="state.selected?.id ?? null"
       :renew="renewToSend"
+      :ready="beforeRead"
       embedded
     />
 
@@ -564,7 +669,7 @@ onBeforeUnmount(() => controller.dispose());
           class="quiet"
           data-load-capacity
           :disabled="state.capacityBusy"
-          @click="controller.capacity()"
+          @click="loadCapacity()"
         >
           {{ t("Commercial.loadCapacity") }}
         </button>
@@ -602,7 +707,7 @@ onBeforeUnmount(() => controller.dispose());
             type="button"
             class="quiet"
             :data-obligation="row.id"
-            @click="determination?.open(row.id)"
+            @click="openItem(row.id)"
           >
             {{
               row.status === "pending_evidence"
@@ -721,13 +826,14 @@ onBeforeUnmount(() => controller.dispose());
       :transport="transport"
       :selected="state.selected"
       :renew="renewToSend"
+      :ready="beforeRead"
       embedded
     />
 
     <template v-if="state.selected">
       <form
         class="sheet grid gap-3 rounded p-4"
-        @submit.prevent="controller.document(selector)"
+        @submit.prevent="download()"
       >
         <h3 class="text-heading text-heading-4">
           {{ t("Commercial.documents") }}
@@ -814,7 +920,7 @@ onBeforeUnmount(() => controller.dispose());
             class="quiet"
             data-load-detail
             :disabled="state.detailBusy"
-            @click="controller.detail()"
+            @click="loadDetail()"
           >
             {{ t("Commercial.loadDetail") }}
           </button>
@@ -836,7 +942,11 @@ onBeforeUnmount(() => controller.dispose());
 
     <details class="tool">
       <summary data-retention-open>{{ t("RetentionPage.title") }}</summary>
-      <CommercialRetentionPage :context="context" :transport="transport" />
+      <CommercialRetentionPage
+        :context="context"
+        :transport="transport"
+        :ready="beforeRead"
+      />
     </details>
   </main>
 </template>
@@ -897,7 +1007,8 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 summary:focus-visible,
-a:focus-visible {
+a:focus-visible,
+h2:focus-visible {
   outline: 3px solid var(--color-accent);
   outline-offset: 3px;
 }
