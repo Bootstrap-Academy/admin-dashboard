@@ -60,10 +60,24 @@ export async function setDeclarationProcessed(
     if (body.effective_end) payload.effective_end = body.effective_end;
     if (body.note) payload.note = body.note;
 
-    const response = await PATCH(`/contracts/declarations/${id}`, payload);
+    const response: any = await PATCH(`/contracts/declarations/${id}`, payload);
 
     // Keep the row that is on screen in step with what was stored.
     const declarations = useDeclarations();
+    // One declaration fewer is waiting; the navigation shows that number.
+    const counts = useWaitingCounts();
+    const waiting = counts.value.declarations;
+    if (
+      waiting &&
+      response?.processed_at &&
+      declarations.value.some(
+        (declaration: any) => declaration?.id == id && !declaration.processed_at,
+      )
+    )
+      counts.value = {
+        ...counts.value,
+        declarations: { ...waiting, count: Math.max(0, waiting.count - 1) },
+      };
     declarations.value = declarations.value.map((declaration: any) =>
       declaration?.id == id ? response : declaration,
     );
