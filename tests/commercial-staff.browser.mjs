@@ -775,6 +775,22 @@ async function holdJourney(language) {
     "  Synthetic human assessment covering the entire existing hold.  ",
   );
   await input("[data-hold-date]", "2030-10-10T10:30:00.123456+01:30");
+  // Coming back to the window keeps the case and what was typed while the
+  // session is still the same one.
+  await ev(
+    `(()=>{window.dispatchEvent(new Event('focus'));document.dispatchEvent(new Event('visibilitychange'));})()`,
+  );
+  await delay(200);
+  result[language + "Return"] = await ev(
+    `({selected:!!document.querySelector('[data-selected]'),record:!!document.querySelector('[data-hold-selected]'),assessment:document.querySelector('[data-hold-assessment]')?.value,date:document.querySelector('[data-hold-date]')?.value})`,
+  );
+  assert.deepEqual(result[language + "Return"], {
+    selected: true,
+    record: true,
+    assessment:
+      "  Synthetic human assessment covering the entire existing hold.  ",
+    date: "2030-10-10T10:30:00.123456+01:30",
+  });
   await click("[data-hold-scope]");
   for (const type of ["keyDown", "keyUp"])
     await cmd("Input.dispatchKeyEvent", {

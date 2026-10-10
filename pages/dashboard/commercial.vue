@@ -40,12 +40,13 @@ const context = createCommercialStaffContext({
   session: useSession(),
   token: useAccessToken(),
   getToken: getAccessToken,
+  reread: syncSessionCookies,
   run: (callback) => app.runWithContext(callback),
   browser: window,
   document,
 });
 // Why the guard emptied the page decides whether the lists are read again:
-// a refusal by the server never is, focus or a renewed session is.
+// after a refusal by the server never, after a renewed session once more.
 let emptied = false,
   denied = false;
 context.onInvalidate(() => {
@@ -262,8 +263,8 @@ async function renew(margin?: number) {
   await new Promise((resolve) => setTimeout(resolve, 50));
   return true;
 }
-// The case the administrator has open, and whether to return to it once the
-// guard has emptied the page on focus.
+// The case the administrator has open, and whether to return to it once a
+// renewed session has emptied the page.
 let reloading: Promise<void> | null = null,
   opened: string | null = null,
   restore = false;
@@ -271,8 +272,8 @@ function reload(offset = state.offset) {
   if (reloading) return reloading;
   reading.value = true;
   reloading = (async () => {
-    // The guard can empty the page while it loads, on focus or by a late
-    // cookie notification. Read again then, three times at most.
+    // A late cookie notification of the renewal can still empty the page
+    // while it loads. Read again then, three times at most.
     for (let pass = 0; pass < 3; pass++) {
       await renew(180);
       emptied = denied = false;
@@ -312,13 +313,6 @@ function update() {
   if (!state.selected) opened = null;
   return reload();
 }
-// The session guard empties this page whenever the window regains focus.
-// Read the lists again and return to the case that was open.
-function returned() {
-  if (document.visibilityState === "hidden") return;
-  restore = true;
-  if (!reloading && !state.authority) void reload();
-}
 // Sending renews a session that is about to run out, which empties the page.
 // The lists and the open case return once the answer is in.
 async function renewToSend() {
@@ -339,14 +333,8 @@ watch(
     else if (restore) void reload();
   },
 );
-onMounted(() => {
-  window.addEventListener("focus", returned);
-  void reload();
-});
-onBeforeUnmount(() => {
-  window.removeEventListener("focus", returned);
-  controller.dispose();
-});
+onMounted(() => void reload());
+onBeforeUnmount(() => controller.dispose());
 </script>
 
 <template>

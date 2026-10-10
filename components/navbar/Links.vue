@@ -166,11 +166,6 @@ export default {
             : null;
       return count && count.count > 0 ? count : null;
     }
-    // The commercial page counts for itself; elsewhere one read does it.
-    const load = () => loadWaitingCounts(route.name !== "dashboard-commercial");
-    onMounted(load);
-    // Moving between pages rereads the counts only once they have aged.
-    watch(() => route.fullPath, load);
 
     return { t, links, activePathName, emit, logout, waiting };
   },

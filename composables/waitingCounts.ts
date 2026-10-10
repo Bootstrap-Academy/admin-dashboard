@@ -6,28 +6,27 @@ import { overviewTime, recordWork, waitingWork } from "./commercialOverview";
 // Numbers for the navigation, so that waiting work is seen from every page.
 //
 // The API has no endpoint that returns these counts. Both are therefore taken
-// from the lists the pages already read, once when the dashboard opens and
-// again when a count is older than `MAX_AGE`. A count that could not be
-// determined stays `null` and shows no number.
+// from the lists the pages already read, once when the dashboard loads. Every
+// read of the declaration list returns names and addresses and is recorded in
+// the administrative audit log, so nothing rereads it on a timer or while
+// moving between pages. A page that has just saved work updates its own
+// number. A count that could not be determined stays `null` and shows none.
 
 export type WaitingCount = { count: number; more: boolean } | null;
 type WaitingCounts = {
   declarations: WaitingCount;
   commercial: WaitingCount;
-  loadedAt: number;
 };
 
 export const useWaitingCounts = () =>
   useState<WaitingCounts>("waitingCounts", () => ({
     declarations: null,
     commercial: null,
-    loadedAt: 0,
   }));
 
 const PAGE = 100;
 /** Declarations are listed newest first and cannot be filtered by state. */
 const MAX_DECLARATION_PAGES = 5;
-const MAX_AGE = 10 * 60 * 1000;
 
 type Run = <T>(callback: () => T) => T;
 
@@ -90,12 +89,12 @@ async function waitingCommercial(): Promise<WaitingCount> {
 
 let running: Promise<void> | null = null;
 
-/** Reads the counts unless they are fresh. Failures leave no number. The
- * commercial page publishes its own count, so it passes `commercial: false`. */
+/** Reads the counts; the dashboard calls this once when it loads. Failures
+ * leave no number. The commercial page publishes its own count, so the
+ * dashboard passes `commercial: false` when it loads on that page. */
 export function loadWaitingCounts(commercial = true): Promise<void> {
   const counts = useWaitingCounts();
   if (running) return running;
-  if (Date.now() - counts.value.loadedAt < MAX_AGE) return Promise.resolve();
   const app = useNuxtApp();
   const run: Run = (callback) =>
     app.runWithContext(callback) as ReturnType<typeof callback>;
@@ -106,7 +105,7 @@ export function loadWaitingCounts(commercial = true): Promise<void> {
     const own = commercial
       ? await run(waitingCommercial).catch(() => null)
       : counts.value.commercial;
-    counts.value = { declarations, commercial: own, loadedAt: Date.now() };
+    counts.value = { declarations, commercial: own };
   })().finally(() => {
     running = null;
   });

@@ -370,7 +370,7 @@ test("cookie-only changed getter and empty-memory refusal preserve existing sele
   assert.equal(user.useAccessToken().value, "");
   f.controller.dispose();
 });
-test("read-only cookie signals, hidden page and terminal disposal clean all owned listeners/channels", () => {
+test("read-only cookie signals, a page put away and terminal disposal clean all owned listeners/channels; a mere return keeps the proof", () => {
   const win = new EventTarget(),
     doc = new EventTarget(),
     channels = [];
@@ -398,14 +398,83 @@ test("read-only cookie signals, hidden page and terminal disposal clean all owne
   channels[0].dispatchEvent(new Event("message"));
   assert.equal(f.context.capture(), null);
   f.context.activate();
-  doc.visibilityState = "hidden";
-  doc.dispatchEvent(new Event("visibilitychange"));
+  // Leaving the window and coming back keeps the proof of the same session.
+  const kept = f.context.capture();
+  let emptied = 0;
+  const stop = f.context.onInvalidate(() => emptied++);
+  for (let n = 0; n < 3; n++) {
+    doc.visibilityState = "hidden";
+    doc.dispatchEvent(new Event("visibilitychange"));
+    doc.visibilityState = "visible";
+    doc.dispatchEvent(new Event("visibilitychange"));
+    win.dispatchEvent(new Event("focus"));
+  }
+  assert.equal(emptied, 0);
+  assert(f.context.current(kept));
+  stop();
+  // A page that is being put away keeps nothing.
+  win.dispatchEvent(new Event("pagehide"));
   assert.equal(f.context.capture(), null);
   f.controller.dispose();
   assert(channels.every((channel) => channel.closed));
   assert.equal(scopedCookies, 0);
   assert(!f.context.activate());
 });
+// What another tab can do to the shared cookie jar while this window is away.
+// No cookie notification reaches this tab in these tests: the return to the
+// window alone has to notice the change.
+const sessionChanges = {
+  "another account": () => {
+    const next = login(V, T);
+    cookies.get("user").value = next.user;
+    cookies.get("session").value = next.session;
+    cookies.get("accessToken").value = next.access_token;
+  },
+  "a signed-out browser": () => {
+    for (const name of ["user", "session", "accessToken", "refreshToken"])
+      cookies.get(name).value = null;
+  },
+  "a missing second factor": () => {
+    cookies.get("session").value = { ...login().session, mfa_verified: false };
+  },
+  "another session of the same account": () => {
+    cookies.get("session").value = { ...login().session, id: T };
+    cookies.get("accessToken").value = token(U, T);
+  },
+  "another bearer": () => {
+    cookies.get("accessToken").value = token(U, S, "renewed");
+  },
+};
+for (const [change, apply] of Object.entries(sessionChanges))
+  for (const signal of ["focus", "visibilitychange"])
+    test(`returning to the window (${signal}) after ${change} leaves no proof of the old session`, () => {
+      const win = new EventTarget(),
+        doc = new EventTarget();
+      const f = fixture({
+        browser: win,
+        document: doc,
+        reread: user.syncSessionCookies,
+      });
+      f.context.activate();
+      const old = f.context.capture();
+      let emptied = 0;
+      f.context.onInvalidate(() => emptied++);
+      doc.visibilityState = "hidden";
+      doc.dispatchEvent(new Event("visibilitychange"));
+      apply();
+      assert.equal(emptied, 0);
+      doc.visibilityState = "visible";
+      (signal === "focus" ? win : doc).dispatchEvent(new Event(signal));
+      // Each changed part of the session is published; once is enough.
+      assert(emptied >= 1);
+      assert(!f.context.current(old));
+      assert.equal(f.context.capture(), null);
+      // The old proof never comes back by itself, however often focus returns.
+      win.dispatchEvent(new Event("focus"));
+      assert.equal(f.context.capture(), null);
+      f.controller.dispose();
+      assert.equal(scopedCookies, 0);
+    });
 for (const status of [401, 403])
   test(`same proof ${status} after selected-case change clears commercial state but not ordinary credentials`, async () => {
     const f = fixture();
@@ -1087,6 +1156,7 @@ async function mountedPage(language, reply) {
   return {
     h,
     win,
+    doc,
     calls,
     find,
     listed: () =>
@@ -1186,59 +1256,110 @@ for (const language of ["de", "en-US"])
     }
   });
 
-test("mounted return to the window: the lists are read again and the open case comes back, also when focus arrives while loading", async () => {
-  let gate = null;
-  const m = await mountedPage("de", async (operation) => {
-    if (operation === "queue" && gate) await gate.promise;
-    return operation === "queue"
+// A case opened with one of its records picked and a review typed in.
+async function mountedReview() {
+  const m = await mountedPage("de", (operation) =>
+    operation === "queue"
       ? [queueRow()]
       : operation === "hold_queue"
         ? hqueue()
-        : capacity();
+        : operation === "detail"
+          ? JSON.parse(rawDetail())
+          : capacity(),
+  );
+  await m.press("data-case", C);
+  await m.find("data-load-detail").props.onClick();
+  await m.find("data-hold-row").props.onClick();
+  await flush();
+  m.find("data-hold-assessment").props.onInput({
+    target: { value: hbody().assessment },
   });
+  m.find("data-hold-date").props.onInput({ target: { value: future } });
+  m.find("data-hold-scope").props.onChange({ target: { checked: true } });
+  await flush();
+  assert(m.find("data-detail") && m.find("data-capacity"));
+  return m;
+}
+const away = (m) => {
+  m.doc.visibilityState = "hidden";
+  m.doc.dispatchEvent(new Event("visibilitychange"));
+};
+const back = (m) => {
+  m.doc.visibilityState = "visible";
+  m.doc.dispatchEvent(new Event("visibilitychange"));
+  m.win.dispatchEvent(new Event("focus"));
+};
+test("mounted return to the window with the same session: the lists, the open case and what was typed stay, and nothing is read", async () => {
+  const m = await mountedReview();
   try {
-    await m.press("data-case", C);
-    assert(m.find("data-selected") && m.find("data-capacity"));
-    let from = m.calls.length;
-    // The session guard empties the page on focus; the page restores the view.
-    m.win.dispatchEvent(new Event("focus"));
-    await Vue.nextTick();
-    assert(!m.find("data-selected") && !m.find("data-case"));
-    await eventually(
-      () => m.find("data-selected") && m.find("data-capacity"),
-      "the open case returns",
+    const from = m.calls.length;
+    for (let n = 0; n < 2; n++) {
+      away(m);
+      back(m);
+      await settle();
+    }
+    assert.equal(m.calls.length, from);
+    assert(
+      m.find("data-selected") &&
+        m.find("data-capacity") &&
+        m.find("data-detail") &&
+        m.find("data-hold-selected"),
     );
-    assert.deepEqual(m.calls.slice(from), [
-      "/shop/claims/admin/queue",
-      "/shop/claims/admin/hold_queue",
-      "/shop/claims/admin/cash_capacity",
-    ]);
-    // Going back is the administrator's choice and is not undone by a later return.
-    await m.find("data-back").props.onClick();
-    await settle();
-    from = m.calls.length;
-    gate = defer();
-    m.win.dispatchEvent(new Event("focus"));
+    assert.equal(
+      m.find("data-hold-assessment").props.value,
+      hbody().assessment,
+    );
+    assert.equal(m.find("data-hold-date").props.value, future);
+    assert.equal(m.find("data-hold-scope").props.checked, true);
+    // The review that survived can still be prepared.
+    await m.find("data-hold-prepare").props.onClick();
     await flush();
-    // A second focus drops the answer that is still on its way.
-    m.win.dispatchEvent(new Event("focus"));
-    const waiting = gate;
-    gate = null;
-    waiting.resolve();
-    await eventually(() => m.listed().length === 1, "the list returns");
-    await settle();
-    assert.deepEqual(m.listed(), [C]);
-    assert(!m.find("data-selected"));
-    assert.deepEqual(m.calls.slice(from), [
-      "/shop/claims/admin/queue",
-      "/shop/claims/admin/hold_queue",
-      "/shop/claims/admin/queue",
-      "/shop/claims/admin/hold_queue",
-    ]);
+    assert(m.find("data-hold-command"));
   } finally {
     m.dispose();
   }
 });
+for (const [change, apply] of Object.entries(sessionChanges))
+  test(`mounted return to the window after ${change}: nothing of the old session stays on the page and nothing is read`, async () => {
+    const m = await mountedReview();
+    try {
+      assert(m.h.text().includes("<script>never HTML</script>"));
+      away(m);
+      apply();
+      const from = m.calls.length;
+      back(m);
+      await settle();
+      for (const key of [
+        "data-todo",
+        "data-case",
+        "data-selected",
+        "data-capacity",
+        "data-detail",
+        "data-hold-queue",
+        "data-hold-row",
+        "data-hold-selected",
+        "data-hold-assessment",
+        "data-obligation",
+      ])
+        assert(!m.find(key), key);
+      const text = m.h.text();
+      for (const old of [
+        C,
+        U,
+        O,
+        "<script>never HTML</script>",
+        "Exact original <script> basis",
+        hbody().assessment.trim(),
+        future,
+      ])
+        assert(!text.includes(old), old);
+      assert(text.includes("frische Anmeldung mit zweitem Faktor"));
+      // The administrator decides when the page reads again.
+      assert.equal(m.calls.length, from);
+    } finally {
+      m.dispose();
+    }
+  });
 
 test("mounted with an expired access token: the session is renewed first, and its late cookie notification costs no more than a second read", async () => {
   const order = [];
@@ -1443,7 +1564,6 @@ test("navigation counts: unprocessed declarations over all pages, cases with a d
   });
   const counts = useWaitingCounts();
   const again = async (commercial) => {
-    counts.value = { ...counts.value, loadedAt: 0 };
     reads.length = 0;
     await loadWaitingCounts(commercial);
   };
@@ -1455,9 +1575,15 @@ test("navigation counts: unprocessed declarations over all pages, cases with a d
   ]);
   assert.deepEqual(counts.value.declarations, { count: 50, more: false });
   assert.deepEqual(counts.value.commercial, { count: 1, more: false });
-  // Fresh counts are not read again.
-  await loadWaitingCounts();
+  // Callers at the same moment share one read. There is no timer: a later
+  // read happens only when the dashboard loads again.
+  reads.length = 0;
+  await Promise.all([loadWaitingCounts(), loadWaitingCounts()]);
   assert.equal(reads.length, 3);
+  assert.deepEqual(Object.keys(counts.value).sort(), [
+    "commercial",
+    "declarations",
+  ]);
   // The commercial page counts for itself; its number is kept.
   await again(false);
   assert.deepEqual(reads.map((read) => read[0]), [

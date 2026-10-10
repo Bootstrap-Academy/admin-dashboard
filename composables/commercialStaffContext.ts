@@ -21,6 +21,8 @@ type Options = {
   session: Ref<Session>;
   token: Ref<unknown>;
   getToken: () => unknown;
+  /** Publishes the profile and session another tab may have written. */
+  reread?: () => void;
   run: <T>(callback: () => T) => T;
   browser?: Window;
   document?: Document;
@@ -30,7 +32,8 @@ type Options = {
 export function createCommercialStaffContext(options: Options) {
   let revision = 0,
     alive = true,
-    blocked = true;
+    blocked = true,
+    active: Omit<StaffProof, "revision"> | null = null;
   const callbacks = new Set<() => void>();
   const scope = effectScope(true);
   const cleanups: (() => void)[] = [];
@@ -38,6 +41,7 @@ export function createCommercialStaffContext(options: Options) {
     if (!alive) return;
     revision++;
     blocked = true;
+    active = null;
     for (const callback of callbacks) callback();
   }
   scope.run(() =>
@@ -55,15 +59,16 @@ export function createCommercialStaffContext(options: Options) {
       { flush: "sync" },
     ),
   );
-  function synchronize() {
+  function owned<T>(getter: () => T) {
     // runWithContext alone would leave useCookie's post-await listeners unowned.
     const getterScope = effectScope(true);
     try {
-      return getterScope.run(() => options.run(options.getToken));
+      return getterScope.run(() => options.run(getter));
     } finally {
       getterScope.stop();
     }
   }
+  const synchronize = () => owned(options.getToken);
   function coherent(): Omit<StaffProof, "revision"> | null {
     if (!alive) return null;
     const bearer = synchronize(),
@@ -93,8 +98,28 @@ export function createCommercialStaffContext(options: Options) {
     if (!alive) return false;
     const proof = coherent();
     blocked = !proof;
+    active = proof;
     if (!proof) invalidate();
     return !!proof;
+  }
+  // Coming back to the window keeps what is shown, including what was typed,
+  // as long as the very session that was activated is still the current one.
+  // Another account, a signed-out browser, a missing second factor or another
+  // bearer leaves nothing of it.
+  function recheck() {
+    if (!alive || blocked) return;
+    if (options.reread) owned(options.reread);
+    // Rereading or the token getter may already have published a change.
+    const proof = blocked ? null : coherent();
+    if (blocked) return;
+    if (
+      !proof ||
+      !active ||
+      proof.uid !== active.uid ||
+      proof.sid !== active.sid ||
+      proof.bearer !== active.bearer
+    )
+      invalidate();
   }
   function capture(): StaffProof | null {
     if (!alive || blocked) return null;
@@ -153,16 +178,16 @@ export function createCommercialStaffContext(options: Options) {
           /* Unsupported browser: getter and local lifecycle checks still apply. */
         }
       }
-    const hidden = () => {
-      if (options.document?.visibilityState === "hidden") invalidate();
+    const shown = () => {
+      if (options.document?.visibilityState !== "hidden") recheck();
     };
     target.addEventListener("pagehide", invalidate);
-    target.addEventListener("focus", invalidate);
-    options.document?.addEventListener("visibilitychange", hidden);
+    target.addEventListener("focus", recheck);
+    options.document?.addEventListener("visibilitychange", shown);
     cleanups.push(() => {
       target.removeEventListener("pagehide", invalidate);
-      target.removeEventListener("focus", invalidate);
-      options.document?.removeEventListener("visibilitychange", hidden);
+      target.removeEventListener("focus", recheck);
+      options.document?.removeEventListener("visibilitychange", shown);
     });
   }
   return {
