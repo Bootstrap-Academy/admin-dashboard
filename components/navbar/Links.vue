@@ -55,6 +55,17 @@
           "
         >
           {{ t(label) }}
+          <span
+            v-if="waiting(name)"
+            class="waiting"
+            :data-waiting="name"
+            :aria-label="
+              t(waiting(name).more ? 'Links.WaitingMore' : 'Links.Waiting', {
+                n: waiting(name).count,
+              })
+            "
+            >{{ waiting(name).count }}{{ waiting(name).more ? "+" : "" }}</span
+          >
         </IconText>
       </NuxtLink>
     </nav>
@@ -144,7 +155,24 @@ export default {
       return route.name;
     });
 
-    return { t, links, activePathName, emit, logout };
+    // How much is waiting behind an entry; nothing is shown for zero or unknown.
+    const counts = useWaitingCounts();
+    function waiting(name) {
+      const count =
+        name === "dashboard-commercial"
+          ? counts.value.commercial
+          : name === "dashboard-declarations"
+            ? counts.value.declarations
+            : null;
+      return count && count.count > 0 ? count : null;
+    }
+    // The commercial page counts for itself; elsewhere one read does it.
+    const load = () => loadWaitingCounts(route.name !== "dashboard-commercial");
+    onMounted(load);
+    // Moving between pages rereads the counts only once they have aged.
+    watch(() => route.fullPath, load);
+
+    return { t, links, activePathName, emit, logout, waiting };
   },
 };
 </script>
@@ -157,6 +185,19 @@ export default {
 .active-link > * {
   color: var(--color-white) !important;
   fill: var(--color-white) !important;
+}
+.waiting {
+  display: inline-block;
+  min-width: 1.5rem;
+  margin-left: 0.4rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background-color: #ffcb30;
+  color: #0b192e;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.5rem;
+  text-align: center;
 }
 a[data-commercial-nav]:focus-visible {
   outline: 3px solid var(--color-heading);

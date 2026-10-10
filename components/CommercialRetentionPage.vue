@@ -34,18 +34,15 @@ onBeforeUnmount(() => controller.dispose());
 
 <template>
   <section
-    class="retention-page grid min-w-0 gap-3 rounded border p-4 text-body"
+    class="retention-page grid min-w-0 gap-3 text-body"
     data-retention-page
-    aria-labelledby="retention-page-heading"
+    :aria-label="t('RetentionPage.title')"
   >
-    <h2 id="retention-page-heading" class="text-heading">
-      {{ t("RetentionPage.title") }}
-    </h2>
     <p>{{ t("RetentionPage.intro") }}</p>
     <label class="grid gap-1">
       {{ t("RetentionPage.family") }}
       <select
-        class="rounded border bg-[#0b192e] p-2"
+        class="rounded border bg-[#0b192e] p-2 text-heading"
         data-retention-family
         :value="state.family"
         @change="
@@ -67,7 +64,7 @@ onBeforeUnmount(() => controller.dispose());
     >
       <button
         type="button"
-        class="rounded border px-3 py-2"
+        class="rounded border px-3 py-2 text-heading"
         data-retention-first
         :disabled="state.busy"
         @click="controller.first()"
@@ -76,7 +73,7 @@ onBeforeUnmount(() => controller.dispose());
       </button>
       <button
         type="button"
-        class="rounded border px-3 py-2"
+        class="rounded border px-3 py-2 text-heading"
         data-retention-next
         :disabled="state.busy || !state.page?.next_cursor"
         @click="controller.next()"
@@ -85,7 +82,7 @@ onBeforeUnmount(() => controller.dispose());
       </button>
       <button
         type="button"
-        class="rounded border px-3 py-2"
+        class="rounded border px-3 py-2 text-heading"
         data-retention-restart
         :disabled="state.busy"
         @click="controller.restart()"
@@ -151,7 +148,5 @@ onBeforeUnmount(() => controller.dispose());
         </dl>
       </article>
     </div>
-    <p>{{ t("RetentionPage.liveHint") }}</p>
-    <p>{{ t("RetentionPage.observationHint") }}</p>
   </section>
 </template>

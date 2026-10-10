@@ -200,6 +200,9 @@ try {
     ),
   );
   passed('full declaration, exact date, delivery attempts and immutable evidence visible');
+  // The navigation shows that one declaration is waiting.
+  const waiting = `document.querySelector('[data-waiting="dashboard-declarations"]')`;
+  await until(`${waiting}?.textContent.trim()==='1'`);
   await click(`document.querySelector('form button[type=submit]')`);
   assert.equal(writes.length, 0, 'unverified action does not submit');
   passed('unverified action sends no write');
@@ -230,6 +233,8 @@ try {
   assert(!writes[0].effective_end);
   assert.deepEqual(errors, []);
   passed('original agreement and verified identity submitted exactly once, without an invented end date');
+  await until(`!${waiting}`);
+  passed('the navigation counts the waiting declaration and stops once it is processed');
   await fs.writeFile(
     join(run, 'declarations.png'),
     Buffer.from((await cmd('Page.captureScreenshot', { format: 'png' })).data, 'base64'),

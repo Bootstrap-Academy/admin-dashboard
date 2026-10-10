@@ -69,6 +69,9 @@ globals({
   useState,
   computed: Vue.computed,
   useRouter: () => ({ push() {} }),
+  // The page renews an expired session before it reads; these tokens never expire.
+  accessTokenExpired: () => false,
+  refresh: async () => [true, null],
   useCookie: (key) => {
     if (!cookies.has(key)) cookies.set(key, Vue.ref(null));
     if (Vue.getCurrentScope()) {
@@ -91,9 +94,17 @@ const adapter = await compile("../composables/commercialStaff.ts", {
 const holdAdapter = await compile("../composables/commercialHoldReview.ts", {
   "'./commercialStaffContext'": JSON.stringify(ctx.url),
 });
+const overview = await compile("../composables/commercialOverview.ts");
+const waitingCounts = await compile("../composables/waitingCounts.ts", {
+  "'./commercialStaffContext'": JSON.stringify(ctx.url),
+  "'./commercialStaff'": JSON.stringify(adapter.url),
+  "'./commercialHoldReview'": JSON.stringify(holdAdapter.url),
+  "'./commercialOverview'": JSON.stringify(overview.url),
+});
 const holdComponent = await compile("../components/CommercialHoldReview.vue", {
   "'../utils/commercialStorage'": JSON.stringify(commercialStorage.url),
   "'../composables/commercialHoldReview'": JSON.stringify(holdAdapter.url),
+  "'../composables/commercialOverview'": JSON.stringify(overview.url),
 });
 const retentionAdapter = await compile(
   "../composables/commercialRetentionPage.ts",
@@ -140,6 +151,8 @@ const page = (
   await compile("../pages/dashboard/commercial.vue", {
     "'../../composables/commercialStaffContext'": JSON.stringify(ctx.url),
     "'../../composables/commercialStaff'": JSON.stringify(adapter.url),
+    "'../../composables/commercialOverview'": JSON.stringify(overview.url),
+    "'../../composables/waitingCounts'": JSON.stringify(waitingCounts.url),
     "'../../components/CommercialHoldReview.vue'": JSON.stringify(
       holdComponent.url,
     ),
@@ -277,6 +290,15 @@ const flush = async () => {
     await Promise.resolve();
     await Vue.nextTick();
   }
+};
+// The page reads its lists by itself when it opens; let those reads finish.
+const settle = async () => {
+  await flush();
+  await flush();
+};
+const eventually = async (condition, message) => {
+  for (let n = 0; n < 20 && !condition(); n++) await flush();
+  assert(condition(), message);
 };
 
 test("actual publishers: coherent current proof, no capture before deliberate activation, scoped getter after await leaves no listener", async () => {
@@ -874,7 +896,7 @@ function host() {
   return { renderer, root, all, text };
 }
 for (const language of ["de", "en-US"])
-  test(`mounted ${language}: no automatic requests, actual page reads/raw text/amounts and auth clearing`, async () => {
+  test(`mounted ${language}: opening reads the two lists once, then actual page reads/raw text/amounts and auth clearing`, async () => {
     const f = fixture(),
       h = host(),
       win = new EventTarget(),
@@ -898,11 +920,13 @@ for (const language of ["de", "en-US"])
         requests.push({ url, init });
         if (rejectNext) return denial.response;
         return new Response(
-          url.endsWith("/queue")
-            ? JSON.stringify([queueRow()])
-            : url.endsWith("/detail")
-              ? rawDetail()
-              : JSON.stringify(capacity()),
+          url.endsWith("/hold_queue")
+            ? JSON.stringify(hqueue())
+            : url.endsWith("/queue")
+              ? JSON.stringify([queueRow()])
+              : url.endsWith("/detail")
+                ? rawDetail()
+                : JSON.stringify(capacity()),
           { headers: { "content-type": "application/json" } },
         );
       },
@@ -928,15 +952,25 @@ for (const language of ["de", "en-US"])
     );
     app.mount(h.root);
     try {
-      assert.equal(requests.length, 0);
+      const paths = () => requests.map((r) => new URL(r.url).pathname);
+      await settle();
+      assert.deepEqual(paths(), [
+        "/shop/claims/admin/queue",
+        "/shop/claims/admin/hold_queue",
+      ]);
       const find = (key) => h.all().find((n) => Object.hasOwn(n.props, key));
       await find("data-load-queue").props.onClick();
       await flush();
+      assert.equal(requests.length, 4);
       await h
         .all()
         .find((n) => n.props["data-case"] === C)
         .props.onClick();
       await flush();
+      // Opening a case reads its amounts without a further click.
+      assert.equal(paths().at(-1), "/shop/claims/admin/cash_capacity");
+      assert.equal(requests.length, 5);
+      assert(find("data-capacity"));
       await find("data-load-detail").props.onClick();
       await find("data-load-capacity").props.onClick();
       await flush();
@@ -980,6 +1014,500 @@ for (const language of ["de", "en-US"])
       assert.equal(scopedCookies, 0);
     }
   });
+
+// The page at a glance: what waits is said first, listed first and counted.
+const E = "33000000-0000-4000-8000-000000000003",
+  W = "11000000-0000-4000-8000-000000000003";
+const caseRow = (id, subject, erased_at = null) => ({
+  ...queueRow(),
+  id,
+  subject,
+  erased_at,
+});
+const record = (case_id, review_due_at, number) => ({
+  ...hrow("financial_document", "R" + number),
+  case_id,
+  review_due_at,
+});
+const past = "2026-09-10 08:00:00+00",
+  ahead = "2031-01-01 00:00:00+00";
+async function mountedPage(language, reply) {
+  const f = fixture(),
+    h = host(),
+    win = new EventTarget(),
+    doc = new EventTarget(),
+    calls = [];
+  win.localStorage = memory();
+  win.sessionStorage = memory();
+  win.cookieStore = new EventTarget();
+  globals({
+    window: win,
+    document: doc,
+    Document: class {},
+    ShadowRoot: class {},
+    definePageMeta() {},
+    useNuxtApp: () => ({ runWithContext: (fn) => fn() }),
+    useRuntimeConfig: () => ({
+      public: { BASE_API_URL: "http://127.0.0.1:56841" },
+    }),
+    ...user,
+    fetch: async (url, init) => {
+      const path = new URL(url).pathname;
+      calls.push(path);
+      const data = await reply(path.split("/").at(-1), init);
+      if (data instanceof Response) return data;
+      return new Response(JSON.stringify(data), {
+        headers: { "content-type": "application/json" },
+      });
+    },
+  });
+  const app = h.renderer.createApp(page);
+  app.component("NuxtLink", {
+    render() {
+      return Vue.h("a", null, this.$slots.default?.());
+    },
+  });
+  app.use(
+    createI18n({
+      legacy: false,
+      locale: language,
+      messages: {
+        [language]: JSON.parse(
+          await readFile(
+            new URL(`../locales/${language}.json`, import.meta.url),
+            "utf8",
+          ),
+        ),
+      },
+    }),
+  );
+  app.mount(h.root);
+  await settle();
+  const find = (key) => h.all().find((n) => Object.hasOwn(n.props, key));
+  return {
+    h,
+    win,
+    calls,
+    find,
+    listed: () =>
+      h
+        .all()
+        .filter((n) => n.props["data-case"])
+        .map((n) => n.props["data-case"]),
+    async press(key, value) {
+      await h
+        .all()
+        .find((n) => n.props[key] === value)
+        .props.onClick();
+      await settle();
+    },
+    dispose() {
+      app.unmount();
+      f.controller.dispose();
+      assert.equal(scopedCookies, 0);
+    },
+  };
+}
+const pressWithoutWaiting = (m, key, value) =>
+  m.h
+    .all()
+    .find((n) => n.props[key] === value)
+    .props.onClick();
+for (const language of ["de", "en-US"])
+  test(`mounted overview ${language}: what waits is said first, listed first, filterable and counted for the navigation`, async () => {
+    const cases = [
+      caseRow(E, W, when),
+      caseRow(D, V, when),
+      caseRow(C, U, when),
+    ];
+    let records = [record(D, ahead, 1), record(C, past, 2), record(C, past, 3)],
+      recordsFail = false;
+    const m = await mountedPage(language, (operation) =>
+      operation === "queue"
+        ? cases
+        : operation === "hold_queue" && !recordsFail
+          ? hqueue(records)
+          : operation === "hold_queue"
+            ? new Response("", { status: 500 })
+            : capacity(),
+    );
+    const de = language === "de";
+    try {
+      assert.equal(m.find("data-todo").props["data-todo"], "due");
+      assert(
+        m.h
+          .text()
+          .includes(
+            de
+              ? "1 von 3 Fällen wartet auf dich, fällig seit dem 10.09.2026."
+              : "1 of 3 cases is waiting for you, due since 09/10/2026.",
+          ),
+      );
+      // Only what waits is listed at first; everything is one click away.
+      assert.deepEqual(m.listed(), [C]);
+      assert(m.h.text().includes(de ? "2 Unterlagen prüfen" : "review 2 records"));
+      await m.press("data-filter", "all");
+      assert.deepEqual(m.listed(), [C, D, E]);
+      await m.press("data-filter", "later");
+      assert.deepEqual(m.listed(), [D]);
+      await m.press("data-filter", "clear");
+      assert.deepEqual(m.listed(), [E]);
+      assert.deepEqual(states.get("waitingCounts").value.commercial, {
+        count: 1,
+        more: false,
+      });
+      // Nothing due: the page says so and names the next date.
+      records = [record(D, ahead, 1), record(C, ahead, 2)];
+      await m.find("data-load-queue").props.onClick();
+      await settle();
+      assert.equal(m.find("data-todo").props["data-todo"], "none");
+      for (const sentence of de
+        ? [
+          "Gerade ist nichts fällig.",
+          "Es gibt 3 Fälle, die nächste Prüfung steht am 01.01.2031 an.",
+        ]
+        : [
+          "Nothing is due right now.",
+          "There are 3 cases, the next review is due on 01/01/2031.",
+        ])
+        assert(m.h.text().includes(sentence), sentence);
+      assert.equal(states.get("waitingCounts").value.commercial.count, 0);
+      // Without the record list the page claims neither work nor its absence.
+      recordsFail = true;
+      await m.find("data-load-queue").props.onClick();
+      await settle();
+      assert.equal(m.find("data-todo").props["data-todo"], "unknown");
+      assert.deepEqual(m.listed().sort(), [C, D, E].sort());
+      assert(!m.find("data-filter"));
+      assert.equal(states.get("waitingCounts").value.commercial.count, 0);
+      assert(!m.h.text().includes("Commercial."));
+    } finally {
+      m.dispose();
+    }
+  });
+
+test("mounted return to the window: the lists are read again and the open case comes back, also when focus arrives while loading", async () => {
+  let gate = null;
+  const m = await mountedPage("de", async (operation) => {
+    if (operation === "queue" && gate) await gate.promise;
+    return operation === "queue"
+      ? [queueRow()]
+      : operation === "hold_queue"
+        ? hqueue()
+        : capacity();
+  });
+  try {
+    await m.press("data-case", C);
+    assert(m.find("data-selected") && m.find("data-capacity"));
+    let from = m.calls.length;
+    // The session guard empties the page on focus; the page restores the view.
+    m.win.dispatchEvent(new Event("focus"));
+    await Vue.nextTick();
+    assert(!m.find("data-selected") && !m.find("data-case"));
+    await eventually(
+      () => m.find("data-selected") && m.find("data-capacity"),
+      "the open case returns",
+    );
+    assert.deepEqual(m.calls.slice(from), [
+      "/shop/claims/admin/queue",
+      "/shop/claims/admin/hold_queue",
+      "/shop/claims/admin/cash_capacity",
+    ]);
+    // Going back is the administrator's choice and is not undone by a later return.
+    await m.find("data-back").props.onClick();
+    await settle();
+    from = m.calls.length;
+    gate = defer();
+    m.win.dispatchEvent(new Event("focus"));
+    await flush();
+    // A second focus drops the answer that is still on its way.
+    m.win.dispatchEvent(new Event("focus"));
+    const waiting = gate;
+    gate = null;
+    waiting.resolve();
+    await eventually(() => m.listed().length === 1, "the list returns");
+    await settle();
+    assert.deepEqual(m.listed(), [C]);
+    assert(!m.find("data-selected"));
+    assert.deepEqual(m.calls.slice(from), [
+      "/shop/claims/admin/queue",
+      "/shop/claims/admin/hold_queue",
+      "/shop/claims/admin/queue",
+      "/shop/claims/admin/hold_queue",
+    ]);
+  } finally {
+    m.dispose();
+  }
+});
+
+test("mounted with an expired access token: the session is renewed first, and its late cookie notification costs no more than a second read", async () => {
+  const order = [];
+  let expired = true,
+    late = true,
+    window;
+  globals({
+    accessTokenExpired: () => expired,
+    refresh: async () => {
+      order.push("renew");
+      expired = false;
+      return [true, null];
+    },
+  });
+  const m = await mountedPage("de", (operation) => {
+    order.push(operation);
+    // Once, the browser reports the renewed cookies only after the read has started.
+    if (late) {
+      late = false;
+      window.cookieStore.dispatchEvent(
+        Object.assign(new Event("change"), {
+          changed: [{ name: "accessToken" }],
+        }),
+      );
+    }
+    return operation === "queue"
+      ? [queueRow()]
+      : operation === "hold_queue"
+        ? hqueue()
+        : capacity();
+  });
+  window = m.win;
+  try {
+    // The page lets the notifications of a renewal pass before it reads.
+    assert.deepEqual(order, ["renew"]);
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    await eventually(() => m.listed().length === 1, "the list is shown");
+    assert.deepEqual(order, [
+      "renew",
+      "queue",
+      "hold_queue",
+      "queue",
+      "hold_queue",
+    ]);
+    assert.equal(m.find("data-todo").props["data-todo"], "none");
+    // A token that runs out while the list is open is renewed by the click
+    // that opens a case; the case still opens.
+    expired = true;
+    order.length = 0;
+    const opening = pressWithoutWaiting(m, "data-case", C);
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    await opening;
+    await eventually(
+      () => m.find("data-selected") && m.find("data-capacity"),
+      "the case opens",
+    );
+    assert.deepEqual(order, ["renew", "queue", "hold_queue", "cash_capacity"]);
+  } finally {
+    globals({
+      accessTokenExpired: () => false,
+      refresh: async () => [true, null],
+    });
+    m.dispose();
+  }
+});
+
+test("mounted send with a session about to run out: it is renewed, the saved review is sent, and the lists and the case return", async () => {
+  const order = [];
+  let expired = false,
+    m;
+  globals({
+    accessTokenExpired: () => expired,
+    refresh: async () => {
+      order.push("renew");
+      expired = false;
+      // A renewed session empties the page through the session guard.
+      m.win.cookieStore.dispatchEvent(
+        Object.assign(new Event("change"), {
+          changed: [{ name: "accessToken" }],
+        }),
+      );
+      return [true, null];
+    },
+  });
+  m = await mountedPage("de", (operation, init) => {
+    order.push(operation);
+    return operation === "queue"
+      ? [queueRow()]
+      : operation === "hold_queue"
+        ? hqueue()
+        : operation === "hold_review"
+          ? hreceipt(JSON.parse(init.body))
+          : capacity();
+  });
+  try {
+    await m.press("data-case", C);
+    await m.find("data-hold-row").props.onClick();
+    await flush();
+    m.find("data-hold-assessment").props.onInput({
+      target: { value: hbody().assessment },
+    });
+    m.find("data-hold-date").props.onInput({ target: { value: future } });
+    m.find("data-hold-scope").props.onChange({ target: { checked: true } });
+    await flush();
+    await m.find("data-hold-prepare").props.onClick();
+    await flush();
+    assert(m.find("data-hold-command"));
+    expired = true;
+    order.length = 0;
+    const sending = m.find("data-hold-send").props.onClick();
+    await Vue.nextTick();
+    assert(!m.find("data-selected"));
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    await sending;
+    await eventually(
+      () =>
+        m.find("data-hold-receipt") &&
+        m.find("data-selected") &&
+        m.find("data-capacity"),
+      "the receipt, the lists and the case are shown",
+    );
+    assert.deepEqual(order, [
+      "renew",
+      "hold_review",
+      "queue",
+      "hold_queue",
+      "cash_capacity",
+    ]);
+  } finally {
+    globals({
+      accessTokenExpired: () => false,
+      refresh: async () => [true, null],
+    });
+    m.dispose();
+  }
+});
+
+test("mounted while the server refuses: one read, one notice, and no further read until the administrator asks", async () => {
+  let refuse = true;
+  const m = await mountedPage("de", (operation) =>
+    operation === "hold_queue" && refuse
+      ? new Response("", { status: 401 })
+      : operation === "queue"
+        ? [queueRow()]
+        : hqueue(),
+  );
+  try {
+    await settle();
+    assert.deepEqual(m.calls, [
+      "/shop/claims/admin/queue",
+      "/shop/claims/admin/hold_queue",
+    ]);
+    assert.deepEqual(m.listed(), []);
+    assert(!m.find("data-todo"));
+    assert(m.h.text().includes("frische Anmeldung mit zweitem Faktor"));
+    // The same page recovers with the one button it offers.
+    refuse = false;
+    await m.find("data-load-queue").props.onClick();
+    await settle();
+    assert.deepEqual(m.listed(), [C]);
+    assert.equal(m.calls.length, 4);
+  } finally {
+    m.dispose();
+  }
+});
+
+test("navigation counts: unprocessed declarations over all pages, cases with a due record, and no number when a read fails", async () => {
+  const { loadWaitingCounts, useWaitingCounts } = waitingCounts.module;
+  states = new Map();
+  cookies = new Map();
+  user.setStates(login());
+  const reads = [];
+  let total = 150,
+    declarationsFail = false,
+    status = 200,
+    rows = [record(C, past, 1), record(C, past, 2), record(D, ahead, 3)];
+  globals({
+    useNuxtApp: () => ({ runWithContext: (fn) => fn() }),
+    useRuntimeConfig: () => ({
+      public: { BASE_API_URL: "http://127.0.0.1:56841" },
+    }),
+    ...user,
+    GET: async (path, query) => {
+      reads.push([path, query]);
+      if (declarationsFail) throw Error("unavailable");
+      const size = Math.max(0, Math.min(query.limit, total - query.offset));
+      return {
+        total,
+        // Every third declaration has not been dealt with yet.
+        declarations: Array.from({ length: size }, (_, n) => ({
+          processed_at: (query.offset + n) % 3 ? when : null,
+        })),
+      };
+    },
+    fetch: async (url, init) => {
+      reads.push([new URL(url).pathname, JSON.parse(init.body)]);
+      return new Response(JSON.stringify(hqueue(rows)), {
+        status,
+        headers: { "content-type": "application/json" },
+      });
+    },
+  });
+  const counts = useWaitingCounts();
+  const again = async (commercial) => {
+    counts.value = { ...counts.value, loadedAt: 0 };
+    reads.length = 0;
+    await loadWaitingCounts(commercial);
+  };
+  await loadWaitingCounts();
+  assert.deepEqual(reads, [
+    ["/contracts/declarations", { limit: 100, offset: 0 }],
+    ["/contracts/declarations", { limit: 100, offset: 100 }],
+    ["/shop/claims/admin/hold_queue", { version: 1, limit: 100, cursor: null }],
+  ]);
+  assert.deepEqual(counts.value.declarations, { count: 50, more: false });
+  assert.deepEqual(counts.value.commercial, { count: 1, more: false });
+  // Fresh counts are not read again.
+  await loadWaitingCounts();
+  assert.equal(reads.length, 3);
+  // The commercial page counts for itself; its number is kept.
+  await again(false);
+  assert.deepEqual(reads.map((read) => read[0]), [
+    "/contracts/declarations",
+    "/contracts/declarations",
+  ]);
+  assert.deepEqual(counts.value.commercial, { count: 1, more: false });
+  // More declarations than are read: the number is a lower bound.
+  total = 1000;
+  await again();
+  assert.equal(reads.length, 6);
+  assert.deepEqual(counts.value.declarations, { count: 167, more: true });
+  // A full first page whose last record is due may hide more due records.
+  const full = Array.from({ length: 100 }, (_, n) => record(C, past, n));
+  rows = full;
+  const fetchFull = globalThis.fetch;
+  globals({
+    fetch: async (url, init) => {
+      reads.push([new URL(url).pathname, JSON.parse(init.body)]);
+      const last = full.at(-1);
+      return new Response(
+        JSON.stringify(
+          hqueue(full, {
+            review_due_at: last.review_due_at,
+            kind: last.hold.kind,
+            case_id: last.case_id,
+            record_id: last.hold.record_id,
+            incarnation_id: last.incarnation_id,
+          }),
+        ),
+        { headers: { "content-type": "application/json" } },
+      );
+    },
+  });
+  await again();
+  assert.deepEqual(counts.value.commercial, { count: 1, more: true });
+  globals({ fetch: fetchFull });
+  // Failures and denials leave no number instead of a wrong one.
+  declarationsFail = true;
+  status = 401;
+  await again();
+  assert.equal(counts.value.declarations, null);
+  assert.equal(counts.value.commercial, null);
+  // Without a second factor the commercial list is not even requested.
+  user.setStates({ ...login(), session: { id: S, user_id: U, mfa_verified: false } });
+  await again();
+  assert(!reads.some((read) => read[0].endsWith("/hold_queue")));
+  assert.equal(scopedCookies, 0);
+});
+
 
 const {
   holdNativeText,
@@ -1660,8 +2188,21 @@ for (const language of ["de", "en-US"])
     );
     app.mount(h.root);
     const find = (key) => h.all().find((n) => Object.hasOwn(n.props, key));
+    const paths = (from = 0) =>
+      calls.slice(from).map((r) => new URL(r.url).pathname);
     try {
-      assert.equal(calls.length, 0);
+      await settle();
+      assert.deepEqual(paths(), [
+        "/shop/claims/admin/queue",
+        "/shop/claims/admin/hold_queue",
+      ]);
+      // The records of a case are listed once that case is open.
+      assert(!find("data-hold-row"));
+      await h
+        .all()
+        .find((n) => n.props["data-case"] === C)
+        .props.onClick();
+      await flush();
       assert(find("data-hold-next").props.disabled);
       await find("data-hold-head").props.onClick();
       await flush();
@@ -1675,10 +2216,11 @@ for (const language of ["de", "en-US"])
       find("data-hold-date").props.onInput({ target: { value: future } });
       find("data-hold-scope").props.onChange({ target: { checked: true } });
       await flush();
+      const beforePrepare = calls.length;
       await find("data-hold-prepare").props.onClick();
       await flush();
       assert(find("data-hold-command"));
-      assert.equal(calls.length, 1);
+      assert.equal(calls.length, beforePrepare);
       const original = JSON.parse([...storage.map.values()][0]),
         body = original.body_json;
       await find("data-hold-send").props.onClick();
@@ -1695,14 +2237,9 @@ for (const language of ["de", "en-US"])
       await flush();
       assert(JSON.parse([...storage.map.values()][0]).uncertain);
       // The ordinary page's denial clears the live hold queue, not the saved original.
-      await find("data-load-queue").props.onClick();
-      await flush();
-      await h
-        .all()
-        .find((n) => n.props["data-case"] === C)
-        .props.onClick();
       await find("data-load-detail").props.onClick();
       await flush();
+      assert(find("data-detail") && find("data-hold-queue"));
       deny = true;
       await find("data-load-capacity").props.onClick();
       await flush();
@@ -1710,11 +2247,22 @@ for (const language of ["de", "en-US"])
       assert(!find("data-selected"));
       assert(find("data-hold-command"));
       assert.equal(denial.seen.body, 0);
+      // A denial is never followed by a read the administrator did not ask for.
+      const afterDenial = calls.length;
+      await settle();
+      assert.equal(calls.length, afterDenial);
+      assert(!find("data-case"));
       deny = false;
+      // The saved review is sent although no record is listed any more.
       await find("data-hold-send").props.onClick();
-      await flush();
+      await settle();
       assert(find("data-hold-receipt"));
-      assert(!find("data-hold-queue"));
+      // A confirmed review changes what waits, so both lists are read again.
+      assert.deepEqual(paths(afterDenial), [
+        "/shop/claims/admin/hold_review",
+        "/shop/claims/admin/queue",
+        "/shop/claims/admin/hold_queue",
+      ]);
       const posts = calls.filter((r) => r.url.endsWith("/hold_review"));
       assert.equal(posts.length, 2);
       assert(posts.every((r) => r.init.body === body));
@@ -1723,9 +2271,12 @@ for (const language of ["de", "en-US"])
         h
           .text()
           .includes(
-            language === "de" ? "früheren Vorgang" : "historical evidence",
+            language === "de"
+              ? "Gespeichert. Die nächste Prüfung steht am 10.10.2030 an."
+              : "Saved. The next review is due on 10/10/2030.",
           ),
       );
+      assert(!h.text().includes("HoldReview."));
       assert.equal(user.getAccessToken(), token());
     } finally {
       app.unmount();
@@ -2941,9 +3492,10 @@ for (const language of ["de", "en-US"])
             throw Error("lost response");
           }
           data = dreceipt();
-        } else if (url.endsWith("/queue")) data = [queueRow()];
+        } else if (url.endsWith("/hold_queue")) data = hqueue();
+        else if (url.endsWith("/queue")) data = [queueRow()];
         else if (url.endsWith("/detail")) data = JSON.parse(rawDetail());
-        else if (url.endsWith("/hold_queue")) data = hqueue();
+        else if (url.endsWith("/cash_capacity")) data = capacity();
         else throw Error("unexpected fixture operation " + url);
         return new Response(JSON.stringify(data), {
           headers: { "content-type": "application/json" },
@@ -2972,18 +3524,22 @@ for (const language of ["de", "en-US"])
     app.mount(h.root);
     const find = (k) => h.all().find((n) => Object.hasOwn(n.props, k));
     try {
-      assert.equal(calls.length, 0);
+      await settle();
+      assert.equal(calls.length, 2);
       await find("data-load-queue").props.onClick();
       await flush();
-      h.all()
+      await h
+        .all()
         .find((n) => n.props["data-case"] === C)
         .props.onClick();
       await flush();
-      find("data-determination-obligation").props.onInput({
-        target: { value: O },
-      });
-      await find("data-determination-status").props.onClick();
+      // The items of the case are listed with its amounts; one click opens one.
+      await h
+        .all()
+        .find((n) => n.props["data-obligation"] === O)
+        .props.onClick();
       await flush();
+      assert.equal(find("data-determination-obligation").props.value, O);
       assert.equal(
         find("data-determination-original").text,
         "9007199254740993",
@@ -3696,7 +4252,8 @@ for (const language of ["de", "en-US"]) {
     const m = await mountedRetention(language, true),
       status = language === "de" ? 401 : 403;
     try {
-      assert.equal(m.calls.length, 0);
+      await settle();
+      assert.equal(m.calls.length, 2);
       for (const [key, body] of [
         ["data-hold-import", importRecord()],
         ["data-determination-import", JSON.stringify(dsaved())],
