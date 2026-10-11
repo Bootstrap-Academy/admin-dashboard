@@ -19,7 +19,7 @@ export default defineNuxtConfig({
       BASE_API_URL: "https://api.bootstrap.academy",
       BASE_WEB_URL: "https://bootstrap.academy",
       NODE_ENV: "production",
-      PROFILE_PUBLICATION_ENABLED: false,
+      PROFILE_PUBLICATION_ENABLED: true,
     },
   },
 });
