@@ -1,19 +1,31 @@
 <script setup lang="ts">
-import { onBeforeUnmount, watch } from "vue";
+import { computed, onBeforeUnmount, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import type { CommercialStaffContext } from "../composables/commercialStaffContext";
+import type {
+  CommercialStaffContext,
+  StaffReadiness,
+} from "../composables/commercialStaffContext";
 import type {
   CaseSelection,
   StaffTransport,
 } from "../composables/commercialStaff";
-import { createCommercialDetermination } from "../composables/commercialDetermination";
+import {
+  createCommercialDetermination,
+  determinationRequest,
+} from "../composables/commercialDetermination";
 import { commercialStorage, registerStaffWork, staffBackupRecords } from "../utils/commercialStorage";
 const props = defineProps<{
   context: CommercialStaffContext;
   transport: StaffTransport;
   selected: CaseSelection | null;
+  /** Renews a session that is about to expire before a determination is sent. */
+  renew?: () => Promise<unknown>;
+  /** Asked before an item or the server's record of a command is read. */
+  ready?: () => Promise<StaffReadiness>;
+  /** The surrounding page already says when the session needs confirming. */
+  embedded?: boolean;
 }>();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const controller = createCommercialDetermination(
   props.context,
   props.transport,
@@ -34,6 +46,33 @@ watch(
   (value) => controller.setTarget(value),
   { immediate: true, flush: "sync" },
 );
+// The saved text stays the original; this is only a readable view of it.
+const savedRequest = computed(() => {
+  try {
+    return state.saved ? determinationRequest(state.saved.body_json) : null;
+  } catch {
+    return null;
+  }
+});
+function open(obligation: string) {
+  controller.editObligation(obligation);
+  return controller.loadStatus();
+}
+async function openTyped() {
+  // A renewal reads the case again, which empties the identifier field.
+  const obligation = state.obligation;
+  if (props.ready && !(await props.ready())) return;
+  if (state.obligation !== obligation) controller.editObligation(obligation);
+  await controller.loadStatus();
+}
+async function reconcile() {
+  if (props.ready && !(await props.ready())) return;
+  await controller.loadStatus(true);
+}
+async function send() {
+  await props.renew?.();
+  await controller.send();
+}
 async function importFile(event: Event) {
   const input = event.target as HTMLInputElement,
     file = input.files?.[0],
@@ -66,69 +105,90 @@ function download() {
     URL.revokeObjectURL(url);
   }
 }
-const amount = (v: string | null) =>
-  v === null ? t("Determination.unknown") : v;
+// Stored whole units: 100 units are 1 EUR.
+function amount(v: string | null) {
+  if (v === null) return t("Determination.unknown");
+  const digits = v.padStart(3, "0");
+  return `${digits.slice(0, -2)}${locale.value === "de" ? "," : "."}${digits.slice(-2)} EUR`;
+}
+const status = (value: string) => t(`Determination.states.${value}`);
+defineExpose({ state, open });
 onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
 </script>
 
 <template>
   <section
-    class="determination grid min-w-0 gap-3 rounded border p-4 text-body"
+    class="determination grid min-w-0 gap-3 text-body"
     data-determination
-    aria-labelledby="determination-heading"
+    :aria-label="t('Determination.title')"
   >
-    <h2 id="determination-heading" class="text-heading">
-      {{ t("Determination.title") }}
-    </h2>
-    <p>{{ t("Determination.intro") }}</p>
-    <p>{{ t("Determination.unitsHint") }}</p>
-    <p v-if="state.error" role="status" data-determination-error>
+    <div v-if="state.target" class="grid gap-3" data-determination-target>
+      <h3 class="text-heading text-heading-4">
+        {{ t("Determination.title") }}
+      </h3>
+      <p v-if="!state.live">{{ t("Determination.intro") }}</p>
+      <details>
+        <summary>{{ t("Determination.byId") }}</summary>
+        <div class="grid gap-3 pt-2">
+          <label
+            >{{ t("Determination.obligation")
+            }}<input
+              data-determination-obligation
+              :value="state.obligation"
+              autocomplete="off"
+              @input="
+                controller.editObligation(
+                  ($event.target as HTMLInputElement).value,
+                )
+              "
+          /></label>
+          <button
+            data-determination-status
+            :disabled="state.liveBusy"
+            @click="openTyped()"
+          >
+            {{ t("Determination.load") }}
+          </button>
+        </div>
+      </details>
+    </div>
+    <p
+      v-if="state.error && !(embedded && state.error === 'authority')"
+      role="status"
+      class="notice"
+      data-determination-error
+    >
       {{ t(`Determination.errors.${state.error}`) }}
     </p>
-    <div v-if="state.target" class="grid gap-3" data-determination-target>
-      <p class="break-all">
-        {{ t("Determination.case") }}: {{ state.target.id }} ·
-        {{ t("Determination.subject") }}: {{ state.target.subject }}
-      </p>
-      <label
-        >{{ t("Determination.obligation")
-        }}<input
-          data-determination-obligation
-          :value="state.obligation"
-          autocomplete="off"
-          @input="
-            controller.editObligation(($event.target as HTMLInputElement).value)
-          "
-      /></label>
-      <button
-        data-determination-status
-        :disabled="state.liveBusy"
-        @click="controller.loadStatus()"
-      >
-        {{ t("Determination.load") }}
-      </button>
-    </div>
-    <p v-else>{{ t("Determination.selectCase") }}</p>
-    <div v-if="state.live" class="grid gap-3" data-determination-live>
-      <p>{{ t("Determination.observed") }}: {{ state.live.observed_at }}</p>
-      <p>
-        {{ t("Determination.current") }}: {{ state.live.obligation.status }} ·
-        {{ amount(state.live.obligation.units) }} /
-        {{ amount(state.live.obligation.cash_units) }}
-      </p>
-      <p class="break-all">
-        {{ state.live.obligation.source }} ·
-        {{ state.live.obligation.source_key }} ·
-        {{ state.live.obligation.component }}
-      </p>
+    <div
+      v-if="state.live"
+      class="form grid gap-3 rounded p-4"
+      data-determination-live
+    >
+      <h4 class="text-heading">
+        {{ status(state.live.obligation.status) }} ·
+        {{ amount(state.live.obligation.units) }}
+        <template v-if="state.live.obligation.cash_units !== null"
+          >({{
+            t("Determination.cashPart", {
+              amount: amount(state.live.obligation.cash_units),
+            })
+          }})</template
+        >
+      </h4>
       <details>
-        <summary>{{ t("Determination.original") }}</summary>
+        <summary>{{ t("Determination.record") }}</summary>
+        <p>{{ t("Determination.observed") }}: {{ state.live.observed_at }}</p>
+        <p class="break-all">
+          {{ state.live.obligation.id }} · {{ state.live.obligation.source }} ·
+          {{ state.live.obligation.source_key }} ·
+          {{ state.live.obligation.component }}
+        </p>
+        <p>{{ t("Determination.original") }}</p>
         <pre data-determination-original>{{
           state.live.obligation.original_json
         }}</pre>
-      </details>
-      <details>
-        <summary>{{ t("Determination.storedDetermination") }}</summary>
+        <p>{{ t("Determination.storedDetermination") }}</p>
         <pre>{{
           state.live.obligation.determination_json === null
             ? t("Determination.sqlNull")
@@ -154,7 +214,8 @@ onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
               )
             "
         /></label>
-        <label class="flex items-start gap-2"
+        <p>{{ t("Determination.unitsHint") }}</p>
+        <label class="check"
           ><input
             data-determination-cash-known
             type="checkbox"
@@ -201,7 +262,7 @@ onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
           }}<textarea
             data-determination-assessment
             :value="state.assessment"
-            rows="4"
+            rows="3"
             @input="
               controller.edit(
                 'assessment',
@@ -248,7 +309,7 @@ onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
               )
             "
         /></label>
-        <label class="flex items-start gap-2"
+        <label class="check"
           ><input
             data-determination-confirm
             type="checkbox"
@@ -262,6 +323,7 @@ onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
           />{{ t("Determination.confirm") }}</label
         >
         <button
+          class="main"
           data-determination-prepare
           :disabled="state.sendBusy || !state.confirm"
           @click="controller.prepare()"
@@ -271,34 +333,152 @@ onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
       </div>
       <p v-else>{{ t("Determination.notPending") }}</p>
     </div>
-    <div class="grid gap-3 border-t pt-3" data-determination-recovery>
-      <h3 class="text-heading">{{ t("Determination.recovery") }}</h3>
-      <p>{{ t("Determination.local") }}</p>
-      <button data-determination-records @click="controller.loadSaved()">
-        {{ t("Determination.loadSaved") }}
-      </button>
-      <label
-        >{{ t("Determination.import")
-        }}<input
-          data-determination-import
-          type="file"
-          accept="application/json,.json"
+    <div
+      v-if="state.saved"
+      class="form grid gap-3 rounded p-4"
+      data-determination-command
+    >
+      <h4 class="text-heading">
+        {{
+          state.receipt
+            ? t("Determination.sent")
+            : t("Determination.readyToSend")
+        }}
+      </h4>
+      <dl v-if="savedRequest">
+        <dt>{{ t("Determination.unitsShort") }}</dt>
+        <dd>
+          {{ amount(savedRequest.units) }}
+          <template v-if="savedRequest.cash_units !== null"
+            >({{
+              t("Determination.cashPart", {
+                amount: amount(savedRequest.cash_units),
+              })
+            }})</template
+          >
+        </dd>
+        <dt>{{ t("Determination.assessmentShort") }}</dt>
+        <dd class="whitespace-pre-wrap">{{ savedRequest.assessment }}</dd>
+        <dt>{{ t("Determination.summaryShort") }}</dt>
+        <dd class="whitespace-pre-wrap">{{ savedRequest.evidence.summary }}</dd>
+      </dl>
+      <p v-if="state.saved.uncertain && !state.receipt" data-determination-uncertain>
+        {{ t("Determination.uncertain") }}
+      </p>
+      <p v-if="state.saved.claimed_receipts.length">
+        {{ t("Determination.claimed") }}
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <button
+          class="main"
+          data-determination-send
+          :hidden="!!state.receipt"
           :disabled="state.sendBusy"
-          @change="importFile"
-      /></label>
+          @click="send"
+        >
+          {{
+            state.saved.uncertain
+              ? t("Determination.retry")
+              : t("Determination.send")
+          }}
+        </button>
+        <button
+          data-determination-reconcile
+          :disabled="state.recoveryBusy || state.sendBusy"
+          @click="reconcile()"
+        >
+          {{ t("Determination.reconcile") }}
+        </button>
+        <button data-determination-download @click="download">
+          {{ t("Determination.download") }}
+        </button>
+      </div>
+      <details>
+        <summary>{{ t("Determination.technical") }}</summary>
+        <p class="break-all">
+          {{ t("Determination.command") }}: {{ state.saved.command_id }} ·
+          {{ t("Determination.actor") }}: {{ state.saved.actor }}
+        </p>
+        <p class="break-all">
+          {{ state.saved.case_id }} · {{ state.saved.subject }} ·
+          {{ state.saved.obligation_id }}
+        </p>
+        <pre data-determination-body>{{ state.saved.body_json }}</pre>
+      </details>
+    </div>
+    <div
+      v-if="state.recovery"
+      class="grid gap-2"
+      data-determination-history
+      :data-status="state.recovery.obligation.status"
+    >
+      <p>
+        {{ t("Determination.current") }}:
+        {{ status(state.recovery.obligation.status) }} ·
+        {{ amount(state.recovery.obligation.units) }}
+        <template v-if="state.recovery.obligation.cash_units !== null"
+          >({{
+            t("Determination.cashPart", {
+              amount: amount(state.recovery.obligation.cash_units),
+            })
+          }})</template
+        >
+      </p>
+      <p v-if="!state.recovery.journal" data-determination-no-journal>
+        {{ t("Determination.noJournal") }}
+      </p>
+      <details v-else>
+        <summary>
+          {{ t("Determination.serverHistory") }} ·
+          {{ state.recovery.journal.id }} ·
+          {{ state.recovery.journal.recorded_at }}
+        </summary>
+        <p>
+          {{ t("Determination.observed") }}: {{ state.recovery.observed_at }}
+        </p>
+        <pre>{{ state.recovery.journal.request_json }}</pre>
+        <pre>{{ state.recovery.journal.result_json }}</pre>
+      </details>
+    </div>
+    <p v-if="state.receipt" class="notice good" data-determination-receipt>
+      {{ t("Determination.receipt") }}
+    </p>
+    <p v-if="state.receiptUnsaved" class="notice" data-determination-receipt-unsaved>
+      {{ t("Determination.receiptUnsaved") }}
+    </p>
+    <details class="grid gap-3" data-determination-recovery>
+      <summary>{{ t("Determination.recovery") }}</summary>
+      <p>{{ t("Determination.local") }}</p>
+      <div class="flex flex-wrap items-end gap-3">
+        <button data-determination-records @click="controller.loadSaved()">
+          {{ t("Determination.loadSaved") }}
+        </button>
+        <label
+          >{{ t("Determination.import")
+          }}<input
+            data-determination-import
+            type="file"
+            accept="application/json,.json"
+            :disabled="state.sendBusy"
+            @change="importFile"
+        /></label>
+      </div>
       <button
         v-for="record in state.records"
         :key="record.command_id"
         :data-determination-saved="record.command_id"
-        class="break-all text-left"
+        class="record"
         @click="controller.selectSaved(record.command_id)"
       >
-        {{ record.command_id }} · {{ record.actor }} ·
-        {{
-          record.receipts.length
-            ? t("Determination.savedHistory")
-            : t("Determination.pending")
-        }}
+        <span class="break-all">{{ record.command_id }}</span>
+        <span class="break-all"
+          >{{ t("Determination.actor") }} {{ record.actor }} ·
+          {{
+            record.receipts.length
+              ? t("Determination.savedHistory")
+              : t("Determination.pending")
+          }}</span
+        >
       </button>
       <details v-for="record in state.unsupported" :key="record.key">
         <summary>
@@ -311,104 +491,62 @@ onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
         <p>{{ t("Determination.keepOriginalFile") }}</p>
         <pre>{{ state.importRaw }}</pre>
       </details>
-      <div v-if="state.saved" class="grid gap-3" data-determination-command>
-        <p class="break-all">
-          {{ t("Determination.command") }}: {{ state.saved.command_id }} ·
-          {{ t("Determination.actor") }}: {{ state.saved.actor }}
-        </p>
-        <p class="break-all">
-          {{ state.saved.case_id }} · {{ state.saved.subject }} ·
-          {{ state.saved.obligation_id }}
-        </p>
-        <p v-if="state.saved.uncertain" data-determination-uncertain>
-          {{ t("Determination.uncertain") }}
-        </p>
-        <p v-if="state.saved.claimed_receipts.length">
-          {{ t("Determination.claimed") }}
-        </p>
-        <details>
-          <summary>{{ t("Determination.exactBody") }}</summary>
-          <pre data-determination-body>{{ state.saved.body_json }}</pre>
-        </details>
-        <div class="flex flex-wrap gap-3">
-          <button data-determination-download @click="download">
-            {{ t("Determination.download") }}
-          </button>
-          <button
-            data-determination-reconcile
-            :disabled="state.recoveryBusy || state.sendBusy"
-            @click="controller.loadStatus(true)"
-          >
-            {{ t("Determination.reconcile") }}
-          </button>
-          <button
-            data-determination-send
-            :disabled="state.sendBusy"
-            @click="controller.send()"
-          >
-            {{
-              state.saved.uncertain
-                ? t("Determination.retry")
-                : t("Determination.send")
-            }}
-          </button>
-        </div>
-        <p>{{ t("Determination.sendHint") }}</p>
-      </div>
-      <div v-if="state.recovery" class="grid gap-2" data-determination-history>
-        <p>
-          {{ t("Determination.observed") }}: {{ state.recovery.observed_at }}
-        </p>
-        <p>
-          {{ t("Determination.current") }}:
-          {{ state.recovery.obligation.status }} ·
-          {{ amount(state.recovery.obligation.units) }} /
-          {{ amount(state.recovery.obligation.cash_units) }}
-        </p>
-        <p v-if="!state.recovery.journal" data-determination-no-journal>
-          {{ t("Determination.noJournal") }}
-        </p>
-        <details v-else>
-          <summary>
-            {{ t("Determination.serverHistory") }} ·
-            {{ state.recovery.journal.id }} ·
-            {{ state.recovery.journal.recorded_at }}
-          </summary>
-          <pre>{{ state.recovery.journal.request_json }}</pre>
-          <pre>{{ state.recovery.journal.result_json }}</pre>
-        </details>
-      </div>
-      <p v-if="state.receipt" data-determination-receipt>
-        {{ t("Determination.receipt") }}
-      </p>
-      <p v-if="state.receiptUnsaved" data-determination-receipt-unsaved>
-        {{ t("Determination.receiptUnsaved") }}
-      </p>
-    </div>
+    </details>
   </section>
 </template>
 
 <style scoped>
+.determination [hidden] {
+  display: none !important;
+}
+.determination label {
+  display: grid;
+  gap: 0.4rem;
+}
+.determination label.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
 .determination button {
   border: 1px solid currentColor;
   border-radius: 0.25rem;
-  padding: 0.4rem 0.7rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--color-heading);
+  text-align: start;
+}
+.determination button.main {
+  justify-self: start;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+.determination button.record {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  border-color: var(--color-light);
+  background: var(--color-secondary);
 }
 .determination button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 .determination :is(button, input, textarea, summary):focus-visible {
-  outline: 3px solid currentColor;
+  outline: 3px solid #a78bfa;
   outline-offset: 3px;
 }
 .determination input:not([type="checkbox"]),
 .determination textarea {
   display: block;
   width: 100%;
-  padding: 0.4rem;
+  padding: 0.5rem;
   background: white;
   color: #111827;
+  border: 1px solid #6b7280;
+  border-radius: 0.25rem;
 }
 .determination input[type="checkbox"] {
   margin-top: 0.3rem;
@@ -416,5 +554,24 @@ onBeforeUnmount(() => { unregisterWork(); controller.dispose(); });
 .determination pre {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+.determination .form {
+  background: var(--color-secondary);
+}
+.determination .notice {
+  border-left: 3px solid var(--color-error);
+  padding: 0.25rem 0 0.25rem 0.75rem;
+  color: var(--color-heading);
+}
+.determination .notice.good {
+  border-color: var(--color-success);
+}
+.determination summary {
+  cursor: pointer;
+  color: var(--color-heading);
+}
+.determination dt {
+  font-weight: 600;
+  margin-top: 0.5rem;
 }
 </style>

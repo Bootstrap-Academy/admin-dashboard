@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
-import type { CommercialStaffContext } from "../composables/commercialStaffContext";
+import type {
+  CommercialStaffContext,
+  StaffReadiness,
+} from "../composables/commercialStaffContext";
 import type { StaffTransport } from "../composables/commercialStaff";
 import {
   createCommercialRetentionPage,
@@ -12,6 +15,8 @@ import {
 const props = defineProps<{
   context: CommercialStaffContext;
   transport: StaffTransport;
+  /** Asked before a page of records is read. */
+  ready?: () => Promise<StaffReadiness>;
 }>();
 const { t } = useI18n();
 const controller = createCommercialRetentionPage(
@@ -29,23 +34,29 @@ const valueText = (value: string | boolean | null) =>
         : value;
 const raw = (key: string) =>
   key === "assessment_json" || key === "evidence_json";
+// A renewed session has emptied the list, so its next page is gone as well:
+// the list then starts again from the first page.
+async function read(mode: "first" | "next" | "restart") {
+  const answer = props.ready ? await props.ready() : "same";
+  if (!answer) return;
+  if (mode === "restart") await controller.restart();
+  else if (mode === "next" && answer === "same") await controller.next();
+  else await controller.first();
+}
 onBeforeUnmount(() => controller.dispose());
 </script>
 
 <template>
   <section
-    class="retention-page grid min-w-0 gap-3 rounded border p-4 text-body"
+    class="retention-page grid min-w-0 gap-3 text-body"
     data-retention-page
-    aria-labelledby="retention-page-heading"
+    :aria-label="t('RetentionPage.title')"
   >
-    <h2 id="retention-page-heading" class="text-heading">
-      {{ t("RetentionPage.title") }}
-    </h2>
     <p>{{ t("RetentionPage.intro") }}</p>
     <label class="grid gap-1">
       {{ t("RetentionPage.family") }}
       <select
-        class="rounded border bg-[#0b192e] p-2"
+        class="rounded border bg-[#0b192e] p-2 text-heading"
         data-retention-family
         :value="state.family"
         @change="
@@ -67,28 +78,28 @@ onBeforeUnmount(() => controller.dispose());
     >
       <button
         type="button"
-        class="rounded border px-3 py-2"
+        class="rounded border px-3 py-2 text-heading"
         data-retention-first
         :disabled="state.busy"
-        @click="controller.first()"
+        @click="read('first')"
       >
         {{ t("RetentionPage.first") }}
       </button>
       <button
         type="button"
-        class="rounded border px-3 py-2"
+        class="rounded border px-3 py-2 text-heading"
         data-retention-next
         :disabled="state.busy || !state.page?.next_cursor"
-        @click="controller.next()"
+        @click="read('next')"
       >
         {{ t("RetentionPage.next") }}
       </button>
       <button
         type="button"
-        class="rounded border px-3 py-2"
+        class="rounded border px-3 py-2 text-heading"
         data-retention-restart
         :disabled="state.busy"
-        @click="controller.restart()"
+        @click="read('restart')"
       >
         {{ t("RetentionPage.restart") }}
       </button>
@@ -151,7 +162,5 @@ onBeforeUnmount(() => controller.dispose());
         </dl>
       </article>
     </div>
-    <p>{{ t("RetentionPage.liveHint") }}</p>
-    <p>{{ t("RetentionPage.observationHint") }}</p>
   </section>
 </template>

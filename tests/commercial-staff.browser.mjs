@@ -174,8 +174,14 @@ let retentionMode = "",
   retentionHeld = null,
   capacityDeny = 0;
 
-const token = (marker) =>
-  `e30.${Buffer.from(JSON.stringify({ uid: U, sid: S, exp: 2147483647 })).toString("base64url")}.${marker}`;
+const expiry = 2147483647;
+const token = (marker, exp = expiry) =>
+  `e30.${Buffer.from(JSON.stringify({ uid: U, sid: S, exp })).toString("base64url")}.${marker}`;
+// Tokens this fixture has issued, those it refuses because they ran out, and
+// the renewals it has answered.
+const issued = new Set([token("a"), token("b")]),
+  ranOut = new Set(),
+  renewals = [];
 const user = {
   id: U,
   name: "Synthetic Admin",
@@ -313,7 +319,10 @@ async function fulfill(
         name: "Access-Control-Allow-Headers",
         value: "Authorization, Content-Type",
       },
-      { name: "Access-Control-Allow-Methods", value: "GET, POST, OPTIONS" },
+      {
+        name: "Access-Control-Allow-Methods",
+        value: "GET, POST, PUT, OPTIONS",
+      },
     ],
     body: Buffer.from(body).toString("base64"),
   });
@@ -351,15 +360,25 @@ async function intercept({ request, requestId }) {
     return cmd("Fetch.continueRequest", { requestId });
   }
   const body = request.postData ? JSON.parse(request.postData) : null;
+  const bearer = (
+    request.headers.Authorization ||
+    request.headers.authorization ||
+    ""
+  ).replace("Bearer ", "");
   records.push({
     requestId,
-    raw: url.pathname === "/auth/sessions" ? null : (request.postData ?? null),
+    raw: url.pathname.startsWith("/auth/session")
+      ? null
+      : (request.postData ?? null),
     method: request.method,
     path: url.pathname,
+    bearer,
     body:
       url.pathname === "/auth/sessions"
         ? { syntheticLogin: true, mfa: !!body?.mfa_code }
-        : body,
+        : url.pathname === "/auth/session"
+          ? { syntheticRenewal: true }
+          : body,
   });
   if (request.method === "OPTIONS") return fulfill(requestId, "", 204);
   if (url.pathname === "/auth/oauth/providers" && request.method === "GET")
@@ -379,16 +398,37 @@ async function intercept({ request, requestId }) {
       refresh_token: "synthetic-refresh",
     });
   }
-  assert(
-    [token("a"), token("b")].includes(
-      (
-        request.headers.Authorization ||
-        request.headers.authorization ||
-        ""
-      ).replace("Bearer ", ""),
-    ),
-    "captured fixture proof",
-  );
+  // The dashboard's ordinary renewal: the refresh token goes in, a new pair
+  // comes out. Each renewed token outlives the one before by a day.
+  if (url.pathname === "/auth/session" && request.method === "PUT") {
+    assert.equal(typeof body.refresh_token, "string");
+    assert.equal(bearer, "");
+    const renewed = token(
+      "renewed" + (renewals.length + 1),
+      expiry + 86400 * (renewals.length + 1),
+    );
+    issued.add(renewed);
+    renewals.push(renewed);
+    return fulfill(requestId, {
+      user,
+      session,
+      access_token: renewed,
+      refresh_token: "synthetic-refresh-" + renewals.length,
+    });
+  }
+  assert(issued.has(bearer), "captured fixture proof");
+  if (ranOut.has(bearer)) return fulfill(requestId, {}, 401);
+  // The navigation counts what waits: one of two declarations is unprocessed.
+  if (url.pathname === "/contracts/declarations" && request.method === "GET") {
+    assert.equal(url.search, "?limit=100&offset=0");
+    return fulfill(requestId, {
+      total: 2,
+      declarations: [
+        { id: C, processed_at: null },
+        { id: D, processed_at: when },
+      ],
+    });
+  }
   if (
     url.pathname === "/shop/claims/admin/retention_page" &&
     request.method === "POST"
@@ -560,7 +600,10 @@ async function intercept({ request, requestId }) {
         ? D
         : "55000000-0000-4000-8000-000000000001",
       review_version: "0",
-      review_due_at: holdRecreated ? "2031-01-01 00:00:00+00" : "infinity",
+      // Due until it is recreated with a later date.
+      review_due_at: holdRecreated
+        ? "2031-01-01 00:00:00+00"
+        : "2026-09-01 00:00:00+00",
       basis: "Synthetic entire original hold basis <script>plain text</script>",
       last_review: null,
     };
@@ -740,6 +783,11 @@ async function holdJourney(language) {
     `Object.keys(sessionStorage).filter(k=>k.startsWith('bootstrap.staff-hold-review.v1.')).forEach(k=>sessionStorage.removeItem(k))`,
   );
   const from = holdPosts.length;
+  // The records of a case are listed once that case is open.
+  await until(`document.querySelector('[data-todo]')`);
+  assert(!(await ev(`!!document.querySelector('[data-hold-row]')`)));
+  await click(`[data-case="${C}"]`);
+  await until(`document.querySelector('[data-hold-row]')`);
   assert(await ev(`document.querySelector('[data-hold-next]').disabled`));
   await panel(language + "-hold-head", "[data-hold-head]");
   await click("[data-hold-head]");
@@ -756,6 +804,22 @@ async function holdJourney(language) {
     "  Synthetic human assessment covering the entire existing hold.  ",
   );
   await input("[data-hold-date]", "2030-10-10T10:30:00.123456+01:30");
+  // Coming back to the window keeps the case and what was typed while the
+  // session is still the same one.
+  await ev(
+    `(()=>{window.dispatchEvent(new Event('focus'));document.dispatchEvent(new Event('visibilitychange'));})()`,
+  );
+  await delay(200);
+  result[language + "Return"] = await ev(
+    `({selected:!!document.querySelector('[data-selected]'),record:!!document.querySelector('[data-hold-selected]'),assessment:document.querySelector('[data-hold-assessment]')?.value,date:document.querySelector('[data-hold-date]')?.value})`,
+  );
+  assert.deepEqual(result[language + "Return"], {
+    selected: true,
+    record: true,
+    assessment:
+      "  Synthetic human assessment covering the entire existing hold.  ",
+    date: "2030-10-10T10:30:00.123456+01:30",
+  });
   await click("[data-hold-scope]");
   for (const type of ["keyDown", "keyUp"])
     await cmd("Input.dispatchKeyEvent", {
@@ -816,8 +880,22 @@ async function holdJourney(language) {
   await ev(
     `Object.keys(sessionStorage).filter(k=>k.startsWith('bootstrap.staff-hold-review.v1.')).forEach(k=>sessionStorage.removeItem(k))`,
   );
+  // The page reads its lists when it opens. Deny that read, so that the retry
+  // below runs without any listed record.
+  holdDeny = true;
+  const listReads = () =>
+    records.filter(
+      (x) => x.path === "/shop/claims/admin/queue" && x.method === "POST",
+    ).length;
+  const readsBeforeDenial = listReads();
   await click('a[href="/dashboard/commercial"]');
   await until(`document.querySelector('[data-hold-import]')`);
+  await until(`document.querySelector('[data-commercial] > [role="alert"]')`);
+  assert(!holdDeny);
+  assert(!(await ev(`!!document.querySelector('[data-case]')`)));
+  // A refusal is not followed by a read the administrator did not ask for.
+  await delay(300);
+  assert.equal(listReads(), readsBeforeDenial + 1);
   const doc = await cmd("DOM.getDocument"),
     file = await cmd("DOM.querySelector", {
       nodeId: doc.root.nodeId,
@@ -870,13 +948,17 @@ async function holdJourney(language) {
   await panel(language + "-hold-retry", "[data-hold-send]");
   await click("[data-hold-send]");
   await until(`document.querySelector('[data-hold-receipt]')`);
-  assert(!(await ev(`!!document.querySelector('[data-hold-queue]')`)));
   assert.equal(holdPosts.length, from + 2);
   assert(holdPosts.slice(from).every((p) => p.raw === original.body_json));
   holdRecreated = true;
+  // A confirmed review makes the page read its lists again.
+  await click(`[data-case="${C}"]`);
   await click("[data-hold-head]");
-  await until(`document.querySelector('[data-hold-row]')`);
+  await until(
+    `document.querySelector('[data-hold-row]')?.textContent.includes('2031')`,
+  );
   await click("[data-hold-row]");
+  await until(`document.querySelector('[data-hold-selected]')`);
   assert(
     await ev(
       `document.querySelector('[data-hold-selected]').textContent.includes(${JSON.stringify(D)})`,
@@ -887,9 +969,6 @@ async function holdJourney(language) {
       `document.querySelector('[data-hold-receipt]').textContent.includes('2030-10-10 09:00:00.123456+00')`,
     ),
   );
-  await click("[data-load-queue]");
-  await until(`document.querySelector('[data-case="${C}"]')`);
-  await click(`[data-case="${C}"]`);
   await click("[data-load-detail]");
   await until(`document.querySelector('[data-detail]')`);
   holdDeny = true;
@@ -933,9 +1012,13 @@ async function determinationJourney(language) {
   await click("[data-load-queue]");
   await until(`document.querySelector('[data-case="${C}"]')`);
   await click(`[data-case="${C}"]`);
-  await input("[data-determination-obligation]", O);
-  await click("[data-determination-status]");
+  // The items of the case are listed with its amounts; one click opens one.
+  await click(`[data-obligation="${O}"]`);
   await until(`document.querySelector('[data-determination-live]')`);
+  assert.equal(
+    await ev(`document.querySelector('[data-determination-obligation]').value`),
+    O,
+  );
   assert.equal(
     await ev(
       `document.querySelector('[data-determination-original]').textContent`,
@@ -1078,7 +1161,7 @@ async function determinationJourney(language) {
   determinationHistory = true;
   await click("[data-determination-reconcile]");
   await until(
-    `document.querySelector('[data-determination-history]')?.textContent.includes('rejected')`,
+    `document.querySelector('[data-determination-history]')?.dataset.status==='rejected'`,
   );
   assert(await ev(`!!document.querySelector('[data-determination-receipt]')`));
   await click("[data-load-queue]");
@@ -1131,13 +1214,16 @@ async function retentionJourney(language) {
   );
   await click('a[href="/dashboard/commercial"]');
   await until(`document.querySelector('[data-retention-page]')`);
+  await until(`document.querySelector('[data-todo]')`);
   await delay(100);
+  // Opening the page reads the cases and their records, never these lists.
   assert.equal(
     records.slice(from).filter((r) => r.path.endsWith("/retention_page"))
       .length,
     0,
   );
   assert(await ev(`document.querySelector('[data-retention-next]').disabled`));
+  await click("[data-retention-open]");
   await panel(language + "-retention-family", "[data-retention-family]");
   for (const family of retentionFamilies) {
     const before = records.length;
@@ -1280,6 +1366,172 @@ async function retentionJourney(language) {
       ": five retention families, exact 100-boundary continuation/restart, malformed/empty distinction, family ABA and both-direction shared denial with saved histories unchanged",
   );
 }
+// Exactly one read of each count per load of the dashboard.
+async function countsJourney(language) {
+  holdRecreated = false;
+  const reads = () => ({
+    declarations: records.filter(
+      (x) => x.path === "/contracts/declarations" && x.method === "GET",
+    ).length,
+    records: records.filter(
+      (x) => x.path === "/shop/claims/admin/hold_queue" && x.method === "POST",
+    ).length,
+  });
+  const since = (from) => {
+    const now = reads();
+    return {
+      declarations: now.declarations - from.declarations,
+      records: now.records - from.records,
+    };
+  };
+  const metrics = (width, height) =>
+    cmd("Emulation.setDeviceMetricsOverride", {
+      width,
+      height,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+  // A dashboard that loads on the commercial page: the page's own read of the
+  // record list is the only one.
+  let from = reads();
+  await cmd("Page.navigate", { url: app + "/dashboard/commercial" });
+  await until(`document.querySelector('[data-todo]')`);
+  await until(
+    `document.querySelectorAll('[data-waiting-number]').length===2`,
+  );
+  await delay(400);
+  assert.deepEqual(since(from), { declarations: 1, records: 1 });
+  // On a small screen the links mount again whenever the menu opens. The
+  // numbers stay, and nothing is read for them.
+  await metrics(390, 844);
+  from = reads();
+  await cmd("Page.navigate", { url: app + "/dashboard" });
+  const menu = `document.querySelector('section.fixed.left-0.top-0.z-50')`;
+  await until(
+    `${menu}&&document.querySelectorAll('[data-waiting-number]').length===2`,
+  );
+  await delay(900);
+  assert.deepEqual(since(from), { declarations: 1, records: 1 });
+  for (let n = 0; n < 3; n++) {
+    for (const type of ["mousePressed", "mouseReleased"])
+      await cmd("Input.dispatchMouseEvent", {
+        type,
+        x: 370,
+        y: 450,
+        button: "left",
+        clickCount: 1,
+      });
+    await until(`!${menu}`);
+    await delay(600);
+    await click(".links section .cursor-pointer");
+    await until(
+      `${menu}&&document.querySelectorAll('[data-waiting-number]').length===2`,
+    );
+    await delay(900);
+  }
+  assert.deepEqual(since(from), { declarations: 1, records: 1 });
+  result[language + "Counts"] = since(from);
+  await metrics(1440, 1000);
+  await cmd("Page.navigate", { url: app + "/dashboard" });
+  await until(
+    `document.querySelector('[data-commercial-nav]')&&getComputedStyle(document.querySelector('[data-commercial-nav]').closest('aside')).opacity==='1'`,
+  );
+  passed(
+    language +
+      ": one read of each count per dashboard load, none for the commercial page's own number and none when the menu opens",
+  );
+}
+// A session that really is renewed: the token the page holds has run out or
+// is about to, the server refuses the old one, and the page carries on.
+async function renewalJourney(language) {
+  holdRecreated = false;
+  const current = async () =>
+    decodeURIComponent(
+      (await ev(`document.cookie`))
+        .split("; ")
+        .find((c) => c.startsWith("accessToken="))
+        .slice(12),
+    );
+  const exp = (bearer) =>
+    JSON.parse(Buffer.from(bearer.split(".")[1], "base64url").toString()).exp;
+  // The page's clock: so many seconds before or after the token runs out.
+  const clock = async (bearer, left) =>
+    ev(
+      `(()=>{window.__realNow??=Date.now;Date.now=()=>${(exp(bearer) - left) * 1000};})()`,
+    );
+  await click('a[href="/dashboard/commercial"]');
+  await until(`document.querySelector('[data-todo]')`);
+  await ev(
+    `Object.keys(sessionStorage).filter(k=>k.startsWith('bootstrap.staff-hold-review.v1.')).forEach(k=>sessionStorage.removeItem(k))`,
+  );
+  await click(`[data-case="${C}"]`);
+  await until(`document.querySelector('[data-capacity]')`);
+  // 1. The token has run out while the case was open. A read from the case
+  // renews first; the case is open again and shows what was asked for.
+  let before = renewals.length,
+    old = await current();
+  await clock(old, -5);
+  ranOut.add(old);
+  await click("[data-load-detail]");
+  await until(
+    `document.querySelector('[data-detail]')&&document.querySelector('[data-selected]')&&document.querySelector('[data-capacity]')`,
+  );
+  assert.equal(renewals.length, before + 1);
+  assert.equal(await current(), renewals.at(-1));
+  assert(
+    !(await ev(`!!document.querySelector('[data-commercial] > [role="alert"]')`)),
+  );
+  assert.equal(records.at(-1).path, "/shop/claims/admin/detail");
+  assert.equal(records.at(-1).bearer, renewals.at(-1));
+  // 2. A review is sent with 150 seconds left. The renewal comes before the
+  // review, so the case stays open and the confirmation is shown.
+  await click("[data-hold-row]");
+  await until(`document.querySelector('[data-hold-selected]')`);
+  await input(
+    "[data-hold-assessment]",
+    "  Synthetic human assessment covering the entire existing hold.  ",
+  );
+  await input("[data-hold-date]", "2030-10-10T10:30:00.123456+01:30");
+  await click("[data-hold-scope]");
+  await click("[data-hold-prepare]");
+  await until(`document.querySelector('[data-hold-command]')`);
+  before = renewals.length;
+  old = await current();
+  const posts = holdPosts.length;
+  await clock(old, 150);
+  ranOut.add(old);
+  await click("[data-hold-send]");
+  await until(
+    `document.querySelector('[data-hold-receipt]')&&document.querySelector('[data-selected]')&&document.querySelector('[data-capacity]')`,
+  );
+  assert.equal(renewals.length, before + 1);
+  assert.equal(holdPosts.length, posts + 1);
+  assert.equal(holdPosts.at(-1).authorization, "Bearer " + renewals.at(-1));
+  result[language + "Renewal"] = await ev(
+    `({receipt:document.querySelector('[data-hold-receipt]').innerText,sent:document.querySelector('[data-hold-command]').innerText,alert:!!document.querySelector('[data-commercial] > [role="alert"]')})`,
+  );
+  assert(
+    result[language + "Renewal"].receipt.includes(
+      language === "de"
+        ? "Gespeichert. Die nächste Prüfung steht am 10.10.2030 an."
+        : "Saved. The next review is due on 10/10/2030.",
+    ),
+    result[language + "Renewal"].receipt,
+  );
+  assert(
+    !result[language + "Renewal"].sent.includes(
+      language === "de" ? "frühere Bestätigung" : "earlier confirmation",
+    ),
+  );
+  assert(!result[language + "Renewal"].alert);
+  await ev(`Date.now=window.__realNow`);
+  await click('a[href="/dashboard"]');
+  await until(`!document.querySelector('[data-commercial]')`);
+  passed(
+    language +
+      ": real renewals: a read from the open case after the token ran out, and a review sent with 150 seconds left",
+  );
+}
 try {
   setApiHandler((req, res) => {
     const expected = expectedDirect[0];
@@ -1343,6 +1595,10 @@ try {
     source: `(()=>{const listeners=new Set(),originalAdd=EventTarget.prototype.addEventListener,originalRemove=EventTarget.prototype.removeEventListener;window.__staffProbe={listeners,ids:new Map(),nextId:0,adds:0,removes:0,cookieSignals:0,channels:0};EventTarget.prototype.addEventListener=function(type,fn,...rest){if(this===window.cookieStore&&type==='change'){listeners.add(fn);if(!__staffProbe.ids.has(fn))__staffProbe.ids.set(fn,++__staffProbe.nextId);__staffProbe.adds++;}return originalAdd.call(this,type,fn,...rest)};EventTarget.prototype.removeEventListener=function(type,fn,...rest){if(this===window.cookieStore&&type==='change'){listeners.delete(fn);__staffProbe.removes++;}return originalRemove.call(this,type,fn,...rest)};if(window.cookieStore)originalAdd.call(cookieStore,'change',()=>__staffProbe.cookieSignals++);if(window.BroadcastChannel){const Original=window.BroadcastChannel;window.BroadcastChannel=class extends Original{constructor(name){super(name);if(name.startsWith('nuxt:cookies:')){this.tracked=true;__staffProbe.channels++;}}close(){if(this.tracked){this.tracked=false;__staffProbe.channels--;}super.close();}}}})()`,
   });
   for (const language of ["de", "en-US"]) {
+    // Each language starts with the retained record that is due and with
+    // tokens the server accepts.
+    holdRecreated = false;
+    ranOut.clear();
     // Stop the previous page's cookie observers before replacing the test jar.
     await cmd("Page.navigate", { url: "about:blank" });
     await until(`location.href === 'about:blank'`);
@@ -1373,12 +1629,40 @@ try {
     await until(
       `document.querySelector('[data-commercial-nav]')&&getComputedStyle(document.querySelector('[data-commercial-nav]').closest('aside')).opacity==='1'`,
     );
+    // From every page the navigation says how much is waiting.
+    await until(
+      `document.querySelector('[data-waiting="dashboard-commercial"]')&&document.querySelector('[data-waiting="dashboard-declarations"]')`,
+    );
+    result[language + "Waiting"] = await ev(
+      `Object.fromEntries([...document.querySelectorAll('[data-waiting]')].map(e=>[e.dataset.waiting,e.querySelector('[data-waiting-number]').textContent.trim()+'|'+e.closest('a').innerText.replace(/\\s+/g,' ').trim()]))`,
+    );
+    // The number is shown, and the link reads it out with what it means.
+    for (const [name, label] of [
+      [
+        "dashboard-commercial",
+        language === "de" ? "Kaufmännische Vorgänge" : "Commercial cases",
+      ],
+      [
+        "dashboard-declarations",
+        language === "de" ? "Kündigungen" : "Cancellations",
+      ],
+    ]) {
+      const [number, link] = result[language + "Waiting"][name].split("|");
+      assert.equal(number, "1");
+      assert(link.startsWith(label), link);
+      assert(
+        link.endsWith(language === "de" ? "1 offen" : "1 waiting"),
+        link,
+      );
+    }
     await panel(language + "-nav-inactive", "[data-commercial-nav]");
     const preMount = await ev(
       `({ids:[...__staffProbe.listeners].map(fn=>__staffProbe.ids.get(fn)),channels:__staffProbe.channels})`,
     );
     await click('a[href="/dashboard/commercial"]');
     await until(`document.querySelector('[data-commercial]')`);
+    // Opening the page reads the cases once and says first what is waiting.
+    await until(`document.querySelector('[data-todo]')`);
     await delay(150);
     const before = await ev(
       `({listeners:__staffProbe.listeners.size,channels:__staffProbe.channels,adds:__staffProbe.adds,removes:__staffProbe.removes,cookieStore:!!window.cookieStore,ids:[...__staffProbe.listeners].map(fn=>__staffProbe.ids.get(fn))})`,
@@ -1387,16 +1671,45 @@ try {
       records.filter(
         (x) => x.path === "/shop/claims/admin/queue" && x.method === "POST",
       ).length,
-      language === "de" ? 0 : ready,
+      (language === "de" ? 0 : ready) + 1,
+    );
+    result[language + "Opening"] = await ev(
+      `({todo:document.querySelector('[data-todo]').dataset.todo,text:document.querySelector('[data-todo]').innerText,cases:[...document.querySelectorAll('[data-case]')].map(e=>e.dataset.case),filter:document.querySelector('[data-filter][aria-pressed="true"]')?.dataset.filter})`,
+    );
+    assert.equal(result[language + "Opening"].todo, "due");
+    assert(
+      result[language + "Opening"].text.includes(
+        language === "de"
+          ? "1 von 2 Fällen wartet auf dich, fällig seit dem 01.09.2026."
+          : "1 of 2 cases is waiting for you, due since 09/01/2026.",
+      ),
+      result[language + "Opening"].text,
+    );
+    // Only the waiting case is listed at first; the other one is a click away.
+    assert.deepEqual(result[language + "Opening"].cases, [C]);
+    assert.equal(result[language + "Opening"].filter, "due");
+    assert.equal(
+      await ev(
+        `document.querySelector('[data-case="${C}"]').getAttribute('aria-label')`,
+      ),
+      language === "de"
+        ? "Fall 33000000, Konto besteht noch, 1 Unterlage prüfen, fällig seit 01.09.2026"
+        : "Case 33000000, Account still exists, review 1 record, due since 09/01/2026",
     );
     await panel(language + "-nav-active", "[data-commercial-nav]");
     await panel(language + "-queue", "[data-load-queue]");
     await click("[data-load-queue]");
     await until(`document.querySelector('[data-case="${C}"]')`);
     await click(`[data-case="${C}"]`);
+    // The amounts of a case are read when it opens.
+    await until(`document.querySelector('[data-capacity]')`);
+    // Keyboard and screen reader land on the heading of the case.
+    assert(await ev(`document.activeElement.matches('[data-case-title]')`));
     await click("[data-load-detail]");
     await click("[data-load-capacity]");
-    await until(`document.querySelector('[data-capacity]')`);
+    await until(
+      `document.querySelector('[data-detail]')&&document.querySelector('[data-capacity]')`,
+    );
     assert(
       await ev(
         `document.querySelector('[data-raw-detail]').textContent.includes('9007199254740993')`,
@@ -1443,7 +1756,7 @@ try {
     await delay(180);
     assert.equal((await fs.readdir(downloadPath)).length, count);
     await click("[data-download]");
-    await until(`document.querySelector('[data-selected] [role="status"]')`);
+    await until(`document.querySelector('[data-downloaded]')`);
     for (
       let i = 0;
       i < 100 &&
@@ -1458,7 +1771,7 @@ try {
     await input("[data-document-id]", O);
     await input("[data-document-variant]", "confirmation");
     await click("[data-download]");
-    await until(`document.querySelector('[data-selected] [role="status"]')`);
+    await until(`document.querySelector('[data-downloaded]')`);
     passed(
       language +
         ": held selector away/back suppressed; exact PDF and text byte downloads",
@@ -1469,7 +1782,13 @@ try {
       assert(n < 1000, "expected intercepted held request");
       await delay(20);
     }
+    // Back to the list, where the other case is one filter away. The focus
+    // returns to the row that was open.
+    await click("[data-back]");
+    await until(`document.activeElement?.dataset.case==="${C}"`);
+    await click('[data-filter="all"]');
     await click(`[data-case="${D}"]`);
+    await until(`document.querySelector('[data-selected]')`);
     await fulfill(held.requestId, {}, 401);
     held = null;
     await until(`!document.querySelector('[data-selected]')`);
@@ -1576,6 +1895,8 @@ try {
     await holdJourney(language);
     await determinationJourney(language);
     await retentionJourney(language);
+    await countsJourney(language);
+    await renewalJourney(language);
     ready = records.filter(
       (x) => x.path === "/shop/claims/admin/queue" && x.method === "POST",
     ).length;
