@@ -25,3 +25,9 @@ npm run test:browser
 `typecheck` checks TypeScript sources with Nuxt's generated configuration. The unit and browser suites exercise Vue component behavior; this command does not typecheck Vue templates.
 
 Browser tests serve the existing `dist` build, use isolated synthetic API responses and block external requests. Install Chromium and set `CHROMIUM_PATH` if it is not on your PATH. The runner owns and removes its temporary profiles and local servers. It reports each tested case group. Authenticated acceptance against the deployed Test API remains a separate release check.
+
+## License
+
+Copyright (C) 2023–2026 Cedric Mössner
+
+This project is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See [`LICENSE`](LICENSE) for the full license text.
