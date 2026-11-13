@@ -109,7 +109,7 @@
 						:options="actionOptions"
 						v-model="form.action"
 					/>
-					<p>{{ t('Body.DeclarationActionHint') }}</p>
+					<p>{{ t(form.action === 'CLOSE_WITHOUT_CONTRACT' ? 'Body.CloseWithoutContractHint' : 'Body.DeclarationActionHint') }}</p>
 					<Input
 						v-if="form.action === 'SCHEDULE_PREMIUM_CANCELLATION'"
 						id="declaration-user-id"
@@ -128,7 +128,7 @@
 							evidenceText
 						}}</pre>
 					</details>
-					<label
+					<label v-if="form.action !== 'CLOSE_WITHOUT_CONTRACT'"
 						><input type="checkbox" v-model="form.verified" />
 						{{ t('Body.DeclarationVerified') }}</label
 					>
@@ -243,6 +243,10 @@ export default {
         label: 'Headings.SchedulePremiumCancellation',
         value: 'SCHEDULE_PREMIUM_CANCELLATION',
       },
+      {
+        label: 'Headings.CloseWithoutContract',
+        value: 'CLOSE_WITHOUT_CONTRACT',
+      },
     ];
     const evidenceText = computed(() => {
       try {
@@ -277,15 +281,17 @@ export default {
     async function submitProcessing() {
       if (submitting.value || !processing.value?.id) return;
 
-      if (!form.verified || !form.note.trim())
+      if (!form.note.trim())
+        return openSnackbar('error', 'Error.DeclarationNoteRequired');
+      if (form.action !== 'CLOSE_WITHOUT_CONTRACT' && !form.verified)
         return openSnackbar('error', 'Error.DeclarationVerificationRequired');
       submitting.value = true;
 
       const [, error] = await setDeclarationProcessed(processing.value.id, {
         action: form.action,
-        identity_verified: form.verified,
-        verified_user_id: form.userId || null,
-        renewal_agreement_id: form.agreementId || null,
+        identity_verified: form.action === 'CLOSE_WITHOUT_CONTRACT' ? false : form.verified,
+        verified_user_id: form.action === 'SCHEDULE_PREMIUM_CANCELLATION' ? form.userId || null : null,
+        renewal_agreement_id: form.action === 'SCHEDULE_PREMIUM_CANCELLATION' ? form.agreementId || null : null,
         effective_end:
 					form.action === 'RECORD_EXTERNAL_RESOLUTION'
 					  ? toEffectiveEnd(form.effectiveEnd)

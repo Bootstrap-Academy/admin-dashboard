@@ -205,3 +205,42 @@ test("an edited decision needs a fresh preview and changed identity cannot use a
     assert.throws(() => f.view.command(), /Loaded case changed/);
   } finally { f.dispose(); }
 });
+
+
+test("closing without a contract discards hidden fields, requires a note and shows backend detail", async () => {
+  const writes = [], notices = [];
+  let failure = null;
+  const component = await source("../pages/dashboard/declarations/index.vue", {
+    definePageMeta() {}, onMounted() {},
+    useI18n: () => ({ t: (key) => key, locale: Vue.ref("de") }),
+    formatDeclarationDateTime: (value) => value,
+    useDeclarations: () => Vue.ref([]), useTotalDeclarations: () => Vue.ref(0),
+    getDeclarations: async () => [null, null],
+    setDeclarationProcessed: async (id, body) => { writes.push({ id, body }); return [null, failure]; },
+    openSnackbar: (...args) => notices.push(args),
+    toEffectiveEnd() { throw new Error("Hidden end date was used"); },
+  }, "component");
+  const page = component.setup();
+  page.openProcessing({ id: "synthetic", user_id: "stale-user", effective_end: "stale-date",
+    operational_evidence: JSON.stringify({ account_observation: { agreement_id: "stale-agreement" } }) });
+  assert(page.actionOptions.some((action) => action.value === "CLOSE_WITHOUT_CONTRACT"));
+  page.form.action = "CLOSE_WITHOUT_CONTRACT";
+  page.form.verified = true;
+  await page.submitProcessing();
+  assert.equal(writes.length, 0);
+  assert.equal(notices.at(-1)[1], "Error.DeclarationNoteRequired");
+  page.form.note = "  Kein Vertrag am Konto  ";
+  failure = { detail: "Am Konto ist ein Vertrag belegt." };
+  await page.submitProcessing();
+  assert.equal(JSON.stringify(writes[0].body), JSON.stringify({
+    action: "CLOSE_WITHOUT_CONTRACT", identity_verified: false,
+    verified_user_id: null, renewal_agreement_id: null, effective_end: null,
+    note: "Kein Vertrag am Konto",
+  }));
+  assert.equal(notices.at(-1)[1], failure.detail);
+  assert(page.processing.value);
+  failure = null;
+  await page.submitProcessing();
+  assert.equal(writes.length, 2);
+  assert.equal(page.processing.value, null);
+});
