@@ -199,6 +199,9 @@ try {
     ),
   );
   await click(`document.querySelector('form summary')`);
+  await until(`document.querySelector('form details')?.open`);
+  await ev(`document.querySelector('form pre').scrollIntoView({block:'center',behavior:'instant'})`);
+  await until(`document.querySelector('form pre')?.innerText.includes('IMMUTABLE RECEIPT BYTES')`);
   assert(
     (await ev(`document.querySelector('form pre').innerText`)).includes(
       'IMMUTABLE RECEIPT BYTES',
