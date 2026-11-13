@@ -5,6 +5,7 @@
     "LoginForm": "Bitte geben Sie Ihre Anmeldeinformationen ein"
   },
   "Headings": {
+    "CloseWithoutContract": "Ohne Vertrag schließen",
     "ManageReport": "Bericht verwalten",
     "ReportedTasks": "Gemeldete Aufgaben",
     "NoMoreSubtasks": "Keine weiteren Teilaufgaben",
@@ -115,6 +116,7 @@
     "SchedulePremiumCancellation": "Ordentliche Premium-Kündigung terminieren"
   },
   "Body": {
+    "CloseWithoutContractHint": "Zum Konto gibt es keinen Vertrag. Du schließt die Erklärung mit deiner Notiz, ohne Vertragsende oder Nachricht. Die gespeicherten Belege und das Konto werden dabei geprüft.",
     "DashboardPlaceholder": "Dieses Dashboard wurde archiviert. Analytics befinden sich jetzt in Grafana.",
     "DashboardPlaceholderHint": "Bitte nutzen Sie Grafana, um aktuelle Metriken und Berichte anzusehen.",
     "SearchByEmail": "Suche nach E-Mail",
@@ -214,6 +216,7 @@
     "DeclarationProcessed": "Die Erklärung wurde als bearbeitet markiert."
   },
   "Error": {
+    "DeclarationNoteRequired": "Schreib kurz dazu, warum du die Erklärung schließt.",
     "SubtaskNotFound": "Teilaufgabe nicht gefunden",
     "McqNotFound": "MCQ nicht gefunden",
     "CodingChallengeNotFound": "Programmieraufgabe nicht gefunden",
