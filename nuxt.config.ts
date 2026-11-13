@@ -16,10 +16,10 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      BASE_API_URL: "https://api.bootstrap.academy",
-      BASE_WEB_URL: "https://bootstrap.academy",
-      NODE_ENV: "production",
-      PROFILE_PUBLICATION_ENABLED: true,
+      BASE_API_URL: 'https://api.test.bootstrap.academy',
+      BASE_WEB_URL: 'https://admin.test.bootstrap.academy',
+      NODE_ENV: 'development',
+      PROFILE_PUBLICATION_ENABLED: false,
     },
   },
 });
