@@ -273,7 +273,7 @@ try {
     assert.deepEqual(writes.at(-1), {
       action: 'CLOSE_WITHOUT_CONTRACT', identity_verified: false,
       verified_user_id: null, renewal_agreement_id: null,
-      effective_end: null, note: 'Kein Vertrag am Konto',
+      note: 'Kein Vertrag am Konto',
     });
     passed(kind + ' closes with a required note and no identity or date fields');
   }
