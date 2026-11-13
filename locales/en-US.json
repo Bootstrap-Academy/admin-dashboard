@@ -118,7 +118,7 @@
     "SchedulePremiumCancellation": "Schedule ordinary Premium cancellation"
   },
   "Body": {
-    "CloseWithoutContractHint": "This account has no contract. Close the declaration with your note, without an end date or message. The stored evidence and account are checked before closing.",
+    "CloseWithoutContractHint": "Close a declaration for an account without a contract. Your note is saved without setting an end date or sending a message. The stored evidence and account are checked before closing.",
     "DashboardPlaceholder": "This dashboard is retired. Analytics now live in Grafana.",
     "DashboardPlaceholderHint": "Visit Grafana to view the latest metrics and reports.",
     "SearchByEmail": "Search by email",

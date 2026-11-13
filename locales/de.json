@@ -116,7 +116,7 @@
     "SchedulePremiumCancellation": "Ordentliche Premium-Kündigung terminieren"
   },
   "Body": {
-    "CloseWithoutContractHint": "Zum Konto gibt es keinen Vertrag. Du schließt die Erklärung mit deiner Notiz, ohne Vertragsende oder Nachricht. Die gespeicherten Belege und das Konto werden dabei geprüft.",
+    "CloseWithoutContractHint": "Hier schließt du eine Erklärung zu einem Konto ohne Vertrag. Deine Notiz bleibt gespeichert, ein Vertragsende oder eine Nachricht entstehen dabei nicht. Die gespeicherten Belege und das Konto werden beim Abschluss geprüft.",
     "DashboardPlaceholder": "Dieses Dashboard wurde archiviert. Analytics befinden sich jetzt in Grafana.",
     "DashboardPlaceholderHint": "Bitte nutzen Sie Grafana, um aktuelle Metriken und Berichte anzusehen.",
     "SearchByEmail": "Suche nach E-Mail",
