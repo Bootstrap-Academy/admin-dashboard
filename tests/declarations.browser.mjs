@@ -10,6 +10,7 @@ const writes = [],
   groups = [],
   errors = [];
 let pass = false;
+let rejectClose = false;
 function passed(label) {
   groups.push(label);
   console.log('PASS declarations: ' + label);
@@ -106,12 +107,16 @@ async function mock({ request, requestId }) {
     });
   }
   let data = {};
+  let status = 200;
   if (request.method === 'GET' && url.pathname === '/contracts/declarations')
     data = { total: 1, declarations: [declaration] };
   else if (request.method === 'PATCH') {
     const body = JSON.parse(request.postData);
     writes.push(body);
-    data = {
+    if (rejectClose && body.action === 'CLOSE_WITHOUT_CONTRACT') {
+      status = 400;
+      data = { detail: 'Am Konto ist ein Vertrag belegt.' };
+    } else data = {
       ...declaration,
       ...body,
       processed_at: '2026-09-07T21:00:00Z',
@@ -128,7 +133,7 @@ async function mock({ request, requestId }) {
     };
   await cmd('Fetch.fulfillRequest', {
     requestId,
-    responseCode: 200,
+    responseCode: status,
     responseHeaders: [
       { name: 'Content-Type', value: 'application/json' },
       { name: 'Access-Control-Allow-Origin', value: '*' },
@@ -194,6 +199,9 @@ try {
     ),
   );
   await click(`document.querySelector('form summary')`);
+  await until(`document.querySelector('form details')?.open`);
+  await ev(`document.querySelector('form pre').scrollIntoView({block:'center',behavior:'instant'})`);
+  await until(`document.querySelector('form pre')?.innerText.includes('IMMUTABLE RECEIPT BYTES')`);
   assert(
     (await ev(`document.querySelector('form pre').innerText`)).includes(
       'IMMUTABLE RECEIPT BYTES',
@@ -237,6 +245,42 @@ try {
   passed('original agreement and verified identity submitted exactly once, without an invented end date');
   await until(`!${waiting}`);
   passed('the navigation counts the waiting declaration and stops once it is processed');
+  for (const kind of ['CANCELLATION', 'WITHDRAWAL']) {
+    declaration.kind = kind;
+    declaration.operational_evidence = JSON.stringify({ account_observation: { user_id: user, agreement_id: null } });
+    await cmd('Page.navigate', { url: app + '/dashboard/declarations' });
+    await until(`document.querySelector('main')?.innerText.includes('FULL ORIGINAL REASONING')`);
+    await click(`Array.from(document.querySelectorAll('main button')).find(b=>b.innerText.toLowerCase().includes('als bearbeitet'))`);
+    await until(`document.querySelector('#declaration-action')`);
+    await set('#declaration-action', 'CLOSE_WITHOUT_CONTRACT');
+    assert.equal(await ev(`!!document.querySelector('form input[type=checkbox]')`), false);
+    assert.equal(await ev(`!!document.querySelector('#declaration-effective-end')`), false);
+    assert.equal(await ev(`!!document.querySelector('#declaration-user-id')`), false);
+    assert.equal(await ev(`!!document.querySelector('#declaration-agreement-id')`), false);
+    const count = writes.length;
+    await click(`document.querySelector('form button[type=submit]')`);
+    assert.equal(writes.length, count);
+    await pause(5500);
+    await set('#declaration-note', 'Kein Vertrag am Konto');
+    if (kind === 'CANCELLATION') {
+      rejectClose = true;
+      await click(`document.querySelector('form button[type=submit]')`);
+      await until(`document.body.innerText.includes('Am Konto ist ein Vertrag belegt.')`);
+      assert(await ev(`!!document.querySelector('#declaration-action')`));
+      passed('backend contract rejection stays visible with the form open');
+      await pause(5500);
+      rejectClose = false;
+    }
+    await click(`document.querySelector('form button[type=submit]')`);
+    await until(`!document.querySelector('#declaration-action')`);
+    assert.deepEqual(writes.at(-1), {
+      action: 'CLOSE_WITHOUT_CONTRACT', identity_verified: false,
+      verified_user_id: null, renewal_agreement_id: null,
+      note: 'Kein Vertrag am Konto',
+    });
+    passed(kind + ' closes with a required note and no identity or date fields');
+  }
+  assert.deepEqual(errors, []);
   await fs.writeFile(
     join(run, 'declarations.png'),
     Buffer.from((await cmd('Page.captureScreenshot', { format: 'png' })).data, 'base64'),

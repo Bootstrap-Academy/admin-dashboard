@@ -5,6 +5,7 @@
     "LoginForm": "Please enter your credentials"
   },
   "Headings": {
+    "CloseWithoutContract": "Close without a contract",
     "ManageReport": "Manage Report",
     "userEnabled": "User aktiviert",
     "userDisabled": "User deaktiviert",
@@ -117,6 +118,7 @@
     "SchedulePremiumCancellation": "Schedule ordinary Premium cancellation"
   },
   "Body": {
+    "CloseWithoutContractHint": "Close a declaration for an account without a contract. Your note is saved without setting an end date or sending a message. The stored evidence and account are checked before closing.",
     "DashboardPlaceholder": "This dashboard is retired. Analytics now live in Grafana.",
     "DashboardPlaceholderHint": "Visit Grafana to view the latest metrics and reports.",
     "SearchByEmail": "Search by email",
@@ -216,6 +218,7 @@
     "DeclarationProcessed": "The declaration has been marked as processed."
   },
   "Error": {
+    "DeclarationNoteRequired": "Add a short note explaining why you are closing the declaration.",
     "SubtaskNotFound": "Subtask Not Found",
     "McqNotFound": "MCQ Not Found",
     "CodingChallengeNotFound": "Coding Challenge Not Found",
